@@ -1,0 +1,15 @@
+name: Deploy Backend
+
+on:
+  push:
+    paths:
+      - "backend/**"
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+    steps:
+      - name: Restart backend service
+        run: |
+          cd /home/ubuntu/goodness-energy
+          docker-compose up -d --build backend
