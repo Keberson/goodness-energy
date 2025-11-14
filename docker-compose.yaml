@@ -45,3 +45,4 @@ services:
 
 volumes:
   frontend-build:
+  postgres_data:
