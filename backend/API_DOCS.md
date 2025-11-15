@@ -57,7 +57,6 @@ Authorization: Bearer {token}
 {
   "login": "npo_login",
   "password": "password",
-  "psrn": "1234567890",
   "name": "Название НКО",
   "description": "Описание",
   "coordinates": [55.7558, 37.6173],

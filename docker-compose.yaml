@@ -43,6 +43,31 @@ services:
       - "${POSTGRES_PORT}:5432"
     restart: unless-stopped
 
+  init-data:
+    image: postgres:15-alpine
+    container_name: social_hack_init_data
+    env_file:
+      - .env
+    volumes:
+      - ./backend/init-data.sql:/tmp/init-data.sql:ro
+    depends_on:
+      backend:
+        condition: service_started
+      postgres:
+        condition: service_healthy
+    command: >
+      sh -c "
+      echo 'Waiting for backend to create tables...' &&
+      until PGPASSWORD=$$POSTGRES_PASSWORD psql -h postgres -U $$POSTGRES_USER -d $$POSTGRES_DB -tAc \"SELECT 1 FROM information_schema.tables WHERE table_name='users'\" | grep -q 1; do
+        echo 'Tables not ready yet, waiting...' &&
+        sleep 2
+      done &&
+      echo 'Tables are ready! Executing init-data.sql...' &&
+      PGPASSWORD=$$POSTGRES_PASSWORD psql -h postgres -U $$POSTGRES_USER -d $$POSTGRES_DB -f /tmp/init-data.sql &&
+      echo 'Database initialization completed!'
+      "
+    restart: "no"
+
 volumes:
   frontend-build:
   postgres_data:

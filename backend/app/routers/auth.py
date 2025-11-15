@@ -17,13 +17,6 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
             detail="Login already registered"
         )
     
-    # Проверка существования ПСРН
-    if db.query(NPO).filter(NPO.psrn == npo_data.psrn).first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="PSRN already registered"
-        )
-    
     # Создание пользователя
     password_hash = get_password_hash(npo_data.password)
     user = User(
@@ -79,7 +72,6 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
     # Создание НКО
     npo = NPO(
         user_id=user.id,
-        psrn=npo_data.psrn,
         name=npo_data.name,
         description=npo_data.description,
         coordinates_lat=lat,

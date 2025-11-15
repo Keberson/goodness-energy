@@ -16,7 +16,6 @@ class Token(BaseModel):
 class NPORegistration(BaseModel):
     login: str
     password: str
-    psrn: str
     name: str
     description: str
     coordinates: List[float]  # [lat, lon] - обязательное поле при регистрации
