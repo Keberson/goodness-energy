@@ -54,6 +54,7 @@ docker-compose down -v
 **Контейнеры:**
 - `postgres` - PostgreSQL база данных (порт 5432)
 - `backend` - FastAPI приложение (порт 8000)
+- `minio` - MinIO объектное хранилище (порт 9000 - API, порт 9001 - консоль)
 
 Контейнеры автоматически настроены для работы друг с другом через Docker сеть.
 
@@ -96,6 +97,7 @@ API будет доступен по адресу: http://localhost:8000
 │   ├── models.py            # SQLAlchemy модели
 │   ├── schemas.py           # Pydantic схемы
 │   ├── auth.py              # Аутентификация и JWT
+│   ├── minio_client.py      # Клиент MinIO для работы с файлами
 │   └── routers/
 │       ├── __init__.py
 │       ├── auth.py          # Регистрация и авторизация
@@ -103,7 +105,7 @@ API будет доступен по адресу: http://localhost:8000
 │       ├── volunteer.py     # Эндпоинты волонтеров
 │       ├── admin.py         # Эндпоинты администратора
 │       ├── news.py          # Новости/База знаний
-│       ├── files.py         # Загрузка файлов
+│       ├── files.py         # Загрузка файлов (MinIO)
 │       └── map.py           # Карта с точками
 ├── main.py                  # Точка входа
 ├── requirements.txt         # Зависимости
@@ -182,5 +184,27 @@ docker exec -it social_hack_db psql -U postgres -d social_hack
 
 Поддерживаемые форматы: jpg, png, pdf, docx, doc, xlsx, txt, csv
 
-Файлы сохраняются в папку `uploads/`.
+Файлы сохраняются в MinIO объектное хранилище.
+
+### MinIO
+
+MinIO запускается в Docker контейнере и используется для хранения всех загружаемых файлов.
+
+**Эндпоинты:**
+- `POST /files` - Загрузка файла (требует аутентификации)
+- `GET /files/{file_id}` - Получение файла по ID
+- `DELETE /files/{file_id}` - Удаление файла (требует аутентификации)
+
+**Переменные окружения для MinIO:**
+- `MINIO_ENDPOINT` - адрес MinIO сервера (по умолчанию: minio:9000)
+- `MINIO_ROOT_USER` - имя пользователя MinIO (по умолчанию: minioadmin)
+- `MINIO_ROOT_PASSWORD` - пароль MinIO (по умолчанию: minioadmin)
+- `MINIO_SECURE` - использовать HTTPS (по умолчанию: false)
+- `MINIO_BUCKET` - имя bucket для файлов (по умолчанию: files)
+- `MINIO_PORT` - порт для MinIO API (по умолчанию: 9000)
+- `MINIO_CONSOLE_PORT` - порт для MinIO консоли (по умолчанию: 9001)
+
+**Доступ к MinIO консоли:**
+После запуска контейнеров MinIO консоль будет доступна по адресу: http://localhost:9001
+Используйте `MINIO_ROOT_USER` и `MINIO_ROOT_PASSWORD` для входа.
 

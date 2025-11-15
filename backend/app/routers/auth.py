@@ -94,11 +94,7 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
     
     # Создание токена
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user_type": "npo"
-    }
+    return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value}
 
 @router.post("/reg/vol", response_model=Token)
 async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depends(get_db)):
@@ -137,11 +133,7 @@ async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depe
     
     # Создание токена
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user_type": "volunteer"
-    }
+    return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value}
 
 @router.post("/login", response_model=Token)
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
@@ -154,13 +146,6 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
         )
     
     # Проверка пароля
-    # Логирование для отладки
-    print(f"DEBUG LOGIN: user.password_hash type: {type(user.password_hash)}")
-    print(f"DEBUG LOGIN: user.password_hash length: {len(str(user.password_hash))}")
-    print(f"DEBUG LOGIN: user.password_hash value (first 50 chars): {str(user.password_hash)[:50]}")
-    print(f"DEBUG LOGIN: user_data.password type: {type(user_data.password)}")
-    print(f"DEBUG LOGIN: user_data.password length: {len(str(user_data.password))}")
-    
     if not verify_password(user_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -168,18 +153,6 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
-    # Определение типа пользователя на основе роли
-    user_type_map = {
-        UserRole.VOLUNTEER: "volunteer",
-        UserRole.NPO: "npo",
-        UserRole.ADMIN: "admin"
-    }
-    user_type = user_type_map.get(user.role, "volunteer")
-    
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {
-        "access_token": access_token,
-        "token_type": "bearer",
-        "user_type": user_type
-    }
+    return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value}
 

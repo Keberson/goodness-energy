@@ -1,12 +1,94 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.database import engine, Base
+from sqlalchemy import text
+from app.database import engine, Base, SessionLocal
 from app.routers import auth, npo, volunteer, admin, news, files, map
-
-# Создаем таблицы
-Base.metadata.create_all(bind=engine)
+from app.minio_client import ensure_bucket_exists
+from app.models import User
+from pathlib import Path
+import traceback
 
 app = FastAPI(title="Social Hack 2025 API", version="1.0.0")
+
+@app.on_event("startup")
+async def startup_event():
+    # Создаем таблицы
+    Base.metadata.create_all(bind=engine)
+    
+    # Инициализация MinIO bucket
+    try:
+        ensure_bucket_exists()
+    except Exception as e:
+        print(f"Warning: Could not initialize MinIO bucket: {e}")
+    
+    # Выполняем init-data.sql если он существует и база пустая
+    init_data_path = Path(__file__).parent / "init-data.sql"
+    if init_data_path.exists():
+        try:
+            db = SessionLocal()
+            try:
+                # Проверяем, есть ли уже данные в базе
+                user_count = db.query(User).count()
+            finally:
+                db.close()
+            
+            if user_count == 0:
+                # База пустая, выполняем init-data.sql используя SQLAlchemy engine
+                with open(init_data_path, "r", encoding="utf-8") as f:
+                    sql_content = f.read()
+                
+                # Удаляем комментарии и пустые строки
+                lines = sql_content.split('\n')
+                cleaned_lines = []
+                for line in lines:
+                    # Удаляем комментарии из строки (все что после --)
+                    if '--' in line:
+                        comment_pos = line.find('--')
+                        before_comment = line[:comment_pos]
+                        # Простая проверка - если перед -- нет открывающей одинарной кавычки
+                        if "'" not in before_comment or before_comment.count("'") % 2 == 0:
+                            line = line[:comment_pos].rstrip()
+                    
+                    if line.strip():
+                        cleaned_lines.append(line)
+                
+                sql_content = '\n'.join(cleaned_lines)
+                
+                # Удаляем BEGIN; и COMMIT; так как транзакцию управляем сами
+                sql_content = sql_content.replace("BEGIN;", "").replace("COMMIT;", "").strip()
+                
+                # Разбиваем на команды по точке с запятой и выполняем
+                statements = [s.strip() for s in sql_content.split(';') if s.strip()]
+                sql_keywords = ['INSERT', 'SELECT', 'UPDATE', 'DELETE', 'CREATE', 'ALTER', 'DROP']
+                
+                with engine.connect() as conn:
+                    trans = conn.begin()
+                    try:
+                        for i, statement in enumerate(statements, 1):
+                            cleaned_statement = statement.replace('\n', ' ').replace('\r', ' ').strip()
+                            if not cleaned_statement:
+                                continue
+                            
+                            # Проверяем, что команда содержит SQL ключевые слова
+                            upper_statement = cleaned_statement.upper()
+                            if not any(keyword in upper_statement for keyword in sql_keywords):
+                                print(f"Skipping non-SQL statement #{i}: {cleaned_statement[:50]}...")
+                                continue
+                            
+                            try:
+                                conn.execute(text(statement))
+                            except Exception as e:
+                                print(f"Error executing statement #{i}: {statement[:200]}...")
+                                print(f"Full error: {e}")
+                                raise
+                        trans.commit()
+                        print("init-data.sql executed successfully")
+                    except Exception as e:
+                        trans.rollback()
+                        raise
+        except Exception as e:
+            print(f"Error: Could not execute init-data.sql: {e}")
+            print(traceback.format_exc())
 
 # CORS middleware
 app.add_middleware(
