@@ -142,7 +142,7 @@ export const authMenuItems: MenuItem[] = [
                 icon: <LoginOutlined />,
             },
             {
-                key: "register",
+                key: "reg",
                 label: "Регистрация",
                 icon: <UserAddOutlined />,
             },
@@ -152,7 +152,8 @@ export const authMenuItems: MenuItem[] = [
 
 export const mapMenuItems = (
     items: MenuItem[],
-    handlers?: Record<string, () => void>
+    handlers?: Record<string, () => void>,
+    parentKey?: string
 ): ItemType[] =>
     items.map((item) => ({
         key: `/${item.key}`,
@@ -163,6 +164,30 @@ export const mapMenuItems = (
                 <NavLink to={`/${item.key}`}>{item.label}</NavLink>
             ),
         icon: item.icon,
-        children: item.children ? mapMenuItems(item.children) : undefined,
+        children: item.children
+            ? mapMenuItems(
+                  item.children,
+                  handlers,
+                  parentKey ? `${parentKey}/${item.key}` : item.key
+              )
+            : undefined,
         onClick: handlers && item.key in handlers ? handlers[item.key] : undefined,
     }));
+
+export const findActiveMenuKeyPath = (items: any[], pathname: string): string[] => {
+    for (const item of items) {
+        if (item.key === pathname) {
+            return [item.key];
+        }
+
+        if (item.children) {
+            const childPath = findActiveMenuKeyPath(item.children, pathname);
+
+            if (childPath.length) {
+                return [item.key, ...childPath];
+            }
+        }
+    }
+
+    return [];
+};

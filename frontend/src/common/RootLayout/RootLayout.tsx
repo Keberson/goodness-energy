@@ -1,6 +1,6 @@
 import { Divider, Flex, Layout, Menu, Typography } from "antd";
+import { useLocation, NavLink, Outlet } from "react-router-dom";
 import { useState } from "react";
-import { NavLink, Outlet } from "react-router-dom";
 
 import "./styles.scss";
 
@@ -10,16 +10,16 @@ import {
     mapMenuItems,
     topMenuItems,
     authMenuItems,
+    findActiveMenuKeyPath,
 } from "./props";
 
 const { Sider, Content } = Layout;
 const { Title } = Typography;
 
-type RootLayoutKeys = "/" | "map" | "npo" | "events" | "news" | "knowledges";
-
 const RootLayout = () => {
-    const [selectedKey, setSelectedKey] = useState<RootLayoutKeys>("/");
     const [collapsed, setCollapsed] = useState<boolean>(true);
+    const location = useLocation();
+    const pathname = location.pathname;
 
     const openCityChange = () => {
         console.log("city change modal");
@@ -29,6 +29,11 @@ const RootLayout = () => {
     const volunteerItems = mapMenuItems(volunteerMenuItems); // npoMenuItems adminMenuItems
     const cityItems = mapMenuItems(cityMenuItems, { city: openCityChange });
     const authItems = mapMenuItems(authMenuItems);
+
+    const activeKeyPath = findActiveMenuKeyPath(
+        [...topItems, ...authItems, ...cityItems],
+        pathname
+    );
 
     return (
         <Layout>
@@ -53,20 +58,20 @@ const RootLayout = () => {
                     </Flex>
                 </NavLink>
                 <Divider className="menu__divider" />
-                <Menu theme="dark" mode="inline" items={topItems} selectedKeys={[selectedKey]} />
+                <Menu theme="dark" mode="inline" items={topItems} selectedKeys={activeKeyPath} />
                 <div className="menu__gap" />
                 <Menu
                     theme="dark"
                     mode="inline"
                     items={authItems}
-                    selectedKeys={[selectedKey]}
+                    selectedKeys={activeKeyPath}
                     className="menu__bottom"
                 />
                 <Menu
                     theme="dark"
                     mode="inline"
                     items={cityItems}
-                    selectable={false}
+                    selectedKeys={activeKeyPath}
                     className="menu__bottom"
                 />
             </Sider>
