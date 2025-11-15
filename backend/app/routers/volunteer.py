@@ -5,6 +5,9 @@ from app.database import get_db
 from app.models import Volunteer, EventResponse as EventResponseModel, News, NewsTag, NewsAttachment, NewsType, Event, EventTag, User
 from app.schemas import VolunteerUpdate, VolunteerResponse, NewsCreate, NewsResponse, EventResponse
 from app.auth import get_current_volunteer_user, get_current_user
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -13,7 +16,7 @@ def get_volunteer_by_user_id(user_id: int, db: Session) -> Volunteer:
     if not volunteer:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Volunteer not found"
+            detail="Волонтер не найден"
         )
     return volunteer
 
@@ -50,7 +53,7 @@ async def get_volunteer_by_id(
     if not volunteer:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Volunteer not found"
+            detail="Волонтер не найден"
         )
     
     return VolunteerResponse(
@@ -80,7 +83,7 @@ async def update_volunteer(
     if volunteer.id != volunteer_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only update your own profile"
+            detail="Вы можете обновлять только свой профиль"
         )
     
     if volunteer_update.firstName is not None:
@@ -103,7 +106,7 @@ async def update_volunteer(
         volunteer.phone = volunteer_update.phone
     
     db.commit()
-    return {"message": "Volunteer profile updated successfully"}
+    return {"message": "Профиль волонтера успешно обновлен"}
 
 @router.delete("/{volunteer_id}")
 async def delete_volunteer(
@@ -117,7 +120,7 @@ async def delete_volunteer(
     if volunteer.id != volunteer_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only delete your own profile"
+            detail="Вы можете удалять только свой профиль"
         )
     
     # Сохраняем user_id перед удалением волонтёра
@@ -133,7 +136,7 @@ async def delete_volunteer(
         db.delete(user)
     
     db.commit()
-    return {"message": "Volunteer profile deleted successfully"}
+    return {"message": "Профиль волонтера успешно удален"}
 
 @router.post("/event/{event_id}")
 async def respond_to_event(
@@ -149,7 +152,7 @@ async def respond_to_event(
     if not event:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found"
+            detail="Событие не найдено"
         )
     
     # Получаем волонтера из текущего пользователя
@@ -164,7 +167,7 @@ async def respond_to_event(
     if existing_response:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="You have already responded to this event"
+            detail="Вы уже откликнулись на это событие"
         )
     
     # Создание отклика
@@ -175,7 +178,7 @@ async def respond_to_event(
     db.add(event_response)
     db.commit()
     
-    return {"message": "Event response created successfully"}
+    return {"message": "Отклик на событие успешно создан"}
 
 @router.delete("/event/{event_id}")
 async def delete_event_response(
@@ -195,12 +198,12 @@ async def delete_event_response(
     if not event_response:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event response not found"
+            detail="Отклик на событие не найден"
         )
     
     db.delete(event_response)
     db.commit()
-    return {"message": "Event response deleted successfully"}
+    return {"message": "Отклик на событие успешно удален"}
 
 @router.post("/{volunteer_id}/news", response_model=NewsResponse, status_code=status.HTTP_201_CREATED)
 async def create_volunteer_news(
@@ -215,14 +218,14 @@ async def create_volunteer_news(
     if volunteer.id != volunteer_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only create news for your own profile"
+            detail="Вы можете создавать новости только для своего профиля"
         )
     
     # Проверка типа новости (только blog для волонтеров)
     if news_data.type != NewsType.BLOG:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Volunteers can only create blog type news"
+            detail="Волонтеры могут создавать только новости типа blog"
         )
     
     news = News(
@@ -272,7 +275,7 @@ async def get_volunteer_news(
     if not volunteer:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Volunteer not found"
+            detail="Волонтер не найден"
         )
     
     # Получаем все новости волонтёра
@@ -305,7 +308,7 @@ async def get_volunteer_events(
     if not volunteer:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Volunteer not found"
+            detail="Волонтер не найден"
         )
     
     # Получаем все события, на которые волонтёр откликнулся

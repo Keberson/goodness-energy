@@ -9,6 +9,9 @@ from app.schemas import (
 )
 from app.auth import get_current_npo_user, get_current_user
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -17,7 +20,7 @@ def get_npo_by_user_id(user_id: int, db: Session) -> NPO:
     if not npo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="NPO not found"
+            detail="НКО не найдена"
         )
     return npo
 
@@ -64,7 +67,7 @@ async def update_npo(
     if npo.id != npo_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only update your own NPO"
+            detail="Вы можете обновлять только свою НКО"
         )
     
     if npo_update.name is not None:
@@ -95,7 +98,7 @@ async def update_npo(
             db.add(npo_tag)
     
     db.commit()
-    return {"message": "NPO updated successfully"}
+    return {"message": "НКО успешно обновлена"}
 
 @router.delete("/{npo_id}")
 async def delete_npo(
@@ -109,7 +112,7 @@ async def delete_npo(
     if npo.id != npo_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only delete your own NPO"
+            detail="Вы можете удалять только свою НКО"
         )
     
     # Сохраняем user_id перед удалением НКО
@@ -125,9 +128,9 @@ async def delete_npo(
         db.delete(user)
     
     db.commit()
-    return {"message": "NPO deleted successfully"}
+    return {"message": "НКО успешно удалена"}
 
-# Event endpoints
+# Эндпоинты событий
 @router.get("/{npo_id}/event", response_model=List[EventResponse])
 async def get_npo_events(
     npo_id: int,
@@ -138,7 +141,7 @@ async def get_npo_events(
     if not npo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="NPO not found"
+            detail="НКО не найдено"
         )
     
     # Получаем все события НКО
@@ -176,7 +179,7 @@ async def create_event(
     if npo.id != npo_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only create events for your own NPO"
+            detail="Вы можете создавать события только для своей НКО"
         )
     
     # Валидация координат события
@@ -186,13 +189,13 @@ async def create_event(
         if not isinstance(event_data.coordinates, list):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Event coordinates must be a list [lat, lon], got {type(event_data.coordinates).__name__}"
+                detail=f"Координаты события должны быть списком [lat, lon], получен {type(event_data.coordinates).__name__}"
             )
         
         if len(event_data.coordinates) != 2:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Event coordinates must contain exactly 2 values [lat, lon], got {len(event_data.coordinates)} value(s)"
+                detail=f"Координаты события должны содержать ровно 2 значения [lat, lon], получено {len(event_data.coordinates)} значение(й)"
             )
         
         try:
@@ -201,20 +204,20 @@ async def create_event(
         except (ValueError, TypeError) as e:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Event coordinates must be numbers [lat, lon]. Error: {str(e)}"
+                detail=f"Координаты события должны быть числами [lat, lon]. Ошибка: {str(e)}"
             )
         
         # Проверка диапазона координат
         if not (-90 <= coordinates_lat <= 90):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Event latitude must be between -90 and 90, got {coordinates_lat}"
+                detail=f"Широта события должна быть в диапазоне от -90 до 90, получено {coordinates_lat}"
             )
         
         if not (-180 <= coordinates_lon <= 180):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Event longitude must be between -180 and 180, got {coordinates_lon}"
+                detail=f"Долгота события должна быть в диапазоне от -180 до 180, получено {coordinates_lon}"
             )
     
     event = Event(
@@ -268,14 +271,14 @@ async def update_event(
     if npo.id != npo_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only update events for your own NPO"
+            detail="Можно обновлять только свои события"
         )
     
     event = db.query(Event).filter(Event.id == event_id, Event.npo_id == npo.id).first()
     if not event:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found"
+            detail="Событие не найдено"
         )
     
     if event_update.name is not None:
@@ -291,13 +294,13 @@ async def update_event(
         if not isinstance(event_update.coordinates, list):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Event coordinates must be a list [lat, lon], got {type(event_update.coordinates).__name__}"
+                detail=f"Координаты события должны быть списком [lat, lon], получен {type(event_update.coordinates).__name__}"
             )
         
         if len(event_update.coordinates) != 2:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Event coordinates must contain exactly 2 values [lat, lon], got {len(event_update.coordinates)} value(s)"
+                detail=f"Координаты события должны содержать ровно 2 значения [lat, lon], получено {len(event_update.coordinates)} значение(й)"
             )
         
         try:
@@ -306,20 +309,20 @@ async def update_event(
         except (ValueError, TypeError) as e:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Event coordinates must be numbers [lat, lon]. Error: {str(e)}"
+                detail=f"Координаты события должны быть числами [lat, lon]. Ошибка: {str(e)}"
             )
         
         # Проверка диапазона координат
         if not (-90 <= coordinates_lat <= 90):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Event latitude must be between -90 and 90, got {coordinates_lat}"
+                detail=f"Широта события должна быть в диапазоне от -90 до 90, получено {coordinates_lat}"
             )
         
         if not (-180 <= coordinates_lon <= 180):
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=f"Event longitude must be between -180 and 180, got {coordinates_lon}"
+                detail=f"Долгота события должна быть в диапазоне от -180 до 180, получено {coordinates_lon}"
             )
         
         event.coordinates_lat = coordinates_lat
@@ -365,19 +368,19 @@ async def delete_event(
     if npo.id != npo_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only delete events for your own NPO"
+            detail="Вы можете удалять события только для своей НКО"
         )
     
     event = db.query(Event).filter(Event.id == event_id, Event.npo_id == npo.id).first()
     if not event:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found"
+            detail="Событие не найдено"
         )
     
     db.delete(event)
     db.commit()
-    return {"message": "Event deleted successfully"}
+    return {"message": "Событие успешно удалено"}
 
 @router.patch("/{npo_id}/event/{event_id}/status")
 async def update_event_status(
@@ -393,21 +396,21 @@ async def update_event_status(
     if npo.id != npo_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only update events for your own NPO"
+            detail="Вы можете обновлять события только для своей НКО"
         )
     
     event = db.query(Event).filter(Event.id == event_id, Event.npo_id == npo.id).first()
     if not event:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="Event not found"
+            detail="Событие не найдено"
         )
     
     event.status = status_update.status
     db.commit()
-    return {"message": "Event status updated successfully"}
+    return {"message": "Статус события успешно обновлен"}
 
-# News endpoints
+# Эндпоинты новостей
 @router.post("/{npo_id}/news", response_model=NewsResponse, status_code=status.HTTP_201_CREATED)
 async def create_news(
     npo_id: int,
@@ -421,7 +424,7 @@ async def create_news(
     if npo.id != npo_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only create news for your own NPO"
+            detail="Вы можете создавать новости только для своей НКО"
         )
     
     news = News(
@@ -471,7 +474,7 @@ async def get_npo_news(
     if not npo:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="NPO not found"
+            detail="НКО не найдено"
         )
     
     # Получаем все новости НКО

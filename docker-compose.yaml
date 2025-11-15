@@ -10,6 +10,8 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      minio:
+        condition: service_healthy
 
   frontend:
     build: ./frontend
@@ -43,31 +45,27 @@ services:
       - "${POSTGRES_PORT}:5432"
     restart: unless-stopped
 
-  init-data:
-    image: postgres:15-alpine
-    container_name: social_hack_init_data
-    env_file:
-      - .env
+  minio:
+    image: minio/minio:latest
+    container_name: social_hack_minio
+    ports:
+      - "${MINIO_PORT}:9000"
+      - "${MINIO_CONSOLE_PORT}:9001"
+    environment:
+      - MINIO_ROOT_USER=${MINIO_ROOT_USER}
+      - MINIO_ROOT_PASSWORD=${MINIO_ROOT_PASSWORD}
     volumes:
-      - ./backend/init-data.sql:/tmp/init-data.sql:ro
-    depends_on:
-      backend:
-        condition: service_started
-      postgres:
-        condition: service_healthy
-    command: >
-      sh -c "
-      echo 'Waiting for backend to create tables...' &&
-      until PGPASSWORD=$$POSTGRES_PASSWORD psql -h postgres -U $$POSTGRES_USER -d $$POSTGRES_DB -tAc \"SELECT 1 FROM information_schema.tables WHERE table_name='users'\" | grep -q 1; do
-        echo 'Tables not ready yet, waiting...' &&
-        sleep 2
-      done &&
-      echo 'Tables are ready! Executing init-data.sql...' &&
-      PGPASSWORD=$$POSTGRES_PASSWORD psql -h postgres -U $$POSTGRES_USER -d $$POSTGRES_DB -f /tmp/init-data.sql &&
-      echo 'Database initialization completed!'
-      "
-    restart: "no"
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
 
 volumes:
   frontend-build:
   postgres_data:
+  minio_data:

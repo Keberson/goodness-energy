@@ -4,6 +4,9 @@ from app.database import get_db
 from app.models import News, NewsTag, NewsAttachment
 from app.schemas import NewsCreate, NewsResponse
 from app.auth import get_current_admin_user
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -18,7 +21,7 @@ async def create_admin_news(
     if current_user.id != admin_id:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only create news for your own admin account"
+            detail="Вы можете создавать новости только для своего администраторского аккаунта"
         )
     
     news = News(
