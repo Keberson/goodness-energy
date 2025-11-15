@@ -7,6 +7,9 @@ from app.minio_client import ensure_bucket_exists
 from app.models import User
 from pathlib import Path
 import traceback
+import logging
+
+logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Social Hack 2025 API", version="1.0.0")
 
@@ -19,7 +22,7 @@ async def startup_event():
     try:
         ensure_bucket_exists()
     except Exception as e:
-        print(f"Warning: Could not initialize MinIO bucket: {e}")
+        logger.warning(f"Не удалось инициализировать MinIO bucket: {e}")
     
     # Выполняем init-data.sql если он существует и база пустая
     init_data_path = Path(__file__).parent / "init-data.sql"
@@ -72,25 +75,25 @@ async def startup_event():
                             # Проверяем, что команда содержит SQL ключевые слова
                             upper_statement = cleaned_statement.upper()
                             if not any(keyword in upper_statement for keyword in sql_keywords):
-                                print(f"Skipping non-SQL statement #{i}: {cleaned_statement[:50]}...")
+                                logger.warning(f"Пропуск не-SQL команды #{i}: {cleaned_statement[:50]}...")
                                 continue
                             
                             try:
                                 conn.execute(text(statement))
                             except Exception as e:
-                                print(f"Error executing statement #{i}: {statement[:200]}...")
-                                print(f"Full error: {e}")
+                                logger.error(f"Ошибка выполнения команды #{i}: {statement[:200]}...")
+                                logger.error(f"Полная ошибка: {e}")
                                 raise
                         trans.commit()
-                        print("init-data.sql executed successfully")
+                        logger.info("init-data.sql выполнен успешно")
                     except Exception as e:
                         trans.rollback()
                         raise
         except Exception as e:
-            print(f"Error: Could not execute init-data.sql: {e}")
-            print(traceback.format_exc())
+            logger.error(f"Не удалось выполнить init-data.sql: {e}")
+            logger.error(traceback.format_exc())
 
-# CORS middleware
+# CORS middleware (промежуточное ПО для CORS)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],

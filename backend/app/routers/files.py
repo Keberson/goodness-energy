@@ -7,6 +7,9 @@ from app.auth import get_current_user
 from app.minio_client import upload_file_to_minio, get_file_from_minio, delete_file_from_minio, MINIO_BUCKET
 from urllib.parse import quote
 import uuid
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -44,7 +47,7 @@ async def upload_file(
     if file_ext not in ALLOWED_EXTENSIONS:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File type not allowed. Allowed types: {', '.join(ALLOWED_EXTENSIONS)}"
+            detail=f"Тип файла не разрешен. Разрешенные типы: {', '.join(ALLOWED_EXTENSIONS)}"
         )
     
     # Генерация уникального имени файла
@@ -59,7 +62,7 @@ async def upload_file(
     except Exception as e:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to upload file to storage: {str(e)}"
+            detail=f"Не удалось загрузить файл в хранилище: {str(e)}"
         )
     
     # Сохранение информации о файле в БД
@@ -84,13 +87,13 @@ async def get_file(
     if not db_file:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"File with id {file_id} not found in database"
+            detail=f"Файл с id {file_id} не найден в базе данных"
         )
     
     try:
         # Получаем файл из MinIO
         # db_file.file_path содержит имя объекта в MinIO (например, "abc123.jpg")
-        print(f"Attempting to retrieve file from MinIO: bucket={MINIO_BUCKET}, object_name={db_file.file_path}")
+        logger.debug(f"Попытка получить файл из MinIO: bucket={MINIO_BUCKET}, object_name={db_file.file_path}")
         file_data = get_file_from_minio(db_file.file_path)
         content_type = get_content_type(db_file.file_type)
         
@@ -117,11 +120,11 @@ async def get_file(
         )
     except Exception as e:
         error_msg = str(e)
-        print(f"Error retrieving file from MinIO: {error_msg}")
-        print(f"File info: id={db_file.id}, file_path={db_file.file_path}, bucket={MINIO_BUCKET}")
+        logger.error(f"Ошибка получения файла из MinIO: {error_msg}")
+        logger.error(f"Информация о файле: id={db_file.id}, file_path={db_file.file_path}, bucket={MINIO_BUCKET}")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to retrieve file from storage. File ID: {file_id}, Path: {db_file.file_path}, Error: {error_msg}"
+            detail=f"Не удалось получить файл из хранилища. ID файла: {file_id}, Путь: {db_file.file_path}, Ошибка: {error_msg}"
         )
 
 @router.delete("/{file_id}", status_code=status.HTTP_204_NO_CONTENT)
@@ -135,7 +138,7 @@ async def delete_file(
     if not db_file:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="File not found"
+            detail="Файл не найден"
         )
     
     try:
@@ -143,7 +146,7 @@ async def delete_file(
         delete_file_from_minio(db_file.file_path)
     except Exception as e:
         # Логируем ошибку, но продолжаем удаление из БД
-        print(f"Warning: Failed to delete file from MinIO: {e}")
+        logger.warning(f"Не удалось удалить файл из MinIO: {e}")
     
     # Удаляем запись из БД
     db.delete(db_file)

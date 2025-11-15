@@ -5,6 +5,9 @@ from app.models import User, UserRole, NPO, Volunteer
 from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration
 from app.auth import verify_password, get_password_hash, create_access_token
 import json
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -14,7 +17,7 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
     if db.query(User).filter(User.login == npo_data.login).first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Login already registered"
+            detail="Логин уже зарегистрирован"
         )
     
     # Создание пользователя
@@ -31,20 +34,20 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
     if len(npo_data.tags) == 0:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="At least one tag is required"
+            detail="Требуется хотя бы один тег"
         )
     
     # Валидация координат
     if not isinstance(npo_data.coordinates, list):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Coordinates must be a list [lat, lon], got {type(npo_data.coordinates).__name__}"
+            detail=f"Координаты должны быть списком [lat, lon], получен {type(npo_data.coordinates).__name__}"
         )
     
     if len(npo_data.coordinates) != 2:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Coordinates must contain exactly 2 values [lat, lon], got {len(npo_data.coordinates)} value(s)"
+            detail=f"Координаты должны содержать ровно 2 значения [lat, lon], получено {len(npo_data.coordinates)} значение(й)"
         )
     
     try:
@@ -53,20 +56,20 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
     except (ValueError, TypeError) as e:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Coordinates must be numbers [lat, lon]. Error: {str(e)}"
+            detail=f"Координаты должны быть числами [lat, lon]. Ошибка: {str(e)}"
         )
     
     # Проверка диапазона координат
     if not (-90 <= lat <= 90):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Latitude must be between -90 and 90, got {lat}"
+            detail=f"Широта должна быть в диапазоне от -90 до 90, получено {lat}"
         )
     
     if not (-180 <= lon <= 180):
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Longitude must be between -180 and 180, got {lon}"
+            detail=f"Долгота должна быть в диапазоне от -180 до 180, получено {lon}"
         )
     
     # Создание НКО
@@ -102,7 +105,7 @@ async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depe
     if db.query(User).filter(User.login == vol_data.login).first():
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Login already registered"
+            detail="Логин уже зарегистрирован"
         )
     
     # Создание пользователя
@@ -141,7 +144,7 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     if not user:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect login or password",
+            detail="Неверный логин или пароль",
             headers={"WWW-Authenticate": "Bearer"},
         )
     
@@ -149,7 +152,7 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     if not verify_password(user_data.password, user.password_hash):
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Incorrect login or password",
+            detail="Неверный логин или пароль",
             headers={"WWW-Authenticate": "Bearer"},
         )
     

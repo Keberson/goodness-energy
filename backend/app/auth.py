@@ -7,8 +7,12 @@ from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, UserRole
+import logging
+import os
 
-SECRET_KEY = "your-secret-key-change-in-production"  # В продакшене использовать переменную окружения
+logger = logging.getLogger(__name__)
+
+SECRET_KEY = os.getenv("SECRET_KEY", "your-secret-key-change-in-production")  # В продакшене обязательно установить переменную окружения SECRET_KEY
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 30 * 24 * 60  # 30 дней
 
@@ -67,8 +71,8 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
     
     # Проверка формата хеша bcrypt (должен начинаться с $2a$, $2b$ или $2y$)
     if not hashed_password.startswith(('$2a$', '$2b$', '$2y$')):
-        print(f"ERROR: Invalid bcrypt hash format. Hash starts with: {hashed_password[:10]}")
-        print(f"ERROR: Full hash length: {len(hashed_password)}")
+        logger.error(f"Неверный формат bcrypt хеша. Хеш начинается с: {hashed_password[:10]}")
+        logger.error(f"Полная длина хеша: {len(hashed_password)}")
         # Возможно, в базе данных хранится не хеш, а сам пароль или что-то другое
         return False
     
@@ -79,17 +83,17 @@ def verify_password(plain_password: str, hashed_password: str) -> bool:
         password_bytes = plain_password.encode('utf-8')
     
     # Логирование для отладки
-    print(f"DEBUG: plain_password length (bytes): {len(password_bytes)}")
-    print(f"DEBUG: hashed_password length: {len(hashed_password) if isinstance(hashed_password, str) else 'N/A'}")
-    print(f"DEBUG: hashed_password starts with: {hashed_password[:20] if isinstance(hashed_password, str) and len(hashed_password) > 20 else hashed_password}")
+    logger.debug(f"Длина plain_password (байты): {len(password_bytes)}")
+    logger.debug(f"Длина hashed_password: {len(hashed_password) if isinstance(hashed_password, str) else 'N/A'}")
+    logger.debug(f"hashed_password начинается с: {hashed_password[:20] if isinstance(hashed_password, str) and len(hashed_password) > 20 else hashed_password}")
     
     try:
         return pwd_context.verify(plain_password, hashed_password)
     except (ValueError, TypeError) as e:
         # Логируем ошибку для отладки
-        print(f"Error verifying password: {e}")
-        print(f"Password type: {type(plain_password)}, length: {len(plain_password) if isinstance(plain_password, str) else 'N/A'}")
-        print(f"Hash type: {type(hashed_password)}, length: {len(hashed_password) if isinstance(hashed_password, str) else 'N/A'}")
+        logger.error(f"Ошибка проверки пароля: {e}")
+        logger.error(f"Тип пароля: {type(plain_password)}, длина: {len(plain_password) if isinstance(plain_password, str) else 'N/A'}")
+        logger.error(f"Тип хеша: {type(hashed_password)}, длина: {len(hashed_password) if isinstance(hashed_password, str) else 'N/A'}")
         return False
 
 def get_password_hash(password: str) -> str:
@@ -103,7 +107,7 @@ def get_password_hash(password: str) -> str:
         Хешированный пароль
     """
     if not password:
-        raise ValueError("Password cannot be empty")
+        raise ValueError("Пароль не может быть пустым")
     
     # Убеждаемся, что пароль - это строка
     if not isinstance(password, str):
@@ -112,13 +116,13 @@ def get_password_hash(password: str) -> str:
     # Ограничение длины пароля для bcrypt (72 байта)
     password_bytes = password.encode('utf-8')
     if len(password_bytes) > 72:
-        print(f"WARNING: Password too long ({len(password_bytes)} bytes), truncating to 72 bytes")
+        logger.warning(f"Пароль слишком длинный ({len(password_bytes)} байт), обрезаем до 72 байт")
         password = password[:72]
         password_bytes = password.encode('utf-8')
     
-    print(f"DEBUG HASH: Creating hash for password of length {len(password_bytes)} bytes")
+    logger.debug(f"Создание хеша для пароля длиной {len(password_bytes)} байт")
     hashed = pwd_context.hash(password)
-    print(f"DEBUG HASH: Created hash of length {len(hashed)}, starts with: {hashed[:20]}")
+    logger.debug(f"Создан хеш длиной {len(hashed)}, начинается с: {hashed[:20]}")
     return hashed
 
 def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
@@ -148,7 +152,7 @@ async def get_current_user(
 ):
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="Could not validate credentials",
+        detail="Не удалось проверить учетные данные",
         headers={"WWW-Authenticate": "Bearer"},
     )
     
@@ -156,37 +160,37 @@ async def get_current_user(
     token = None
     if credentials:
         token = credentials.credentials
-        print(f"DEBUG AUTH: Token from HTTPBearer (first 20 chars): {token[:20] if token else 'None'}...")
+        logger.debug(f"Токен из HTTPBearer (первые 20 символов): {token[:20] if token else 'None'}...")
     
     # Если токен не получен через HTTPBearer, пробуем извлечь напрямую из Request
     if not token:
         token = get_token_from_request(request)
-        print(f"DEBUG AUTH: Token from Request (first 20 chars): {token[:20] if token else 'None'}...")
+        logger.debug(f"Токен из Request (первые 20 символов): {token[:20] if token else 'None'}...")
     
     if not token:
-        print("DEBUG AUTH: No token found")
+        logger.debug("Токен не найден")
         raise credentials_exception
     
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id_str = payload.get("sub")
-        print(f"DEBUG AUTH: Decoded user_id (as string): {user_id_str}")
+        logger.debug(f"Декодированный user_id (как строка): {user_id_str}")
         if user_id_str is None:
-            print("DEBUG AUTH: user_id is None in payload")
+            logger.debug("user_id равен None в payload")
             raise credentials_exception
         # Преобразуем строку обратно в int
         user_id: int = int(user_id_str)
-        print(f"DEBUG AUTH: Converted user_id to int: {user_id}")
+        logger.debug(f"Преобразован user_id в int: {user_id}")
     except (JWTError, ValueError, TypeError) as e:
-        print(f"DEBUG AUTH: Error decoding token: {e}")
+        logger.debug(f"Ошибка декодирования токена: {e}")
         raise credentials_exception
     
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
-        print(f"DEBUG AUTH: User with id {user_id} not found")
+        logger.debug(f"Пользователь с id {user_id} не найден")
         raise credentials_exception
     
-    print(f"DEBUG AUTH: Successfully authenticated user: {user.login}, role: {user.role}")
+    logger.debug(f"Успешная аутентификация пользователя: {user.login}, роль: {user.role}")
     return user
 
 def get_current_npo_user(
@@ -196,7 +200,7 @@ def get_current_npo_user(
     if current_user.role != UserRole.NPO:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            detail="Недостаточно прав доступа"
         )
     return current_user
 
@@ -207,7 +211,7 @@ def get_current_volunteer_user(
     if current_user.role != UserRole.VOLUNTEER:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            detail="Недостаточно прав доступа"
         )
     return current_user
 
@@ -218,7 +222,7 @@ def get_current_admin_user(
     if current_user.role != UserRole.ADMIN:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Not enough permissions"
+            detail="Недостаточно прав доступа"
         )
     return current_user
 

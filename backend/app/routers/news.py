@@ -5,6 +5,9 @@ from app.database import get_db
 from app.models import News, NewsTag, NewsAttachment, NPO, Volunteer, UserRole
 from app.schemas import NewsResponse, NewsUpdate
 from app.auth import get_current_user
+import logging
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -42,7 +45,7 @@ async def update_news(
     if not news:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="News not found"
+            detail="Новость не найдена"
         )
     
     # Проверка прав доступа: только автор новости или админ может редактировать
@@ -64,7 +67,7 @@ async def update_news(
     if not is_author and not is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only edit your own news"
+            detail="Вы можете редактировать только свои новости"
         )
     
     # Обновление полей
@@ -79,7 +82,7 @@ async def update_news(
             if volunteer and volunteer.user_id == current_user.id and news_update.type != "blog":
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Volunteers can only create blog type news"
+                    detail="Волонтеры могут создавать только новости типа blog"
                 )
         news.type = news_update.type
     
@@ -124,7 +127,7 @@ async def delete_news(
     if not news:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail="News not found"
+            detail="Новость не найдена"
         )
     
     # Проверка прав доступа: только автор новости или админ может удалять
@@ -146,10 +149,10 @@ async def delete_news(
     if not is_author and not is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="You can only delete your own news"
+            detail="Вы можете удалять только свои новости"
         )
     
     db.delete(news)
     db.commit()
-    return {"message": "News deleted successfully"}
+    return {"message": "Новость успешно удалена"}
 

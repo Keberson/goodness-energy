@@ -3,7 +3,7 @@ from typing import Optional, List
 from datetime import datetime
 from app.models import NewsType, EventStatus
 
-# Auth schemas
+# Схемы аутентификации
 class UserLogin(BaseModel):
     login: str
     password: str
@@ -13,7 +13,7 @@ class Token(BaseModel):
     token_type: str
     user_type: str  # "volunteer" | "npo" | "admin"
 
-# NPO Registration
+# Регистрация НКО
 class NPORegistration(BaseModel):
     login: str
     password: str
@@ -25,7 +25,7 @@ class NPORegistration(BaseModel):
     links: Optional[dict] = None
     timetable: Optional[str] = None
 
-# Volunteer Registration
+# Регистрация волонтера
 class VolunteerRegistration(BaseModel):
     login: str
     password: str
@@ -39,7 +39,7 @@ class VolunteerRegistration(BaseModel):
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
 
-# NPO schemas
+# Схемы НКО
 class NPOUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
@@ -68,7 +68,7 @@ class NPOMapPoint(BaseModel):
     coordinates: List[float]  # [lat, lon]
     info: NPOResponse
 
-# Event schemas
+# Схемы событий
 class EventCreate(BaseModel):
     name: str
     description: Optional[str] = None
@@ -106,7 +106,7 @@ class EventResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# Volunteer schemas
+# Схемы волонтера
 class VolunteerUpdate(BaseModel):
     firstName: Optional[str] = None
     secondName: Optional[str] = None
@@ -137,7 +137,7 @@ class VolunteerResponse(BaseModel):
 class EventResponseCreate(BaseModel):
     userId: int
 
-# News schemas
+# Схемы новостей
 class NewsCreate(BaseModel):
     name: str
     text: str
@@ -164,7 +164,7 @@ class NewsResponse(BaseModel):
     class Config:
         from_attributes = True
 
-# File schema
+# Схема файла
 class FileResponse(BaseModel):
     id: int
     filename: str
