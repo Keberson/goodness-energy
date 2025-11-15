@@ -219,3 +219,35 @@ class NewsAttachment(Base):
     news = relationship("News", back_populates="attachments")
     file = relationship("File")
 
+class Knowledge(Base):
+    __tablename__ = "knowledges"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    name = Column(String, nullable=False)
+    text = Column(Text, nullable=False)
+    type = Column(SQLEnum(NewsType), nullable=False)
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    
+    tags = relationship("KnowledgeTag", back_populates="knowledge", cascade="all, delete-orphan")
+    attachments = relationship("KnowledgeAttachment", back_populates="knowledge", cascade="all, delete-orphan")
+
+class KnowledgeTag(Base):
+    __tablename__ = "knowledge_tags"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    knowledge_id = Column(Integer, ForeignKey("knowledges.id"), nullable=False)
+    tag = Column(String, nullable=False)
+    
+    knowledge = relationship("Knowledge", back_populates="tags")
+
+class KnowledgeAttachment(Base):
+    __tablename__ = "knowledge_attachments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    knowledge_id = Column(Integer, ForeignKey("knowledges.id"), nullable=False)
+    file_id = Column(Integer, ForeignKey("files.id"), nullable=False)
+    
+    knowledge = relationship("Knowledge", back_populates="attachments")
+    file = relationship("File")
+

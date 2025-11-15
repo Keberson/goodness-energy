@@ -181,3 +181,30 @@ class FileResponse(BaseModel):
 # Схема для обновления статуса НКО администратором
 class NPOStatusUpdate(BaseModel):
     status: NPOStatus
+
+# Схемы базы знаний
+class KnowledgeCreate(BaseModel):
+    name: str
+    text: str
+    attachedIds: Optional[List[int]] = None
+    tags: Optional[List[str]] = None
+    type: NewsType
+
+class KnowledgeUpdate(BaseModel):
+    name: Optional[str] = None
+    text: Optional[str] = None
+    attachedIds: Optional[List[int]] = None
+    tags: Optional[List[str]] = None
+    type: Optional[NewsType] = None
+
+class KnowledgeResponse(BaseModel):
+    id: int
+    name: str
+    text: str
+    attachedIds: List[int]
+    tags: List[str]
+    type: NewsType
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
