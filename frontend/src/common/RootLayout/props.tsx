@@ -72,7 +72,7 @@ export const topMenuItems: MenuItem[] = [
 
 export const volunteerMenuItems: MenuItem[] = [
     {
-        key: "profile",
+        key: "volunteer",
         label: "Профиль",
         icon: <UserOutlined />,
         children: [
