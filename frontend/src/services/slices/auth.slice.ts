@@ -1,31 +1,40 @@
+import type { UserTypes } from "@app-types/auth.types";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
 interface AuthState {
     token: string | null;
     isAuthenticated: boolean;
+    userType: UserTypes | undefined;
 }
 
 const initialState: AuthState = {
     token: localStorage.getItem("jwtToken"),
     isAuthenticated: !!localStorage.getItem("jwtToken"),
+    userType: localStorage.getItem("userType")
+        ? (localStorage.getItem("userType") as UserTypes)
+        : undefined,
 };
 
 const authSlice = createSlice({
     name: "auth",
     initialState,
     reducers: {
-        setToken: (state, action: PayloadAction<string>) => {
-            state.token = action.payload;
+        login: (state, action: PayloadAction<{ token: string; type: UserTypes }>) => {
+            state.token = action.payload.token;
             state.isAuthenticated = true;
-            localStorage.setItem("jwtToken", action.payload);
+            state.userType = action.payload.type;
+            localStorage.setItem("jwtToken", action.payload.token);
+            localStorage.setItem("userType", action.payload.type);
         },
-        clearToken: (state) => {
+        logout: (state) => {
             state.token = null;
             state.isAuthenticated = false;
+            state.userType = undefined;
             localStorage.removeItem("jwtToken");
+            localStorage.removeItem("userType");
         },
     },
 });
 
-export const { setToken, clearToken } = authSlice.actions;
+export const { login, logout } = authSlice.actions;
 export default authSlice.reducer;

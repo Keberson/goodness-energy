@@ -1,6 +1,11 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
-import type { ILoginRequest, IAuthResponse, IRegVolunteerRequest } from "@app-types/auth.types";
+import type {
+    ILoginRequest,
+    IAuthResponse,
+    IRegVolunteerRequest,
+    IRegNPORequest,
+} from "@app-types/auth.types";
 
 export const authApi = createApi({
     reducerPath: "authApi",
@@ -15,7 +20,10 @@ export const authApi = createApi({
         registerVolunteer: builder.mutation<IAuthResponse, IRegVolunteerRequest>({
             query: (body) => ({ url: `/reg/vol`, method: "POST", body }),
         }),
+        registerNPO: builder.mutation<IAuthResponse, IRegNPORequest>({
+            query: (body) => ({ url: `/reg/npo`, method: "POST", body }),
+        }),
     }),
 });
 
-export const { useLoginMutation, useRegisterVolunteerMutation } = authApi;
+export const { useLoginMutation, useRegisterVolunteerMutation, useRegisterNPOMutation } = authApi;
