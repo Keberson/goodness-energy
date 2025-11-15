@@ -6,7 +6,7 @@ export const geodecodeApi = createApi({
     reducerPath: "geodecodeApi",
     tagTypes: [],
     baseQuery: fetchBaseQuery({
-        baseUrl: `https://nominatim.openstreetmap.org`,
+        baseUrl: `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"}/auth`,
     }),
     endpoints: (builder) => ({
         geodecode: builder.query<IGeodecode[], string>({

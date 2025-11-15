@@ -2,14 +2,17 @@ import { createBrowserRouter } from "react-router-dom";
 
 import HomePage from "./pages/HomePage/HomePage";
 
+import AuthRoute from "@components/routes/AuthRoute/AuthRoute";
+import ProtectedRoute from "@components/routes/ProtectedRoute/ProtectedRoute";
+
 import RootLayout from "./common/RootLayout/RootLayout";
 import Providers from "./common/Providers/Providers";
 
 import LoginPage from "./pages/Auth/LoginPage/LoginPage";
 import RegistrationPage from "./pages/Auth/RegistrationPage/RegistrationPage";
 import ProfilePage from "./pages/Volunteer/ProfilePage/ProfilePage";
-import AuthRoute from "@components/routes/AuthRoute/AuthRoute";
-import ProtectedRoute from "@components/routes/ProtectedRoute/ProtectedRoute";
+import MapPage from "./pages/MapPage/MapPage";
+import NPOListPage from "./pages/NPO/NPOListPage/NPOListPage";
 
 const router = createBrowserRouter([
     {
@@ -22,6 +25,14 @@ const router = createBrowserRouter([
                     {
                         index: true,
                         element: <HomePage />,
+                    },
+                    {
+                        path: "map",
+                        element: <MapPage />,
+                    },
+                    {
+                        path: "npo",
+                        element: <NPOListPage />,
                     },
                     {
                         path: "login",

@@ -4,6 +4,8 @@ import { combineReducers } from "redux";
 
 import { authApi } from "./api/auth.api";
 import { geodecodeApi } from "./api/geodecode.api";
+import { mapApi } from "./api/map.api";
+import { npoApi } from "./api/npo.api";
 
 import loadingReducer from "./slices/loading.slice";
 import cityReducer from "./slices/city.slice";
@@ -15,6 +17,8 @@ import errorMiddleware from "./middlewares/error.middleware";
 const rootReducer = combineReducers({
     authApi: authApi.reducer,
     geodecodeApi: geodecodeApi.reducer,
+    mapApi: mapApi.reducer,
+    npoApi: npoApi.reducer,
     loading: loadingReducer,
     city: cityReducer,
     auth: authReducer,
@@ -26,6 +30,8 @@ export const store = configureStore({
         getDefaultMiddleware()
             .concat(authApi.middleware)
             .concat(geodecodeApi.middleware)
+            .concat(mapApi.middleware)
+            .concat(npoApi.middleware)
             .concat(loadingMiddleware)
             .concat(errorMiddleware),
 });
