@@ -1,0 +1,22 @@
+@use "fonts" as *;
+@use "colors" as *;
+
+:root {
+    --font-family: #{$font-family-primary};
+    --font-size-base: 16px;
+}
+
+html,
+body,
+#root {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}

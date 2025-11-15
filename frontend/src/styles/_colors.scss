@@ -1,0 +1,83 @@
+// =============================================================================
+// SCSS Variables for Rosatom Brandbook (2024)
+// Based on official brandbook guidelines
+// =============================================================================
+
+// PRIMARY COLORS
+// =============================================================================
+
+// Dark Blue Gradient #1
+$rosatom-dark-blue-1: #15256d; // Gradient start (0%)
+$rosatom-dark-blue-2: #003274; // Gradient middle (50%)
+
+// Blue Gradient #2
+$rosatom-blue-1: #025ea1; // Gradient start (0%)
+$rosatom-blue-2: #6cace4; // Gradient middle (50%)
+
+// Achromatic Colors
+$rosatom-black: #000000;
+$rosatom-gray-90: #333333; // 90% Black
+$rosatom-gray-70: #6e6e6e; // 70% Black
+$rosatom-gray-50: #9b9b9b; // 50% Black
+$rosatom-gray-23: #d3d3d3; // 23% Black
+$rosatom-white: #ffffff;
+
+// Semantic names for achromatic colors
+$rosatom-text-primary: $rosatom-gray-90;
+$rosatom-text-secondary: $rosatom-gray-70;
+$rosatom-border: $rosatom-gray-50;
+$rosatom-background-light: $rosatom-gray-23;
+
+// SECONDARY COLORS (Accent colors - limited use)
+// =============================================================================
+
+// Yellow
+$rosatom-yellow-100: #fcc30b; // Tint 100%
+$rosatom-yellow-0: #cc8d00; // Tint 0%
+
+// Orange
+$rosatom-orange-100: #fd6925; // Tint 100%
+$rosatom-orange-0: #cc3b04; // Tint 0%
+
+// Magenta
+$rosatom-magenta-100: #e20072; // Tint 100%
+$rosatom-magenta-0: #c2096d; // Tint 0%
+
+// Green
+$rosatom-green-100: #56c02b; // Tint 100%
+$rosatom-green-0: #4f8b3c; // Tint 0%
+
+// Teal
+$rosatom-teal-100: #259789; // Tint 100%
+$rosatom-teal-0: #3b7e76; // Tint 0%
+
+// SPECIAL COLOR
+// =============================================================================
+$rosatom-red: #ff0000; // Use only for negative dynamics, danger, or national holidays
+
+// GRADIENTS
+// =============================================================================
+$rosatom-gradient-dark-blue: linear-gradient(
+    90deg,
+    $rosatom-dark-blue-1 0%,
+    $rosatom-dark-blue-2 50%
+);
+$rosatom-gradient-blue: linear-gradient(90deg, $rosatom-blue-1 0%, $rosatom-blue-2 50%);
+
+// MIXINS
+// =============================================================================
+
+@mixin rosatom-primary-colors {
+    color: $rosatom-dark-blue-1;
+    background: $rosatom-white;
+}
+
+@mixin rosatom-secondary-accent {
+    color: $rosatom-blue-2;
+    border-color: $rosatom-blue-2;
+}
+
+@mixin rosatom-warning-state {
+    color: $rosatom-red;
+    border-color: $rosatom-red;
+}

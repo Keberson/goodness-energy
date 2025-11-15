@@ -1,0 +1,65 @@
+@import "@styles/variables";
+@import "@styles/colors";
+
+.home {
+    &__container {
+        padding: $container-padding-vertical $container-padding-horizontal;
+    }
+
+    &__header {
+        margin-bottom: 24px;
+        background: linear-gradient(135deg, $rosatom-white -5%, $rosatom-blue-2 100%);
+
+        &__title {
+            margin-bottom: 16px;
+            color: $rosatom-dark-blue-1 !important;
+        }
+
+        &__description {
+            font-size: 16px;
+            line-height: 1.6;
+            color: $rosatom-text-primary !important;
+        }
+
+        &__subtitle {
+            margin-top: 32px;
+            color: $rosatom-text-primary !important;
+        }
+
+        &__image {
+            width: 100%;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+    }
+
+    &__features {
+        margin-bottom: 48px;
+        justify-content: center;
+    }
+
+    &__feature-card {
+        height: 100%;
+    }
+
+    &__feature-avatar {
+        font-size: 24px;
+        color: $rosatom-blue-1;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    &__events {
+        &__view-all {
+            margin-top: 16px;
+        }
+    }
+
+    &__quick-actions {
+        margin-top: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: $flex-gap;
+    }
+}

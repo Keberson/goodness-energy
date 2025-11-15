@@ -1,0 +1,6 @@
+{
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.10.1",
+    "dayjs": "^1.11.19"
+  }
+}

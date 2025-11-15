@@ -1,0 +1,142 @@
+// =============================================================================
+// Rosatom Fonts
+// =============================================================================
+
+@use "colors" as *;
+
+// Regular
+@font-face {
+    font-family: "Rosatom";
+    src: url("/fonts/Rosatom-Regular_W.woff2") format("woff2"),
+        url("/fonts/Rosatom-Regular_W.woff") format("woff");
+    font-weight: 400;
+    font-style: normal;
+    font-display: swap;
+}
+
+// Light
+@font-face {
+    font-family: "Rosatom";
+    src: url("/fonts/Rosatom-Light_W.woff2") format("woff2"),
+        url("/fonts/Rosatom-Light_W.woff") format("woff");
+    font-weight: 300;
+    font-style: normal;
+    font-display: swap;
+}
+
+// Bold
+@font-face {
+    font-family: "Rosatom";
+    src: url("/fonts/Rosatom-Bold_W.woff2") format("woff2"),
+        url("/fonts/Rosatom-Bold_W.woff") format("woff");
+    font-weight: 700;
+    font-style: normal;
+    font-display: swap;
+}
+
+// Italic
+@font-face {
+    font-family: "Rosatom";
+    src: url("/fonts/Rosatom-Italic_W.woff2") format("woff2"),
+        url("/fonts/Rosatom-Italic_W.woff") format("woff");
+    font-weight: 400;
+    font-style: italic;
+    font-display: swap;
+}
+
+// =============================================================================
+// Font Variables
+// =============================================================================
+$font-family-primary: "Rosatom", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+$font-family-base: $font-family-primary;
+
+$font-weight-light: 300;
+$font-weight-regular: 400;
+$font-weight-bold: 700;
+
+// =============================================================================
+// Font Mixins
+// =============================================================================
+@mixin font-light {
+    font-family: $font-family-primary;
+    font-weight: $font-weight-light;
+}
+
+@mixin font-regular {
+    font-family: $font-family-primary;
+    font-weight: $font-weight-regular;
+}
+
+@mixin font-bold {
+    font-family: $font-family-primary;
+    font-weight: $font-weight-bold;
+}
+
+@mixin font-italic {
+    font-family: $font-family-primary;
+    font-weight: $font-weight-regular;
+    font-style: italic;
+}
+
+// =============================================================================
+// Typography Classes
+// =============================================================================
+.rosatom-text-light {
+    @include font-light;
+}
+
+.rosatom-text-regular {
+    @include font-regular;
+}
+
+.rosatom-text-bold {
+    @include font-bold;
+}
+
+.rosatom-text-italic {
+    @include font-italic;
+}
+
+// Headings
+.rosatom-h1 {
+    @include font-bold;
+    font-size: 2.5rem;
+    line-height: 1.2;
+    color: $rosatom-dark-blue-1;
+}
+
+.rosatom-h2 {
+    @include font-bold;
+    font-size: 2rem;
+    line-height: 1.3;
+    color: $rosatom-dark-blue-1;
+}
+
+.rosatom-h3 {
+    @include font-bold;
+    font-size: 1.5rem;
+    line-height: 1.4;
+    color: $rosatom-dark-blue-1;
+}
+
+// Body text
+.rosatom-body {
+    @include font-regular;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: $rosatom-text-primary;
+}
+
+.rosatom-body-light {
+    @include font-light;
+    font-size: 1rem;
+    line-height: 1.5;
+    color: $rosatom-text-primary;
+}
+
+.rosatom-caption {
+    @include font-regular;
+    font-size: 0.875rem;
+    line-height: 1.4;
+    color: $rosatom-text-secondary;
+}
