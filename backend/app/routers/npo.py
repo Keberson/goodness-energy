@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
-from app.models import NPO, NPOGallery, NPOTag, Event, EventTag, News, NewsTag, NewsAttachment, EventStatus, User
+from app.models import NPO, NPOGallery, NPOTag, Event, EventTag, News, NewsTag, NewsAttachment, EventStatus, User, NPOStatus, NPOCity
 from app.schemas import (
     NPOResponse, NPOMapPoint, NPOUpdate, EventCreate, EventUpdate, 
     EventResponse, EventStatusUpdate, NewsCreate, NewsResponse
@@ -44,11 +44,13 @@ async def get_all_npos(db: Session = Depends(get_db)):
             description=npo.description,
             coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)] if npo.coordinates_lat is not None and npo.coordinates_lon is not None else None,
             address=npo.address,
+            city=NPOCity(npo.city) if npo.city else NPOCity.ANGARSK,
             timetable=npo.timetable,
             galleryIds=gallery_ids,
             tags=tags,
             links=json.loads(npo.links) if npo.links else None,
             vacancies=active_events_count,
+            status=npo.status if npo.status is not None else NPOStatus.NOT_CONFIRMED,
             created_at=npo.created_at
         ))
     
@@ -78,6 +80,8 @@ async def update_npo(
         npo.timetable = npo_update.timetable
     if npo_update.links is not None:
         npo.links = json.dumps(npo_update.links)
+    if npo_update.city is not None:
+        npo.city = npo_update.city.value  # Сохраняем строковое значение enum
     
     # Обновление галереи
     if npo_update.galleryIds is not None:

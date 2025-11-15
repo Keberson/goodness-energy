@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
-from app.models import User, UserRole, NPO, Volunteer
+from app.models import User, UserRole, NPO, Volunteer, NPOStatus
 from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration
 from app.auth import verify_password, get_password_hash, create_access_token
 import json
@@ -80,8 +80,10 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
         coordinates_lat=lat,
         coordinates_lon=lon,
         address=npo_data.address,
+        city=npo_data.city.value,  # Сохраняем строковое значение enum
         timetable=npo_data.timetable,
-        links=json.dumps(npo_data.links) if npo_data.links else None
+        links=json.dumps(npo_data.links) if npo_data.links else None,
+        status=NPOStatus.NOT_CONFIRMED  # По умолчанию НКО не подтверждена
     )
     db.add(npo)
     db.flush()
@@ -97,7 +99,7 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
     
     # Создание токена
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value}
+    return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": npo.id}
 
 @router.post("/reg/vol", response_model=Token)
 async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depends(get_db)):
@@ -136,7 +138,7 @@ async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depe
     
     # Создание токена
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value}
+    return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": volunteer.id}
 
 @router.post("/login", response_model=Token)
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
@@ -156,6 +158,26 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    # Получаем id из соответствующей таблицы в зависимости от роли
+    user_id = None
+    if user.role == UserRole.NPO:
+        npo = db.query(NPO).filter(NPO.user_id == user.id).first()
+        if npo:
+            user_id = npo.id
+    elif user.role == UserRole.VOLUNTEER:
+        volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
+        if volunteer:
+            user_id = volunteer.id
+    elif user.role == UserRole.ADMIN:
+        # Для админа используем id из таблицы users
+        user_id = user.id
+    
+    if user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Не удалось найти связанную запись пользователя"
+        )
+    
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value}
+    return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
 

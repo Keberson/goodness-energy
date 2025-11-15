@@ -20,6 +20,47 @@ class EventStatus(str, enum.Enum):
     CANCELLED = "cancelled"
     COMPLETED = "completed"
 
+class NPOStatus(str, enum.Enum):
+    CONFIRMED = "confirmed"
+    NOT_CONFIRMED = "not_confirmed"
+
+class NPOCity(str, enum.Enum):
+    ANGARSK = "Ангарск"
+    BAIKALSK = "Байкальск"
+    BALAKOVO = "Балаково"
+    BILIBINO = "Билибино"
+    VOLGODONSK = "Волгодонск"
+    GLAZOV = "Глазов"
+    DESNOGORSK = "Десногорск"
+    DIMITROVGRAD = "Димитровград"
+    ZHELEZNOGORSK = "Железногорск"
+    ZATO_ZARECHNY = "ЗАТО Заречный"
+    ZARECHNY = "Заречный"
+    ZELENOGORSK = "Зеленогорск"
+    KRASNOKAMENSK = "Краснокаменск"
+    KURCHATOV = "Курчатов"
+    LESNOY = "Лесной"
+    NEMAN = "Неман"
+    NOVOVORONEZH = "Нововоронеж"
+    NOVOURALSK = "Новоуральск"
+    OBNINSK = "Обнинск"
+    OZERSK = "Озерск"
+    PEVEK = "Певек"
+    POLYARNYE_ZORI = "Полярные Зори"
+    SAROV = "Саров"
+    SEVERSK = "Северск"
+    SNEEZHINSK = "Снежинск"
+    SOVETSK = "Советск"
+    SOSNOVY_BOR = "Сосновый Бор"
+    TREHGORNY = "Трехгорный"
+    UDOMLYA = "Удомля"
+    USOLYE_SIBIRSKOE = "Усолье-Сибирское"
+    ELEKTROSTAL = "Электросталь"
+    ENERGODAR = "Энергодар"
+    NIZHNY_NOVGOROD = "Нижний Новгород"
+    OMSK = "Омск"
+    OZERSK_YO = "Озёрск"
+
 class User(Base):
     __tablename__ = "users"
     
@@ -48,8 +89,10 @@ class NPO(Base):
     coordinates_lat = Column(Float)
     coordinates_lon = Column(Float)
     address = Column(String)
+    city = Column(String, nullable=False)  # Храним строковые значения, валидация через Pydantic
     timetable = Column(Text)  # JSON строка или текст
     links = Column(Text)  # JSON строка
+    status = Column(SQLEnum(NPOStatus), default=NPOStatus.NOT_CONFIRMED)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

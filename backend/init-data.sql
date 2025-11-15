@@ -4,12 +4,17 @@
 
 BEGIN;
 
+-- Администратор
+INSERT INTO users (login, password_hash, role, created_at) 
+VALUES ('admin', '$2b$12$TkAtBetIeANABsoQ8d.R7.AVHURJPVSShdYdJGk9YXcdQzzV0mJUC', 'ADMIN', NOW())
+ON CONFLICT (login) DO NOTHING;
+
 -- НКО #1: ОО ТОС АГО "12а микрорайон"
 INSERT INTO users (login, password_hash, role, created_at) 
 VALUES ('npo1', '$2b$12$zCHnZ4WqVz9DtvXII/3VYOKmvTsntAb6ycB1Sod56VeSZzhqmIDVK', 'NPO', NOW())
 ON CONFLICT (login) DO NOTHING;
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo1'),
   'ОО ТОС АГО "12а микрорайон"',
@@ -27,8 +32,10 @@ VALUES (
   13.3456,
   13.3456,
   NULL,
+  'Ангарск',
   NULL,
   '{"vk": "https://vk.com/id746471055"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -42,7 +49,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo2', '$2b$12$BKXx9fTuiGNSeucFKJKy8.yvpavqKSdEBjwgfHvUIZYORTjcMCY46', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo2'),
   'Благотворительный общественно полезный фонд помощи социально незащищенным слоям населения "Платформа добрых дел"',
@@ -58,8 +65,10 @@ VALUES (
   14.3456,
   14.3456,
   NULL,
+  'Волгодонск',
   NULL,
   '{"website": "-"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -73,7 +82,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo3', '$2b$12$0lvHLtufLc.54jOfCSqe4eT/3viOW7S23sy1SjVM6TRClaYCmvdjG', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo3'),
   'МБУ "Молодежный центр"',
@@ -91,8 +100,10 @@ VALUES (
   15.3456,
   15.3456,
   NULL,
+  'Глазов',
   NULL,
   '{"vk": "https://vk.com/mcglazov"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -106,7 +117,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo4', '$2b$12$ZlHp5zqOkgURIeAdHiy9pOeX3xj3YsGw3yHrPyLqFcoFxQJ/j3yg6', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo4'),
   'Культурная база "Короленко 8" (МБУ "ЦМиТО УКСиМП"',
@@ -118,8 +129,10 @@ VALUES (
   16.345599999999997,
   16.345599999999997,
   NULL,
+  'Глазов',
   NULL,
   '{"vk": "https://m.vk.com/korolenko8?from=groups"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -133,7 +146,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo5', '$2b$12$CbKnHlDXJXnJNOT54Ce/OuGB88fZlF8.L/mTzqiwgs7z6cmFDEHrK', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo5'),
   'КРОМО "Экологический союз"',
@@ -151,8 +164,10 @@ VALUES (
   17.345599999999997,
   17.345599999999997,
   NULL,
+  'Железногорск',
   NULL,
   '{"vk": "Vk.com/ecosoyuz24"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -166,7 +181,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo6', '$2b$12$.we.vPAXtqlQA3NcZrSIS.NLka1W83ExUnL5dG6hXI5YMocbm2hw2', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo6'),
   'Федерация картинга',
@@ -174,8 +189,10 @@ VALUES (
   18.345599999999997,
   18.345599999999997,
   NULL,
+  'Зеленогорск',
   NULL,
   '{"vk": "Vk.com/publik177651782"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -189,7 +206,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo7', '$2b$12$XBqEqK.QN/tvg1D.R48dmuMY7rG7Rx5UoXmni8NVjut.KUezQApyS', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo7'),
   'НКО "Резервный фонд поддержки гражданских инициатив города Зеленогорска"',
@@ -203,8 +220,10 @@ VALUES (
   19.345599999999997,
   19.345599999999997,
   NULL,
+  'Зеленогорск',
   NULL,
   '{"vk": "https://vk.com/club206489451?from=groups"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -218,7 +237,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo8', '$2b$12$AH1xGcf2jVtXg1wLg6LJzOJg4K/F3wzfhfFBWIsRpRTo8ZdP8aK52', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo8'),
   'АНО "Клуб компьютерного спорта и фиджитал-спорта "Кибер-атом"',
@@ -226,8 +245,10 @@ VALUES (
   20.345599999999997,
   20.345599999999997,
   NULL,
+  'Зеленогорск',
   NULL,
   '{"vk": "https://vk.com/cyberatom_zlk24"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -241,7 +262,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo9', '$2b$12$2jMgVmX.YXU6/IeGzeX6lOIFY67g5DybUJFat1YSQSebSPlSD6Afm', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo9'),
   'АНО РАЗВИВАЮЩИЙ ЦЕНТР "СОЛНЕЧНЫЙ ГОРОД" "',
@@ -256,8 +277,10 @@ VALUES (
   21.345599999999997,
   21.345599999999997,
   NULL,
+  'Зеленогорск',
   NULL,
   '{"vk": "https://vk.com/sunny_gorod"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -271,7 +294,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo10', '$2b$12$hkwfBP2.gUDvAGRTQKem8eBKJvcdXCqggGmQr9J1AyhnuwHUyVbRy', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo10'),
   'АНО КРЦРМСИГ ЕЛЕНЫ ЖИВАЕВОЙ',
@@ -279,8 +302,10 @@ VALUES (
   22.345599999999997,
   22.345599999999997,
   NULL,
+  'Зеленогорск',
   NULL,
   '{"vk": "https://vk.com/elenazivaeva"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -294,7 +319,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo11', '$2b$12$XNelCEZuAy7.AryY0rLMnO/yliOsG/nnh.xabGd5KRprooYyl/Eze', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo11'),
   'АНО Ресурсный центр',
@@ -302,8 +327,10 @@ VALUES (
   23.345599999999997,
   23.345599999999997,
   NULL,
+  'Зеленогорск',
   NULL,
   '{"vk": "https://m.vk.com/resyrs.center?from=groups"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -317,7 +344,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo12', '$2b$12$4UYtsWlPsa91be0WH7svpOo/d2YC4PC.SH9TDcPOoc6TX0bK9LfoS', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo12'),
   'АНО СС "Линия жизни"',
@@ -338,8 +365,10 @@ VALUES (
   24.345599999999997,
   24.345599999999997,
   NULL,
+  'Зеленогорск',
   NULL,
   '{"vk": "https://m.vk.com/liniya_zhizni_zel http://liniyazhiznizel.ru https://ok.ru/group/61396158775366"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -353,7 +382,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo13', '$2b$12$9CsXDUKa9lzB2fbMeQ1pZ.A3yHaKYClyrCTlf4GuISicy/O7G7r6O', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo13'),
   'АНО Центр досуга и развития детей',
@@ -361,8 +390,10 @@ VALUES (
   25.345599999999997,
   25.345599999999997,
   NULL,
+  'Зеленогорск',
   NULL,
   '{"vk": "https://vk.com/anocdrdzelenogorsk?from=groups"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -376,7 +407,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo14', '$2b$12$nwrUXC5LxtqGV8WRxzdwvudhwP5a27hmcy/G4CyM8gIKyVKGd.9Oq', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo14'),
   'Автономная некоммерческая организация "Клуб компьютерного спорта и фиджитал-спорта "Кибер-атом"',
@@ -390,8 +421,10 @@ VALUES (
   26.345599999999997,
   26.345599999999997,
   NULL,
+  'Зеленогорск',
   NULL,
   '{"vk": "группа ВК: https://vk.com/cyberatom_zlk24\nканал Телеграм: https://t.me/cyberatom_zlk24"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -405,7 +438,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo15', '$2b$12$niO.0W3ovQATJ3dtboupneaFB6IrSAbIgtmVxG3l.w/MJKKC9wNUW', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo15'),
   'БФ «Планета кошек»',
@@ -415,8 +448,10 @@ VALUES (
   27.345599999999997,
   27.345599999999997,
   NULL,
+  'Нижний Новгород',
   NULL,
   '{"vk": "https://vk.com/planetakosheknn"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -430,7 +465,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo16', '$2b$12$drx92/CC.9V8pppYM13HQ.ng1c.SXVdu.NkI1boWLD3TKBsWjLfNS', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo16'),
   'АНО ДПО "Техническая академия Росатома"',
@@ -438,8 +473,10 @@ VALUES (
   28.345599999999997,
   28.345599999999997,
   NULL,
+  'Обнинск',
   NULL,
   '{"vk": "https://vk.com/rosatomtech"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -453,7 +490,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo17', '$2b$12$v6itO4m42BtiKzl0p12UyO2v.znnDLTDE8XwSXKzUol/pMlhLb7Km', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo17'),
   'АНО СЦСА НАШИ ДЕТИ',
@@ -476,8 +513,10 @@ VALUES (
   29.345599999999997,
   29.345599999999997,
   NULL,
+  'Омск',
   NULL,
   '{"vk": "https://vk.com/ndetiomsk"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -491,7 +530,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo18', '$2b$12$L4hL/1Rkp2sFPU7JTUZdWeO/Hlwng9AEhuEg9zrsSzl1aD6YoP6Sq', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo18'),
   'ТРОО "ВПЦ" МИРНЫЙ ВОИН"',
@@ -499,8 +538,10 @@ VALUES (
   30.345599999999997,
   30.345599999999997,
   NULL,
+  'Северск',
   NULL,
   '{"website": "https://ok.ru/profile/566417452251/statuses/156787104735451"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -514,7 +555,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo19', '$2b$12$IkMIh0vL8ol9LTq4PqpK6uvJmfyaZUwBCAQOEnp7U.2GRFYBn5mBC', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo19'),
   'СГОО БУМЕРАНГ ДОБРА',
@@ -522,8 +563,10 @@ VALUES (
   31.345599999999997,
   31.345599999999997,
   NULL,
+  'Снежинск',
   NULL,
   '{"vk": "https://vk.com/bdsnz"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -537,7 +580,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo20', '$2b$12$LL1OpHMcDqSAmHa8edhPIO95A6.0ZiVyxeedz0FuvNgEDi3.LsNk.', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo20'),
   'ДоброЦентр при СО НКО Бумеранг добра',
@@ -545,8 +588,10 @@ VALUES (
   32.3456,
   32.3456,
   NULL,
+  'Снежинск',
   NULL,
   '{"vk": "https://vk.com/snzzhensovet"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -560,7 +605,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo21', '$2b$12$XpxEdysg6aWITMBMZYPvI.MKm0oOJFMFgew22seAOJFlLVA7aIjZ2', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo21'),
   'Снежинская городская общественная организация "Союз женщин Снежинска"',
@@ -577,8 +622,10 @@ VALUES (
   33.3456,
   33.3456,
   NULL,
+  'Снежинск',
   NULL,
   '{"vk": "https://vk.com/sovetgensnz?from=groups"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -592,7 +639,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo22', '$2b$12$tlyVc4AqOsOwjPityJ3HMOeUEjulEUN3gMpPO0hwr9lnur6iO37Xm', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo22'),
   'БФМС Новое Усолье',
@@ -604,8 +651,10 @@ VALUES (
   34.3456,
   34.3456,
   NULL,
+  'Усолье-Сибирское',
   NULL,
   '{"vk": "https://vk.com/club166583301"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -619,7 +668,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo23', '$2b$12$d6QVsWrbyTGFD1J1GQxaieTLveplUdR.ZgZjP1aGJhcg/RRaMzIru', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo23'),
   'УГМО ИОРОООО ВОИ',
@@ -631,8 +680,10 @@ VALUES (
   35.3456,
   35.3456,
   NULL,
+  'Усолье-Сибирское',
   NULL,
   '{"website": "-"}',
+  'CONFIRMED',
   NOW()
 );
 
@@ -646,7 +697,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, created_at) VALUES
   ('npo24', '$2b$12$6NdyhduZv3rl7zxiUgT/Ouuj5tDHiGJjO5IOdj/VAnbt0pgTGTyw6', 'NPO', NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, timetable, links, created_at)
+INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo24'),
   'АНО «Твердыми шагами»',
@@ -654,8 +705,10 @@ VALUES (
   36.3456,
   36.3456,
   NULL,
+  'Озёрск',
   NULL,
   '{"vk": "https://vk.com/club207076122"}',
+  'CONFIRMED',
   NOW()
 );
 
