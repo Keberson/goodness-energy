@@ -40,6 +40,33 @@ async def get_all_volunteers(db: Session = Depends(get_db)):
     
     return result
 
+@router.get("/{volunteer_id}", response_model=VolunteerResponse)
+async def get_volunteer_by_id(
+    volunteer_id: int,
+    db: Session = Depends(get_db)
+):
+    """Получение информации о волонтере по ID"""
+    volunteer = db.query(Volunteer).filter(Volunteer.id == volunteer_id).first()
+    if not volunteer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Volunteer not found"
+        )
+    
+    return VolunteerResponse(
+        id=volunteer.id,
+        firstName=volunteer.first_name,
+        secondName=volunteer.second_name,
+        middleName=volunteer.middle_name,
+        about=volunteer.about,
+        birthday=volunteer.birthday,
+        city=volunteer.city,
+        sex=volunteer.sex,
+        email=volunteer.email,
+        phone=volunteer.phone,
+        created_at=volunteer.created_at
+    )
+
 @router.put("/{volunteer_id}")
 async def update_volunteer(
     volunteer_id: int,
@@ -234,6 +261,39 @@ async def create_volunteer_news(
         type=news.type,
         created_at=news.created_at
     )
+
+@router.get("/{volunteer_id}/news", response_model=List[NewsResponse])
+async def get_volunteer_news(
+    volunteer_id: int,
+    db: Session = Depends(get_db)
+):
+    """Получение всех новостей волонтёра"""
+    volunteer = db.query(Volunteer).filter(Volunteer.id == volunteer_id).first()
+    if not volunteer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Volunteer not found"
+        )
+    
+    # Получаем все новости волонтёра
+    news_list = db.query(News).filter(News.volunteer_id == volunteer_id).order_by(News.created_at.desc()).all()
+    
+    result = []
+    for news in news_list:
+        tags = [t.tag for t in news.tags]
+        attached_ids = [a.file_id for a in news.attachments]
+        
+        result.append(NewsResponse(
+            id=news.id,
+            name=news.name,
+            text=news.text,
+            attachedIds=attached_ids,
+            tags=tags,
+            type=news.type,
+            created_at=news.created_at
+        ))
+    
+    return result
 
 @router.get("/{volunteer_id}/event", response_model=List[EventResponse])
 async def get_volunteer_events(

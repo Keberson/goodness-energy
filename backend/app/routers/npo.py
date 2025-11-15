@@ -461,3 +461,36 @@ async def create_news(
         created_at=news.created_at
     )
 
+@router.get("/{npo_id}/news", response_model=List[NewsResponse])
+async def get_npo_news(
+    npo_id: int,
+    db: Session = Depends(get_db)
+):
+    """Получение всех новостей НКО"""
+    npo = db.query(NPO).filter(NPO.id == npo_id).first()
+    if not npo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="NPO not found"
+        )
+    
+    # Получаем все новости НКО
+    news_list = db.query(News).filter(News.npo_id == npo_id).order_by(News.created_at.desc()).all()
+    
+    result = []
+    for news in news_list:
+        tags = [t.tag for t in news.tags]
+        attached_ids = [a.file_id for a in news.attachments]
+        
+        result.append(NewsResponse(
+            id=news.id,
+            name=news.name,
+            text=news.text,
+            attachedIds=attached_ids,
+            tags=tags,
+            type=news.type,
+            created_at=news.created_at
+        ))
+    
+    return result
+

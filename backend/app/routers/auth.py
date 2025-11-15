@@ -94,7 +94,11 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
     
     # Создание токена
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_type": "npo"
+    }
 
 @router.post("/reg/vol", response_model=Token)
 async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depends(get_db)):
@@ -133,7 +137,11 @@ async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depe
     
     # Создание токена
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_type": "volunteer"
+    }
 
 @router.post("/login", response_model=Token)
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
@@ -160,6 +168,18 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
             headers={"WWW-Authenticate": "Bearer"},
         )
     
+    # Определение типа пользователя на основе роли
+    user_type_map = {
+        UserRole.VOLUNTEER: "volunteer",
+        UserRole.NPO: "npo",
+        UserRole.ADMIN: "admin"
+    }
+    user_type = user_type_map.get(user.role, "volunteer")
+    
     access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer"}
+    return {
+        "access_token": access_token,
+        "token_type": "bearer",
+        "user_type": user_type
+    }
 

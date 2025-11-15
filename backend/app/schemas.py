@@ -11,6 +11,7 @@ class UserLogin(BaseModel):
 class Token(BaseModel):
     access_token: str
     token_type: str
+    user_type: str  # "volunteer" | "npo" | "admin"
 
 # NPO Registration
 class NPORegistration(BaseModel):
@@ -143,6 +144,13 @@ class NewsCreate(BaseModel):
     attachedIds: Optional[List[int]] = None
     tags: Optional[List[str]] = None
     type: NewsType
+
+class NewsUpdate(BaseModel):
+    name: Optional[str] = None
+    text: Optional[str] = None
+    attachedIds: Optional[List[int]] = None
+    tags: Optional[List[str]] = None
+    type: Optional[NewsType] = None
 
 class NewsResponse(BaseModel):
     id: int
