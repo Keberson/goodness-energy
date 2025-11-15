@@ -43,7 +43,6 @@ class NPO(Base):
     
     id = Column(Integer, primary_key=True, index=True)
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
-    psrn = Column(String, unique=True, nullable=False)  # ПСРН - первичный государственный регистрационный номер
     name = Column(String, nullable=False)
     description = Column(Text)
     coordinates_lat = Column(Float)

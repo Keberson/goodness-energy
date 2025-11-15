@@ -15,7 +15,7 @@ async def get_map_npo(db: Session = Depends(get_db)):
     result = []
     
     for npo in npos:
-        if npo.coordinates_lat and npo.coordinates_lon:
+        if npo.coordinates_lat is not None and npo.coordinates_lon is not None:
             gallery_ids = [g.file_id for g in npo.gallery]
             tags = [t.tag for t in npo.tags]
             active_events_count = db.query(Event).filter(
@@ -27,7 +27,7 @@ async def get_map_npo(db: Session = Depends(get_db)):
                 id=npo.id,
                 name=npo.name,
                 description=npo.description,
-                coordinates=[npo.coordinates_lat, npo.coordinates_lon],
+                coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)],
                 address=npo.address,
                 timetable=npo.timetable,
                 galleryIds=gallery_ids,
@@ -38,7 +38,7 @@ async def get_map_npo(db: Session = Depends(get_db)):
             )
             
             result.append(NPOMapPoint(
-                coordinates=[npo.coordinates_lat, npo.coordinates_lon],
+                coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)],
                 info=info
             ))
     

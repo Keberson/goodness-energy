@@ -57,18 +57,17 @@ Authorization: Bearer {token}
 {
   "login": "npo_login",
   "password": "password",
-  "psrn": "1234567890",
   "name": "Название НКО",
   "description": "Описание",
   "coordinates": [55.7558, 37.6173],
   "address": "Адрес",
-  "galleryIds": [1, 2],
   "tags": ["тег1", "тег2"],
   "links": {},
   "timetable": "Пн-Пт 9:00-18:00"
 }
 ```
 - **Ответ**: `{ "access_token": "...", "token_type": "bearer" }`
+- **Примечание**: Фотографии можно загрузить после регистрации через `/files` и добавить через обновление профиля НКО.
 
 **Обновление НКО**
 - **PUT** `/npo/{id}`

@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
+from typing import List
 from app.database import get_db
-from app.models import Volunteer, EventResponse as EventResponseModel, News, NewsTag, NewsAttachment, NewsType
-from app.schemas import VolunteerUpdate, EventResponseCreate, NewsCreate, NewsResponse
+from app.models import Volunteer, EventResponse as EventResponseModel, News, NewsTag, NewsAttachment, NewsType, Event, EventTag, User
+from app.schemas import VolunteerUpdate, VolunteerResponse, NewsCreate, NewsResponse, EventResponse
 from app.auth import get_current_volunteer_user, get_current_user
 
 router = APIRouter()
@@ -15,6 +16,56 @@ def get_volunteer_by_user_id(user_id: int, db: Session) -> Volunteer:
             detail="Volunteer not found"
         )
     return volunteer
+
+@router.get("", response_model=List[VolunteerResponse])
+async def get_all_volunteers(db: Session = Depends(get_db)):
+    """Список всех волонтёров"""
+    volunteers = db.query(Volunteer).all()
+    result = []
+    
+    for volunteer in volunteers:
+        result.append(VolunteerResponse(
+            id=volunteer.id,
+            firstName=volunteer.first_name,
+            secondName=volunteer.second_name,
+            middleName=volunteer.middle_name,
+            about=volunteer.about,
+            birthday=volunteer.birthday,
+            city=volunteer.city,
+            sex=volunteer.sex,
+            email=volunteer.email,
+            phone=volunteer.phone,
+            created_at=volunteer.created_at
+        ))
+    
+    return result
+
+@router.get("/{volunteer_id}", response_model=VolunteerResponse)
+async def get_volunteer_by_id(
+    volunteer_id: int,
+    db: Session = Depends(get_db)
+):
+    """Получение информации о волонтере по ID"""
+    volunteer = db.query(Volunteer).filter(Volunteer.id == volunteer_id).first()
+    if not volunteer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Volunteer not found"
+        )
+    
+    return VolunteerResponse(
+        id=volunteer.id,
+        firstName=volunteer.first_name,
+        secondName=volunteer.second_name,
+        middleName=volunteer.middle_name,
+        about=volunteer.about,
+        birthday=volunteer.birthday,
+        city=volunteer.city,
+        sex=volunteer.sex,
+        email=volunteer.email,
+        phone=volunteer.phone,
+        created_at=volunteer.created_at
+    )
 
 @router.put("/{volunteer_id}")
 async def update_volunteer(
@@ -69,15 +120,25 @@ async def delete_volunteer(
             detail="You can only delete your own profile"
         )
     
+    # Сохраняем user_id перед удалением волонтёра
+    user_id = volunteer.user_id
+    
+    # Удаляем волонтёра (каскадно удалятся связанные записи: отклики на события, новости)
     db.delete(volunteer)
+    db.flush()
+    
+    # Удаляем связанного пользователя
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        db.delete(user)
+    
     db.commit()
     return {"message": "Volunteer profile deleted successfully"}
 
 @router.post("/event/{event_id}")
 async def respond_to_event(
     event_id: int,
-    response_data: EventResponseCreate,
-    current_user = Depends(get_current_user),
+    current_user = Depends(get_current_volunteer_user),
     db: Session = Depends(get_db)
 ):
     """Отклик на событие"""
@@ -91,13 +152,8 @@ async def respond_to_event(
             detail="Event not found"
         )
     
-    # Проверка, что пользователь - волонтер
-    volunteer = db.query(Volunteer).filter(Volunteer.user_id == response_data.userId).first()
-    if not volunteer:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Volunteer not found"
-        )
+    # Получаем волонтера из текущего пользователя
+    volunteer = get_volunteer_by_user_id(current_user.id, db)
     
     # Проверка, что отклик еще не существует
     existing_response = db.query(EventResponseModel).filter(
@@ -121,20 +177,15 @@ async def respond_to_event(
     
     return {"message": "Event response created successfully"}
 
-@router.delete("/event/{event_id}/{user_id}")
+@router.delete("/event/{event_id}")
 async def delete_event_response(
     event_id: int,
-    user_id: int,
-    current_user = Depends(get_current_user),
+    current_user = Depends(get_current_volunteer_user),
     db: Session = Depends(get_db)
 ):
     """Удаление отклика на событие"""
-    volunteer = db.query(Volunteer).filter(Volunteer.user_id == user_id).first()
-    if not volunteer:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Volunteer not found"
-        )
+    # Получаем волонтера из текущего пользователя
+    volunteer = get_volunteer_by_user_id(current_user.id, db)
     
     event_response = db.query(EventResponseModel).filter(
         EventResponseModel.event_id == event_id,
@@ -210,4 +261,76 @@ async def create_volunteer_news(
         type=news.type,
         created_at=news.created_at
     )
+
+@router.get("/{volunteer_id}/news", response_model=List[NewsResponse])
+async def get_volunteer_news(
+    volunteer_id: int,
+    db: Session = Depends(get_db)
+):
+    """Получение всех новостей волонтёра"""
+    volunteer = db.query(Volunteer).filter(Volunteer.id == volunteer_id).first()
+    if not volunteer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Volunteer not found"
+        )
+    
+    # Получаем все новости волонтёра
+    news_list = db.query(News).filter(News.volunteer_id == volunteer_id).order_by(News.created_at.desc()).all()
+    
+    result = []
+    for news in news_list:
+        tags = [t.tag for t in news.tags]
+        attached_ids = [a.file_id for a in news.attachments]
+        
+        result.append(NewsResponse(
+            id=news.id,
+            name=news.name,
+            text=news.text,
+            attachedIds=attached_ids,
+            tags=tags,
+            type=news.type,
+            created_at=news.created_at
+        ))
+    
+    return result
+
+@router.get("/{volunteer_id}/event", response_model=List[EventResponse])
+async def get_volunteer_events(
+    volunteer_id: int,
+    db: Session = Depends(get_db)
+):
+    """Просмотр всех событий выбранного волонтёра"""
+    volunteer = db.query(Volunteer).filter(Volunteer.id == volunteer_id).first()
+    if not volunteer:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Volunteer not found"
+        )
+    
+    # Получаем все события, на которые волонтёр откликнулся
+    event_responses = db.query(EventResponseModel).filter(
+        EventResponseModel.volunteer_id == volunteer_id
+    ).all()
+    
+    result = []
+    for event_response in event_responses:
+        event = db.query(Event).filter(Event.id == event_response.event_id).first()
+        if event:
+            tags = [t.tag for t in event.tags]
+            result.append(EventResponse(
+                id=event.id,
+                npo_id=event.npo_id,
+                name=event.name,
+                description=event.description,
+                start=event.start,
+                end=event.end,
+                coordinates=[float(event.coordinates_lat), float(event.coordinates_lon)] if event.coordinates_lat is not None and event.coordinates_lon is not None else None,
+                quantity=event.quantity,
+                status=event.status,
+                tags=tags,
+                created_at=event.created_at
+            ))
+    
+    return result
 
