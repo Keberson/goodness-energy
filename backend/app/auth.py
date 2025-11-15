@@ -2,7 +2,7 @@ from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
 from passlib.context import CryptContext
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, status, Request
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from sqlalchemy.orm import Session
 from app.database import get_db
@@ -131,8 +131,19 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     encoded_jwt = jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
     return encoded_jwt
 
-def get_current_user(
-    credentials: HTTPAuthorizationCredentials = Depends(security),
+def get_token_from_request(request: Request) -> Optional[str]:
+    """Извлекает токен из заголовка Authorization"""
+    authorization = request.headers.get("Authorization")
+    if not authorization:
+        return None
+    
+    if authorization.startswith("Bearer "):
+        return authorization[7:]
+    return None
+
+async def get_current_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
     db: Session = Depends(get_db)
 ):
     credentials_exception = HTTPException(
@@ -141,19 +152,41 @@ def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
-    token = credentials.credentials
+    # Пробуем получить токен из HTTPBearer
+    token = None
+    if credentials:
+        token = credentials.credentials
+        print(f"DEBUG AUTH: Token from HTTPBearer (first 20 chars): {token[:20] if token else 'None'}...")
+    
+    # Если токен не получен через HTTPBearer, пробуем извлечь напрямую из Request
+    if not token:
+        token = get_token_from_request(request)
+        print(f"DEBUG AUTH: Token from Request (first 20 chars): {token[:20] if token else 'None'}...")
+    
+    if not token:
+        print("DEBUG AUTH: No token found")
+        raise credentials_exception
+    
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
-        user_id: int = payload.get("sub")
-        if user_id is None:
+        user_id_str = payload.get("sub")
+        print(f"DEBUG AUTH: Decoded user_id (as string): {user_id_str}")
+        if user_id_str is None:
+            print("DEBUG AUTH: user_id is None in payload")
             raise credentials_exception
-    except JWTError:
+        # Преобразуем строку обратно в int
+        user_id: int = int(user_id_str)
+        print(f"DEBUG AUTH: Converted user_id to int: {user_id}")
+    except (JWTError, ValueError, TypeError) as e:
+        print(f"DEBUG AUTH: Error decoding token: {e}")
         raise credentials_exception
     
     user = db.query(User).filter(User.id == user_id).first()
     if user is None:
+        print(f"DEBUG AUTH: User with id {user_id} not found")
         raise credentials_exception
     
+    print(f"DEBUG AUTH: Successfully authenticated user: {user.login}, role: {user.role}")
     return user
 
 def get_current_npo_user(

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
-from app.models import NPO, NPOGallery, NPOTag, Event, EventTag, News, NewsTag, NewsAttachment, EventStatus
+from app.models import NPO, NPOGallery, NPOTag, Event, EventTag, News, NewsTag, NewsAttachment, EventStatus, User
 from app.schemas import (
     NPOResponse, NPOMapPoint, NPOUpdate, EventCreate, EventUpdate, 
     EventResponse, EventStatusUpdate, NewsCreate, NewsResponse
@@ -39,7 +39,7 @@ async def get_all_npos(db: Session = Depends(get_db)):
             id=npo.id,
             name=npo.name,
             description=npo.description,
-            coordinates=[npo.coordinates_lat, npo.coordinates_lon] if npo.coordinates_lat and npo.coordinates_lon else None,
+            coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)] if npo.coordinates_lat is not None and npo.coordinates_lon is not None else None,
             address=npo.address,
             timetable=npo.timetable,
             galleryIds=gallery_ids,
@@ -112,11 +112,57 @@ async def delete_npo(
             detail="You can only delete your own NPO"
         )
     
+    # Сохраняем user_id перед удалением НКО
+    user_id = npo.user_id
+    
+    # Удаляем НКО (каскадно удалятся связанные записи: галерея, теги, события, новости)
     db.delete(npo)
+    db.flush()
+    
+    # Удаляем связанного пользователя
+    user = db.query(User).filter(User.id == user_id).first()
+    if user:
+        db.delete(user)
+    
     db.commit()
     return {"message": "NPO deleted successfully"}
 
 # Event endpoints
+@router.get("/{npo_id}/event", response_model=List[EventResponse])
+async def get_npo_events(
+    npo_id: int,
+    db: Session = Depends(get_db)
+):
+    """Просмотр всех событий выбранного НКО"""
+    npo = db.query(NPO).filter(NPO.id == npo_id).first()
+    if not npo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="NPO not found"
+        )
+    
+    # Получаем все события НКО
+    events = db.query(Event).filter(Event.npo_id == npo_id).all()
+    
+    result = []
+    for event in events:
+        tags = [t.tag for t in event.tags]
+        result.append(EventResponse(
+            id=event.id,
+            npo_id=event.npo_id,
+            name=event.name,
+            description=event.description,
+            start=event.start,
+            end=event.end,
+            coordinates=[float(event.coordinates_lat), float(event.coordinates_lon)] if event.coordinates_lat is not None and event.coordinates_lon is not None else None,
+            quantity=event.quantity,
+            status=event.status,
+            tags=tags,
+            created_at=event.created_at
+        ))
+    
+    return result
+
 @router.post("/{npo_id}/event", response_model=EventResponse, status_code=status.HTTP_201_CREATED)
 async def create_event(
     npo_id: int,
@@ -133,14 +179,52 @@ async def create_event(
             detail="You can only create events for your own NPO"
         )
     
+    # Валидация координат события
+    coordinates_lat = None
+    coordinates_lon = None
+    if event_data.coordinates is not None:
+        if not isinstance(event_data.coordinates, list):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Event coordinates must be a list [lat, lon], got {type(event_data.coordinates).__name__}"
+            )
+        
+        if len(event_data.coordinates) != 2:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Event coordinates must contain exactly 2 values [lat, lon], got {len(event_data.coordinates)} value(s)"
+            )
+        
+        try:
+            coordinates_lat = float(event_data.coordinates[0])
+            coordinates_lon = float(event_data.coordinates[1])
+        except (ValueError, TypeError) as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Event coordinates must be numbers [lat, lon]. Error: {str(e)}"
+            )
+        
+        # Проверка диапазона координат
+        if not (-90 <= coordinates_lat <= 90):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Event latitude must be between -90 and 90, got {coordinates_lat}"
+            )
+        
+        if not (-180 <= coordinates_lon <= 180):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Event longitude must be between -180 and 180, got {coordinates_lon}"
+            )
+    
     event = Event(
         npo_id=npo.id,
         name=event_data.name,
         description=event_data.description,
         start=event_data.start,
         end=event_data.end,
-        coordinates_lat=event_data.coordinates[0] if event_data.coordinates else None,
-        coordinates_lon=event_data.coordinates[1] if event_data.coordinates else None,
+        coordinates_lat=coordinates_lat,
+        coordinates_lon=coordinates_lon,
         quantity=event_data.quantity
     )
     db.add(event)
@@ -203,8 +287,43 @@ async def update_event(
     if event_update.end is not None:
         event.end = event_update.end
     if event_update.coordinates is not None:
-        event.coordinates_lat = event_update.coordinates[0]
-        event.coordinates_lon = event_update.coordinates[1]
+        # Валидация координат события
+        if not isinstance(event_update.coordinates, list):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Event coordinates must be a list [lat, lon], got {type(event_update.coordinates).__name__}"
+            )
+        
+        if len(event_update.coordinates) != 2:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Event coordinates must contain exactly 2 values [lat, lon], got {len(event_update.coordinates)} value(s)"
+            )
+        
+        try:
+            coordinates_lat = float(event_update.coordinates[0])
+            coordinates_lon = float(event_update.coordinates[1])
+        except (ValueError, TypeError) as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Event coordinates must be numbers [lat, lon]. Error: {str(e)}"
+            )
+        
+        # Проверка диапазона координат
+        if not (-90 <= coordinates_lat <= 90):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Event latitude must be between -90 and 90, got {coordinates_lat}"
+            )
+        
+        if not (-180 <= coordinates_lon <= 180):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Event longitude must be between -180 and 180, got {coordinates_lon}"
+            )
+        
+        event.coordinates_lat = coordinates_lat
+        event.coordinates_lon = coordinates_lon
     if event_update.quantity is not None:
         event.quantity = event_update.quantity
     

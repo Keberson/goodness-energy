@@ -21,7 +21,6 @@ class NPORegistration(BaseModel):
     description: str
     coordinates: List[float]  # [lat, lon] - обязательное поле при регистрации
     address: str  # обязательное поле при регистрации
-    galleryIds: List[int]  # хотя бы одна фотка (обязательно)
     tags: List[str]  # хотя бы один тег (обязательно)
     links: Optional[dict] = None
     timetable: Optional[str] = None
@@ -118,6 +117,22 @@ class VolunteerUpdate(BaseModel):
     sex: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
+
+class VolunteerResponse(BaseModel):
+    id: int
+    firstName: str
+    secondName: str
+    middleName: Optional[str]
+    about: Optional[str]
+    birthday: Optional[datetime]
+    city: Optional[str]
+    sex: Optional[str]
+    email: Optional[str]
+    phone: Optional[str]
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
 
 class EventResponseCreate(BaseModel):
     userId: int
