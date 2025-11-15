@@ -138,7 +138,7 @@ export const authMenuItems: MenuItem[] = [
         children: [
             {
                 key: "login",
-                label: "Войти",
+                label: "Вход",
                 icon: <LoginOutlined />,
             },
             {

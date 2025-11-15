@@ -26,7 +26,12 @@
 
         /* aliases */
         "paths": {
-            "@/styles": ["./src/styles"]
+            "@styles/*": ["./src/styles/*"],
+            "@hooks/*": ["./src/hooks/*"],
+            "@services/*": ["./src/services/*"],
+            "@contexts/*": ["./src/contexts/*"],
+            "@app-types/*": ["./src/types/*"],
+            "@components/*": ["./src/common/components/*"]
         }
     },
     "include": ["src"]
