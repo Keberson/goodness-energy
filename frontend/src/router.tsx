@@ -12,6 +12,7 @@ import LoginPage from "./pages/Auth/LoginPage/LoginPage";
 import RegistrationPage from "./pages/Auth/RegistrationPage/RegistrationPage";
 import ProfilePage from "./pages/Volunteer/ProfilePage/ProfilePage";
 import MapPage from "./pages/MapPage/MapPage";
+import NPOListPage from "./pages/NPO/NPOListPage/NPOListPage";
 
 const router = createBrowserRouter([
     {
@@ -28,6 +29,10 @@ const router = createBrowserRouter([
                     {
                         path: "map",
                         element: <MapPage />,
+                    },
+                    {
+                        path: "npo",
+                        element: <NPOListPage />,
                     },
                     {
                         path: "login",
