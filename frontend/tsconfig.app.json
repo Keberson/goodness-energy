@@ -29,7 +29,9 @@
             "@styles/*": ["./src/styles/*"],
             "@hooks/*": ["./src/hooks/*"],
             "@services/*": ["./src/services/*"],
-            "@contexts/*": ["./src/contexts/*"]
+            "@contexts/*": ["./src/contexts/*"],
+            "@app-types/*": ["./src/types/*"],
+            "@components/*": ["./src/common/components/*"]
         }
     },
     "include": ["src"]

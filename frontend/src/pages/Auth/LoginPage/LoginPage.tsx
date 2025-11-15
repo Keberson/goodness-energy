@@ -6,11 +6,26 @@ import "./styles.scss";
 
 import AuthLayout from "../AuthLayout/AuthLayout";
 
+import { useLoginMutation } from "@services/api/auth.api";
+import useAppDispatch from "@hooks/useAppDispatch";
+import { setToken } from "@services/slices/auth.slice";
+
 const { Title } = Typography;
 
+type FormValues = {
+    login: string;
+    password: string;
+};
+
 const LoginPage = () => {
-    const onFinish = (values: any) => {
-        console.log("Received values:", values);
+    const [login] = useLoginMutation();
+    const dispatch = useAppDispatch();
+
+    const onFinish = async (values: FormValues) => {
+        try {
+            const response = await login(values).unwrap();
+            dispatch(setToken(response.access_token));
+        } catch (error) {}
     };
 
     return (
@@ -19,7 +34,7 @@ const LoginPage = () => {
                 Вход в аккаунт
             </Title>
 
-            <Form
+            <Form<FormValues>
                 name="login"
                 onFinish={onFinish}
                 autoComplete="off"
@@ -27,20 +42,16 @@ const LoginPage = () => {
                 className="login-page__form"
             >
                 <Form.Item
-                    label="Email или логин"
-                    name="username"
+                    label="Логин"
+                    name="login"
                     rules={[
                         {
                             required: true,
-                            message: "Пожалуйста, введите ваш email или логин",
+                            message: "Пожалуйста, введите ваш логин",
                         },
                     ]}
                 >
-                    <Input
-                        prefix={<UserOutlined />}
-                        placeholder="Введите email или логин"
-                        size="large"
-                    />
+                    <Input prefix={<UserOutlined />} placeholder="Введите логин" size="large" />
                 </Form.Item>
 
                 <Form.Item

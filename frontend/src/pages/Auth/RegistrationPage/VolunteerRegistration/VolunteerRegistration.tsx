@@ -1,12 +1,24 @@
 import { Form, Input, Button, DatePicker, Select, Flex } from "antd";
-import { MailOutlined, PhoneOutlined, LockOutlined } from "@ant-design/icons";
+import { MailOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
+
+import type { IRegVolunteerRequest } from "@app-types/auth.types";
+import { useRegisterVolunteerMutation } from "@services/api/auth.api";
+import PhoneInput from "@components/PhoneInput/PhoneInput";
+import useAppDispatch from "@hooks/useAppDispatch";
+import { setToken } from "@services/slices/auth.slice";
 
 const { Option } = Select;
 const { TextArea } = Input;
 
 const VolunteerRegistration = () => {
-    const onFinish = (values: any) => {
-        console.log("Volunteer registration:", values);
+    const [register] = useRegisterVolunteerMutation();
+    const dispatch = useAppDispatch();
+
+    const onFinish = async (values: IRegVolunteerRequest) => {
+        try {
+            const response = await register(values).unwrap();
+            dispatch(setToken(response.access_token));
+        } catch (error) {}
     };
 
     return (
@@ -17,6 +29,26 @@ const VolunteerRegistration = () => {
             layout="vertical"
             className="registration-form"
         >
+            <Form.Item
+                label="Логин"
+                name="login"
+                rules={[{ required: true, message: "Введите логин" }]}
+            >
+                <Input prefix={<UserOutlined />} placeholder="Логин" size="large" />
+            </Form.Item>
+
+            <Form.Item
+                label="Пароль"
+                name="password"
+                rules={[{ required: true, message: "Введите пароль" }]}
+            >
+                <Input.Password
+                    prefix={<LockOutlined />}
+                    placeholder="Придумайте пароль"
+                    size="large"
+                />
+            </Form.Item>
+
             <Flex gap="middle">
                 <Form.Item
                     label="Фамилия"
@@ -53,7 +85,7 @@ const VolunteerRegistration = () => {
             </Form.Item>
 
             <Form.Item label="Телефон" name="phone">
-                <Input prefix={<PhoneOutlined />} placeholder="+7 (999) 999-99-99" size="large" />
+                <PhoneInput />
             </Form.Item>
 
             <Flex gap="middle">
@@ -84,18 +116,6 @@ const VolunteerRegistration = () => {
 
             <Form.Item label="О себе" name="about">
                 <TextArea placeholder="Расскажите о себе и своих интересах..." rows={3} />
-            </Form.Item>
-
-            <Form.Item
-                label="Пароль"
-                name="password"
-                rules={[{ required: true, message: "Введите пароль" }]}
-            >
-                <Input.Password
-                    prefix={<LockOutlined />}
-                    placeholder="Придумайте пароль"
-                    size="large"
-                />
             </Form.Item>
 
             <Form.Item>

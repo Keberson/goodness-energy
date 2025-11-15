@@ -1,4 +1,4 @@
-import { Divider, Flex, Layout, Menu, Modal, Tooltip, Typography } from "antd";
+import { Divider, Flex, Layout, Menu, Typography } from "antd";
 import type { ItemType } from "antd/es/menu/interface";
 import { GlobalOutlined } from "@ant-design/icons";
 import { useLocation, NavLink, Outlet } from "react-router-dom";
@@ -26,8 +26,6 @@ const RootLayout = () => {
     const location = useLocation();
     const { open } = useContext(ModalContext);
     const { currentCity } = useCity();
-
-    const pathname = location.pathname;
 
     const openCityChange = () => {
         open({
@@ -58,9 +56,9 @@ const RootLayout = () => {
     );
     const authItems = mapMenuItems(authMenuItems);
 
-    const activeKeyPath = findActiveMenuKeyPath(
-        [...topItems, ...authItems, ...cityItems],
-        pathname
+    const activeKeyPath = useMemo(
+        () => findActiveMenuKeyPath([...topItems, ...authItems, ...cityItems], location.pathname),
+        [location]
     );
 
     return (
