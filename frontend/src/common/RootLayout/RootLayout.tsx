@@ -1,17 +1,22 @@
-import { Divider, Flex, Layout, Menu, Typography } from "antd";
+import { Divider, Flex, Layout, Menu, Modal, Tooltip, Typography } from "antd";
+import type { ItemType } from "antd/es/menu/interface";
+import { GlobalOutlined } from "@ant-design/icons";
 import { useLocation, NavLink, Outlet } from "react-router-dom";
-import { useState } from "react";
+import { useContext, useMemo, useState } from "react";
 
 import "./styles.scss";
 
+import { useCity } from "@hooks/useCity";
+import ModalContext from "@contexts/ModalContext";
+
 import {
     volunteerMenuItems,
-    cityMenuItems,
     mapMenuItems,
     topMenuItems,
     authMenuItems,
     findActiveMenuKeyPath,
 } from "./props";
+import CityModal from "./CityModal/CityModal";
 
 const { Sider, Content } = Layout;
 const { Title } = Typography;
@@ -19,15 +24,38 @@ const { Title } = Typography;
 const RootLayout = () => {
     const [collapsed, setCollapsed] = useState<boolean>(true);
     const location = useLocation();
+    const { open } = useContext(ModalContext);
+    const { currentCity } = useCity();
+
     const pathname = location.pathname;
 
     const openCityChange = () => {
-        console.log("city change modal");
+        open({
+            content: <CityModal />,
+            props: {
+                title: (
+                    <Flex align="center" gap={8}>
+                        <GlobalOutlined /> Выбор города
+                    </Flex>
+                ),
+                footer: <></>,
+            },
+        });
     };
 
     const topItems = mapMenuItems(topMenuItems);
     const volunteerItems = mapMenuItems(volunteerMenuItems); // npoMenuItems adminMenuItems
-    const cityItems = mapMenuItems(cityMenuItems, { city: openCityChange });
+    const cityItems: ItemType[] = useMemo(
+        () => [
+            {
+                key: "city",
+                icon: <GlobalOutlined />,
+                label: currentCity,
+                onClick: () => openCityChange(),
+            },
+        ],
+        [currentCity]
+    );
     const authItems = mapMenuItems(authMenuItems);
 
     const activeKeyPath = findActiveMenuKeyPath(
@@ -70,8 +98,8 @@ const RootLayout = () => {
                 <Menu
                     theme="dark"
                     mode="inline"
+                    selectable={false}
                     items={cityItems}
-                    selectedKeys={activeKeyPath}
                     className="menu__bottom"
                 />
             </Sider>

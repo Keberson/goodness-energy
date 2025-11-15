@@ -43,13 +43,6 @@ const HomePage = () => {
         },
     ];
 
-    const recentEvents = [
-        "Экологический субботник в парке",
-        "Сбор помощи для приюта животных",
-        "Благотворительный концерт для детей",
-        "Мастер-класс по первой помощи",
-    ];
-
     const getListData = (value: Dayjs) => {
         let listData: { type: string; content: string }[] = [];
 
