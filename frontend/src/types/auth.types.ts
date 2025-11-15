@@ -1,3 +1,5 @@
+export type UserTypes = "npo" | "admin" | "volunteer";
+
 export interface ILoginRequest {
     login: string;
     password: string;
@@ -6,6 +8,7 @@ export interface ILoginRequest {
 export interface IAuthResponse {
     access_token: string;
     token_type: string;
+    user_type: UserTypes;
 }
 
 export interface IRegVolunteerRequest {
@@ -20,4 +23,16 @@ export interface IRegVolunteerRequest {
     sex: string;
     email: string;
     phone: string;
+}
+
+export interface IRegNPORequest {
+    login: string;
+    password: string;
+    name: string;
+    description: string;
+    coordinates: [number, number];
+    address: string;
+    tags: string[];
+    links: Record<string, string>;
+    timetable: string;
 }

@@ -7,8 +7,8 @@ import "./styles.scss";
 import AuthLayout from "../AuthLayout/AuthLayout";
 
 import { useLoginMutation } from "@services/api/auth.api";
+import { login } from "@services/slices/auth.slice";
 import useAppDispatch from "@hooks/useAppDispatch";
-import { setToken } from "@services/slices/auth.slice";
 
 const { Title } = Typography;
 
@@ -18,13 +18,13 @@ type FormValues = {
 };
 
 const LoginPage = () => {
-    const [login] = useLoginMutation();
+    const [loginAPI] = useLoginMutation();
     const dispatch = useAppDispatch();
 
     const onFinish = async (values: FormValues) => {
         try {
-            const response = await login(values).unwrap();
-            dispatch(setToken(response.access_token));
+            const response = await loginAPI(values).unwrap();
+            dispatch(login({ token: response.access_token, type: response.user_type }));
         } catch (error) {}
     };
 

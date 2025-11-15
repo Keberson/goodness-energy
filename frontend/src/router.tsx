@@ -4,8 +4,12 @@ import HomePage from "./pages/HomePage/HomePage";
 
 import RootLayout from "./common/RootLayout/RootLayout";
 import Providers from "./common/Providers/Providers";
+
 import LoginPage from "./pages/Auth/LoginPage/LoginPage";
 import RegistrationPage from "./pages/Auth/RegistrationPage/RegistrationPage";
+import ProfilePage from "./pages/Volunteer/ProfilePage/ProfilePage";
+import AuthRoute from "@components/routes/AuthRoute/AuthRoute";
+import ProtectedRoute from "@components/routes/ProtectedRoute/ProtectedRoute";
 
 const router = createBrowserRouter([
     {
@@ -21,12 +25,28 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "login",
-                        element: <LoginPage />,
+                        element: (
+                            <AuthRoute>
+                                <LoginPage />
+                            </AuthRoute>
+                        ),
                     },
                     {
                         path: "reg",
-                        element: <RegistrationPage />
-                    }
+                        element: (
+                            <AuthRoute>
+                                <RegistrationPage />
+                            </AuthRoute>
+                        ),
+                    },
+                    {
+                        path: "profile",
+                        element: (
+                            <ProtectedRoute>
+                                <ProfilePage />
+                            </ProtectedRoute>
+                        ),
+                    },
                 ],
             },
         ],

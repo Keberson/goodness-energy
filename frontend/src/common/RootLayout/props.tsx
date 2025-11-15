@@ -16,7 +16,7 @@ import {
     SafetyCertificateOutlined,
     UsergroupAddOutlined,
     LoginOutlined,
-    UserAddOutlined,
+    LogoutOutlined,
 } from "@ant-design/icons";
 import type { ItemType } from "antd/es/menu/interface";
 import type { ReactNode } from "react";
@@ -77,7 +77,7 @@ export const volunteerMenuItems: MenuItem[] = [
         icon: <UserOutlined />,
         children: [
             {
-                key: "info",
+                key: "profile",
                 icon: <IdcardOutlined />,
                 label: "Личные данные",
             },
@@ -85,6 +85,12 @@ export const volunteerMenuItems: MenuItem[] = [
                 key: "my-events",
                 icon: <HistoryOutlined />,
                 label: "Мои события",
+            },
+            {
+                key: "logout",
+                icon: <LogoutOutlined />,
+                label: "Выйти",
+                link: false,
             },
         ],
     },
@@ -106,6 +112,12 @@ export const npoMenuItems: MenuItem[] = [
         icon: <BarChartOutlined />,
         label: "Статистика",
     },
+    {
+        key: "logout",
+        icon: <LogoutOutlined />,
+        label: "Выйти",
+        link: false,
+    },
 ];
 
 export const adminMenuItems: MenuItem[] = [
@@ -118,6 +130,12 @@ export const adminMenuItems: MenuItem[] = [
         key: "/users",
         icon: <UsergroupAddOutlined />,
         label: "Пользователи",
+    },
+    {
+        key: "logout",
+        icon: <LogoutOutlined />,
+        label: "Выйти",
+        link: false,
     },
 ];
 
@@ -132,21 +150,9 @@ export const cityMenuItems: MenuItem[] = [
 
 export const authMenuItems: MenuItem[] = [
     {
-        key: "auth",
+        key: "login",
         label: "Авторизация",
-        icon: <UserOutlined />,
-        children: [
-            {
-                key: "login",
-                label: "Вход",
-                icon: <LoginOutlined />,
-            },
-            {
-                key: "reg",
-                label: "Регистрация",
-                icon: <UserAddOutlined />,
-            },
-        ],
+        icon: <LoginOutlined />,
     },
 ];
 

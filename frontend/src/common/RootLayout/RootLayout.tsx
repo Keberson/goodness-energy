@@ -8,6 +8,9 @@ import "./styles.scss";
 
 import { useCity } from "@hooks/useCity";
 import ModalContext from "@contexts/ModalContext";
+import useAppSelector from "@hooks/useAppSelector";
+import useAppDispatch from "@hooks/useAppDispatch";
+import { logout } from "@services/slices/auth.slice";
 
 import {
     volunteerMenuItems,
@@ -27,6 +30,13 @@ const RootLayout = () => {
     const { open } = useContext(ModalContext);
     const { currentCity } = useCity();
 
+    const dispatch = useAppDispatch();
+    const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+
+    const logoutHandler = () => {
+        dispatch(logout());
+    };
+
     const openCityChange = () => {
         open({
             content: <CityModal />,
@@ -42,7 +52,7 @@ const RootLayout = () => {
     };
 
     const topItems = mapMenuItems(topMenuItems);
-    const volunteerItems = mapMenuItems(volunteerMenuItems); // npoMenuItems adminMenuItems
+    const volunteerItems = mapMenuItems(volunteerMenuItems, { logout: logoutHandler }); // npoMenuItems adminMenuItems
     const cityItems: ItemType[] = useMemo(
         () => [
             {
@@ -57,7 +67,11 @@ const RootLayout = () => {
     const authItems = mapMenuItems(authMenuItems);
 
     const activeKeyPath = useMemo(
-        () => findActiveMenuKeyPath([...topItems, ...authItems, ...cityItems], location.pathname),
+        () =>
+            findActiveMenuKeyPath(
+                [...topItems, ...authItems, ...cityItems, ...volunteerItems],
+                location.pathname
+            ),
         [location]
     );
 
@@ -85,14 +99,27 @@ const RootLayout = () => {
                 </NavLink>
                 <Divider className="menu__divider" />
                 <Menu theme="dark" mode="inline" items={topItems} selectedKeys={activeKeyPath} />
+
                 <div className="menu__gap" />
-                <Menu
-                    theme="dark"
-                    mode="inline"
-                    items={authItems}
-                    selectedKeys={activeKeyPath}
-                    className="menu__bottom"
-                />
+
+                {isAuthenticated && (
+                    <Menu
+                        theme="dark"
+                        mode="inline"
+                        items={volunteerItems}
+                        selectedKeys={activeKeyPath}
+                        className="menu__bottom"
+                    />
+                )}
+                {!isAuthenticated && (
+                    <Menu
+                        theme="dark"
+                        mode="inline"
+                        items={!isAuthenticated ? authItems : volunteerItems}
+                        selectedKeys={activeKeyPath}
+                        className="menu__bottom"
+                    />
+                )}
                 <Menu
                     theme="dark"
                     mode="inline"
