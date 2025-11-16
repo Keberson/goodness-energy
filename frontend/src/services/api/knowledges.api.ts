@@ -7,6 +7,13 @@ export const knowledgesApi = createApi({
     tagTypes: ["Knowledge"],
     baseQuery: fetchBaseQuery({
         baseUrl: `${import.meta.env.VITE_API_BASE_URL}/knowledges`,
+        prepareHeaders: (headers, { getState }) => {
+            const token = (getState() as any).auth?.token;
+            if (token) {
+                headers.set("authorization", `Bearer ${token}`);
+            }
+            return headers;
+        },
     }),
     endpoints: (builder) => ({
         getKnowledges: builder.query<IKnowledge[], void>({
@@ -23,7 +30,39 @@ export const knowledgesApi = createApi({
             query: (id) => ({ url: `/${id}` }),
             providesTags: (_, __, id) => [{ type: "Knowledge", id }],
         }),
+        createKnowledge: builder.mutation<
+            IKnowledge,
+            {
+                name: string;
+                text: string;
+                attachedIds?: number[];
+                tags?: string[];
+                links?: string[];
+            }
+        >({
+            query: (body) => ({
+                url: "",
+                method: "POST",
+                body,
+            }),
+            invalidatesTags: [{ type: "Knowledge", id: "LIST" }],
+        }),
+        deleteKnowledge: builder.mutation<void, number>({
+            query: (id) => ({
+                url: `/${id}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: (_, __, id) => [
+                { type: "Knowledge", id },
+                { type: "Knowledge", id: "LIST" },
+            ],
+        }),
     }),
 });
 
-export const { useGetKnowledgesQuery, useGetKnowledgeByIdQuery } = knowledgesApi;
+export const {
+    useGetKnowledgesQuery,
+    useGetKnowledgeByIdQuery,
+    useCreateKnowledgeMutation,
+    useDeleteKnowledgeMutation,
+} = knowledgesApi;

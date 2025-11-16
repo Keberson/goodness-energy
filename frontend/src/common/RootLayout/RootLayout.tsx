@@ -55,10 +55,10 @@ const RootLayout = () => {
     };
 
     const topItems = mapMenuItems(topMenuItems);
-    
+
     const userMenuItems = useMemo(() => {
         if (!isAuthenticated || !userType) return [];
-        
+
         switch (userType) {
             case "volunteer":
                 return mapMenuItems(volunteerMenuItems, { logout: logoutHandler });
@@ -70,7 +70,7 @@ const RootLayout = () => {
                 return [];
         }
     }, [isAuthenticated, userType, logoutHandler]);
-    
+
     const cityItems: ItemType[] = useMemo(
         () => [
             {
@@ -84,7 +84,6 @@ const RootLayout = () => {
     );
     const authItems = mapMenuItems(authMenuItems);
 
-    // Вычисляем отдельные activeKeyPath для каждого меню, чтобы избежать коллизий
     const topActiveKeyPath = useMemo(
         () => findActiveMenuKeyPath(topItems, location.pathname),
         [location, topItems]

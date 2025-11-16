@@ -1,9 +1,11 @@
-import { useParams } from "react-router-dom";
-import { Card, Typography, Space, Tag, Carousel } from "antd";
+import { useParams, useNavigate } from "react-router-dom";
+import { Card, Typography, Space, Tag, Carousel, Button, App } from "antd";
+import { DeleteOutlined } from "@ant-design/icons";
 
 import "./styles.scss";
 
-import { useGetKnowledgeByIdQuery } from "@services/api/knowledges.api";
+import { useGetKnowledgeByIdQuery, useDeleteKnowledgeMutation } from "@services/api/knowledges.api";
+import useAppSelector from "@hooks/useAppSelector";
 
 import FilePreview from "@components/FilePreview/FilePreview";
 import VideoPlayer from "@components/VideoPlayer/VideoPlayer";
@@ -12,12 +14,58 @@ const { Title, Paragraph, Text } = Typography;
 
 const KnowledgeDetailPage = () => {
     const { id } = useParams<{ id: string }>();
+    const navigate = useNavigate();
+    const { notification, modal } = App.useApp();
     const { data } = useGetKnowledgeByIdQuery(Number(id!));
+    const [deleteKnowledge, { isLoading: isDeleting }] = useDeleteKnowledgeMutation();
+    const userType = useAppSelector((state) => state.auth.userType);
+    const isAdmin = userType === "admin";
+
+    const handleDelete = () => {
+        if (!id || !data) return;
+
+        modal.confirm({
+            title: "Удаление материала",
+            content: `Вы уверены, что хотите удалить материал "${data.name}"? Это действие нельзя отменить.`,
+            okText: "Удалить",
+            okType: "danger",
+            cancelText: "Отмена",
+            centered: true,
+            onOk: async () => {
+                try {
+                    await deleteKnowledge(Number(id)).unwrap();
+                    notification.success({
+                        message: "Материал удален",
+                        description: `Материал "${data.name}" был успешно удален.`,
+                    });
+                    navigate("/knowledges");
+                } catch (error) {
+                    notification.error({
+                        message: "Ошибка",
+                        description: "Не удалось удалить материал. Попробуйте еще раз.",
+                    });
+                }
+            },
+        });
+    };
 
     return (
         <div style={{ padding: 24 }}>
             {data && (
-                <Card>
+                <Card
+                    extra={
+                        isAdmin && (
+                            <Button
+                                danger
+                                icon={<DeleteOutlined />}
+                                onClick={handleDelete}
+                                loading={isDeleting}
+                            >
+                                Удалить материал
+                            </Button>
+                        )
+                    }
+                >
                     <Space direction="vertical" size="large" style={{ width: "100%" }}>
                         <div>
                             <Title level={2}>{data.name}</Title>

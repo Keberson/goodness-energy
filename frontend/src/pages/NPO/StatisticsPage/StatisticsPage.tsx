@@ -3,7 +3,6 @@ import {
     EyeOutlined,
     UserOutlined,
     CalendarOutlined,
-    FileTextOutlined,
     CheckCircleOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
@@ -19,9 +18,7 @@ const { Title } = Typography;
 const StatisticsPage = () => {
     const userId = useAppSelector((state) => state.auth.userId);
     const { data: npoData } = useGetNPOByIdQuery(userId ?? skipToken);
-    const { data: statistics, isLoading } = useGetNPOStatisticsQuery(
-        npoData?.id ?? skipToken
-    );
+    const { data: statistics, isLoading } = useGetNPOStatisticsQuery(npoData?.id ?? skipToken);
 
     const viewerColumns: ColumnsType<IProfileViewerStats> = [
         {
@@ -41,8 +38,7 @@ const StatisticsPage = () => {
             title: "Последний просмотр",
             dataIndex: "last_viewed_at",
             key: "last_viewed_at",
-            render: (date: string | null) =>
-                date ? new Date(date).toLocaleString("ru-RU") : "-",
+            render: (date: string | null) => (date ? new Date(date).toLocaleString("ru-RU") : "-"),
         },
     ];
 
@@ -159,15 +155,16 @@ const StatisticsPage = () => {
                     <Title level={4}>События по статусам</Title>
                     <Space wrap>
                         {Object.entries(statistics.events_by_status).map(([status, count]) => {
-                            const statusConfig: Record<string, { label: string; color: string }> =
-                                {
-                                    draft: { label: "Черновик", color: "default" },
-                                    published: { label: "Опубликовано", color: "success" },
-                                    cancelled: { label: "Отменено", color: "error" },
-                                    completed: { label: "Завершено", color: "processing" },
-                                };
-                            const config =
-                                statusConfig[status] || { label: status, color: "default" };
+                            const statusConfig: Record<string, { label: string; color: string }> = {
+                                draft: { label: "Черновик", color: "default" },
+                                published: { label: "Опубликовано", color: "success" },
+                                cancelled: { label: "Отменено", color: "error" },
+                                completed: { label: "Завершено", color: "processing" },
+                            };
+                            const config = statusConfig[status] || {
+                                label: status,
+                                color: "default",
+                            };
                             return (
                                 <Tag key={status} color={config.color}>
                                     {config.label}: {count}
@@ -206,4 +203,3 @@ const StatisticsPage = () => {
 };
 
 export default StatisticsPage;
-

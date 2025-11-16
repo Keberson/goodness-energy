@@ -18,6 +18,10 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ children }) => {
         return <Navigate to="/org" replace />;
     }
 
+    if (isAuthenticated && userType === "admin") {
+        return <Navigate to="/create-knowledge" replace />;
+    }
+
     return <>{children}</>;
 };
 

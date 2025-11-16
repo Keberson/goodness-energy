@@ -1,16 +1,21 @@
-import { Card, List, Typography, Tag, Space, Button } from "antd";
-import { DownloadOutlined, EyeOutlined } from "@ant-design/icons";
+import { Card, List, Typography, Tag, Space, Button, App } from "antd";
+import { DownloadOutlined, EyeOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 import type { IKnowledge } from "@app-types/knowledges.types";
 
-import { useGetKnowledgesQuery } from "@services/api/knowledges.api";
+import { useGetKnowledgesQuery, useDeleteKnowledgeMutation } from "@services/api/knowledges.api";
+import useAppSelector from "@hooks/useAppSelector";
 
 const { Title, Paragraph, Text } = Typography;
 
 const KnowledgesPage = () => {
     const navigate = useNavigate();
+    const { notification, modal } = App.useApp();
     const { data } = useGetKnowledgesQuery();
+    const [deleteKnowledge] = useDeleteKnowledgeMutation();
+    const userType = useAppSelector((state) => state.auth.userType);
+    const isAdmin = userType === "admin";
 
     const handleDownload = (item: IKnowledge) => {
         console.log("Download:", item);
@@ -19,6 +24,33 @@ const KnowledgesPage = () => {
 
     const handleView = (item: IKnowledge) => {
         navigate(`${item.id}`);
+    };
+
+    const handleDelete = (item: IKnowledge, e: React.MouseEvent) => {
+        e.stopPropagation(); // Предотвращаем переход по ссылке
+
+        modal.confirm({
+            title: "Удаление материала",
+            content: `Вы уверены, что хотите удалить материал "${item.name}"? Это действие нельзя отменить.`,
+            okText: "Удалить",
+            okType: "danger",
+            cancelText: "Отмена",
+            centered: true,
+            onOk: async () => {
+                try {
+                    await deleteKnowledge(item.id).unwrap();
+                    notification.success({
+                        message: "Материал удален",
+                        description: `Материал "${item.name}" был успешно удален.`,
+                    });
+                } catch (error) {
+                    notification.error({
+                        message: "Ошибка",
+                        description: "Не удалось удалить материал. Попробуйте еще раз.",
+                    });
+                }
+            },
+        });
     };
 
     return (
@@ -36,6 +68,7 @@ const KnowledgesPage = () => {
                             key={item.id}
                             actions={[
                                 <Button
+                                    key="view"
                                     type="link"
                                     icon={<EyeOutlined />}
                                     onClick={() => handleView(item)}
@@ -44,11 +77,23 @@ const KnowledgesPage = () => {
                                 </Button>,
                                 item.attachedIds && item.attachedIds.length > 0 && (
                                     <Button
+                                        key="download"
                                         type="link"
                                         icon={<DownloadOutlined />}
                                         onClick={() => handleDownload(item)}
                                     >
                                         Скачать ({item.attachedIds.length})
+                                    </Button>
+                                ),
+                                isAdmin && (
+                                    <Button
+                                        key="delete"
+                                        type="link"
+                                        danger
+                                        icon={<DeleteOutlined />}
+                                        onClick={(e) => handleDelete(item, e)}
+                                    >
+                                        Удалить
                                     </Button>
                                 ),
                             ]}
