@@ -15,7 +15,7 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ children }) => {
     }
 
     if (isAuthenticated && userType === "npo") {
-        return <Navigate to="/organization" replace />;
+        return <Navigate to="/org" replace />;
     }
 
     return <>{children}</>;

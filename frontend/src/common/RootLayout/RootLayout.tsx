@@ -14,6 +14,8 @@ import { logout } from "@services/slices/auth.slice";
 
 import {
     volunteerMenuItems,
+    npoMenuItems,
+    adminMenuItems,
     mapMenuItems,
     topMenuItems,
     authMenuItems,
@@ -32,6 +34,7 @@ const RootLayout = () => {
 
     const dispatch = useAppDispatch();
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+    const userType = useAppSelector((state) => state.auth.userType);
 
     const logoutHandler = () => {
         dispatch(logout());
@@ -52,7 +55,22 @@ const RootLayout = () => {
     };
 
     const topItems = mapMenuItems(topMenuItems);
-    const volunteerItems = mapMenuItems(volunteerMenuItems, { logout: logoutHandler }); // npoMenuItems adminMenuItems
+    
+    const userMenuItems = useMemo(() => {
+        if (!isAuthenticated || !userType) return [];
+        
+        switch (userType) {
+            case "volunteer":
+                return mapMenuItems(volunteerMenuItems, { logout: logoutHandler });
+            case "npo":
+                return mapMenuItems(npoMenuItems, { logout: logoutHandler });
+            case "admin":
+                return mapMenuItems(adminMenuItems, { logout: logoutHandler });
+            default:
+                return [];
+        }
+    }, [isAuthenticated, userType, logoutHandler]);
+    
     const cityItems: ItemType[] = useMemo(
         () => [
             {
@@ -66,13 +84,20 @@ const RootLayout = () => {
     );
     const authItems = mapMenuItems(authMenuItems);
 
-    const activeKeyPath = useMemo(
-        () =>
-            findActiveMenuKeyPath(
-                [...topItems, ...authItems, ...cityItems, ...volunteerItems],
-                location.pathname
-            ),
-        [location]
+    // Вычисляем отдельные activeKeyPath для каждого меню, чтобы избежать коллизий
+    const topActiveKeyPath = useMemo(
+        () => findActiveMenuKeyPath(topItems, location.pathname),
+        [location, topItems]
+    );
+
+    const userActiveKeyPath = useMemo(
+        () => findActiveMenuKeyPath(userMenuItems, location.pathname),
+        [location, userMenuItems]
+    );
+
+    const authActiveKeyPath = useMemo(
+        () => findActiveMenuKeyPath(authItems, location.pathname),
+        [location, authItems]
     );
 
     return (
@@ -98,7 +123,7 @@ const RootLayout = () => {
                     </Flex>
                 </NavLink>
                 <Divider className="menu__divider" />
-                <Menu theme="dark" mode="inline" items={topItems} selectedKeys={activeKeyPath} />
+                <Menu theme="dark" mode="inline" items={topItems} selectedKeys={topActiveKeyPath} />
 
                 <div className="menu__gap" />
 
@@ -106,8 +131,8 @@ const RootLayout = () => {
                     <Menu
                         theme="dark"
                         mode="inline"
-                        items={volunteerItems}
-                        selectedKeys={activeKeyPath}
+                        items={userMenuItems}
+                        selectedKeys={userActiveKeyPath}
                         className="menu__bottom"
                     />
                 )}
@@ -115,8 +140,8 @@ const RootLayout = () => {
                     <Menu
                         theme="dark"
                         mode="inline"
-                        items={!isAuthenticated ? authItems : volunteerItems}
-                        selectedKeys={activeKeyPath}
+                        items={authItems}
+                        selectedKeys={authActiveKeyPath}
                         className="menu__bottom"
                     />
                 )}

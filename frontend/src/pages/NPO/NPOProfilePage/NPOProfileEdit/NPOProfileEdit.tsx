@@ -12,20 +12,20 @@ import { useUploadFileMutation } from "@services/api/files.api";
 
 const { Dragger } = Upload;
 
-interface NPOEditProps {
-    data: INPO;
+interface NPOProfileEditProps {
+    profileData: INPO;
     onCancel: () => void;
 }
 
-const NPOEdit: React.FC<NPOEditProps> = ({ data, onCancel }) => {
+const NPOProfileEdit: React.FC<NPOProfileEditProps> = ({ profileData, onCancel }) => {
     const [editNPO] = useEditNPOMutation();
     const [uploadFile] = useUploadFileMutation();
-    const [galleryIds, setGalleryIds] = useState<number[]>(data.galleryIds || []);
+    const [galleryIds, setGalleryIds] = useState<number[]>(profileData.galleryIds || []);
     const [uploading, setUploading] = useState(false);
 
     useEffect(() => {
-        setGalleryIds(data.galleryIds || []);
-    }, [data.galleryIds]);
+        setGalleryIds(profileData.galleryIds || []);
+    }, [profileData.galleryIds]);
 
     const handleFileUpload = async (file: File) => {
         try {
@@ -65,7 +65,7 @@ const NPOEdit: React.FC<NPOEditProps> = ({ data, onCancel }) => {
         }
         
         await editNPO({
-            id: data.id,
+            id: profileData.id,
             body,
         });
         onCancel();
@@ -80,9 +80,9 @@ const NPOEdit: React.FC<NPOEditProps> = ({ data, onCancel }) => {
 
     // Преобразуем links из Record<string, string> в массив { type, url }
     const formInitialValues = {
-        ...data,
-        links: data.links
-            ? Object.entries(data.links).map(([key, url]) => {
+        ...profileData,
+        links: profileData.links
+            ? Object.entries(profileData.links).map(([key, url]) => {
                   // Пытаемся извлечь тип из ключа (формат: "type-index")
                   const parts = key.split("-");
                   const type = parts[0] || "website";
@@ -141,4 +141,5 @@ const NPOEdit: React.FC<NPOEditProps> = ({ data, onCancel }) => {
     );
 };
 
-export default NPOEdit;
+export default NPOProfileEdit;
+

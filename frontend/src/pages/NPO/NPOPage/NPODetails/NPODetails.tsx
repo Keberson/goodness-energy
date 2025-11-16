@@ -1,15 +1,17 @@
 import React from "react";
-import { Descriptions, Tag, Space, Typography } from "antd";
+import { Descriptions, Tag, Space, Typography, Row, Col, Empty } from "antd";
 
 import type { INPO } from "@app-types/npo.types";
+import FilePreview from "@components/FilePreview/FilePreview";
 
-const { Text, Paragraph } = Typography;
+const { Text, Paragraph, Title } = Typography;
 
 interface NPODetailsProps {
     npo: INPO;
+    showGallery?: boolean;
 }
 
-const NPODetails: React.FC<NPODetailsProps> = ({ npo }) => {
+const NPODetails: React.FC<NPODetailsProps> = ({ npo, showGallery = false }) => {
     const tagColors = {
         animals: "green",
         ecology: "blue",
@@ -17,6 +19,25 @@ const NPODetails: React.FC<NPODetailsProps> = ({ npo }) => {
         elderly: "purple",
         culture: "cyan",
     };
+
+    if (showGallery) {
+        return (
+            <div>
+                <Title level={4}>Галерея фотографий</Title>
+                {npo.galleryIds && npo.galleryIds.length > 0 ? (
+                    <Row gutter={[16, 16]}>
+                        {npo.galleryIds.map((fileId) => (
+                            <Col xs={24} sm={12} md={8} lg={6} key={fileId}>
+                                <FilePreview fileId={fileId} />
+                            </Col>
+                        ))}
+                    </Row>
+                ) : (
+                    <Empty description="Фотографии не загружены" />
+                )}
+            </div>
+        );
+    }
 
     return (
         <Descriptions column={1} bordered>
@@ -27,10 +48,16 @@ const NPODetails: React.FC<NPODetailsProps> = ({ npo }) => {
                 <Paragraph>{npo.description}</Paragraph>
             </Descriptions.Item>
             <Descriptions.Item label="Адрес">{npo.address}</Descriptions.Item>
+            <Descriptions.Item label="Город">{npo.city}</Descriptions.Item>
+            {npo.timetable && npo.timetable.trim() && (
+                <Descriptions.Item label="Расписание">
+                    <Paragraph>{npo.timetable}</Paragraph>
+                </Descriptions.Item>
+            )}
             <Descriptions.Item label="Теги">
                 <Space wrap>
                     {npo.tags.map((tag) => (
-                        <Tag key={tag} color={tagColors[tag as keyof typeof tagColors]}>
+                        <Tag key={tag} color={tagColors[tag as keyof typeof tagColors] || "default"}>
                             {tag}
                         </Tag>
                     ))}

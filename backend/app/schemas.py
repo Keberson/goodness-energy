@@ -50,6 +50,8 @@ class NPOUpdate(BaseModel):
     links: Optional[dict] = None
     timetable: Optional[str] = None
     city: Optional[NPOCity] = None
+    address: Optional[str] = None
+    coordinates: Optional[List[float]] = None  # [lat, lon]
 
 class NPOResponse(BaseModel):
     id: int

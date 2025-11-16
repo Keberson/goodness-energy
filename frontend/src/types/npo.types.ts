@@ -6,7 +6,7 @@ export interface INPO {
     address: string;
     city: string;
     timetable: string | null;
-    galleryIds: string[];
+    galleryIds: number[];
     tags: string[];
     links: Record<string, string>;
     vacancies: number;
@@ -33,6 +33,8 @@ export interface INPOEdit {
     links: { type: string; url: string }[];
     timetable: string;
     city: string;
+    address: string;
+    coordinates: [number, number];
 }
 
 
@@ -42,6 +44,8 @@ export interface INPOEditRequest {
     galleryIds: number[];
     tags: string[];
     links: Record<string, string>;
-    timetable: string;
+    timetable: string | null;
     city: string;
+    address: string;
+    coordinates: [number, number];
 }

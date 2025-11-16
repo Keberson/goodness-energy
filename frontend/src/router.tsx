@@ -4,6 +4,7 @@ import HomePage from "./pages/HomePage/HomePage";
 
 import AuthRoute from "@components/routes/AuthRoute/AuthRoute";
 import ProtectedRoute from "@components/routes/ProtectedRoute/ProtectedRoute";
+import NPOProtectedRoute from "@components/routes/NPOProtectedRoute/NPOProtectedRoute";
 
 import RootLayout from "./common/RootLayout/RootLayout";
 import Providers from "./common/Providers/Providers";
@@ -11,6 +12,7 @@ import Providers from "./common/Providers/Providers";
 import LoginPage from "./pages/Auth/LoginPage/LoginPage";
 import RegistrationPage from "./pages/Auth/RegistrationPage/RegistrationPage";
 import ProfilePage from "./pages/Volunteer/ProfilePage/ProfilePage";
+import NPOProfilePage from "./pages/NPO/NPOProfilePage/NPOProfilePage";
 import MapPage from "./pages/MapPage/MapPage";
 import NPOListPage from "./pages/NPO/NPOListPage/NPOListPage";
 import NPOPage from "./pages/NPO/NPOPage/NPOPage";
@@ -101,6 +103,14 @@ const router = createBrowserRouter([
                             <ProtectedRoute>
                                 <ProfilePage />
                             </ProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "org",
+                        element: (
+                            <NPOProtectedRoute>
+                                <NPOProfilePage />
+                            </NPOProtectedRoute>
                         ),
                     },
                 ],
