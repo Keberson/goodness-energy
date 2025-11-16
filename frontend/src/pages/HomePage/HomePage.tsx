@@ -45,7 +45,7 @@ const HomePage = () => {
             icon: <NotificationOutlined />,
             title: "Новости",
             description: "Будьте в курсе последних инициатив и грантов",
-            link: "",
+            link: "news",
         },
     ];
 

@@ -14,6 +14,8 @@ import ProfilePage from "./pages/Volunteer/ProfilePage/ProfilePage";
 import MapPage from "./pages/MapPage/MapPage";
 import NPOListPage from "./pages/NPO/NPOListPage/NPOListPage";
 import NPOPage from "./pages/NPO/NPOPage/NPOPage";
+import NewsListPage from "./pages/News/NewsListPage/NewsListPage";
+import NewsPage from "./pages/News/NewsPage/NewsPage";
 
 const router = createBrowserRouter([
     {
@@ -41,6 +43,19 @@ const router = createBrowserRouter([
                             {
                                 path: ":id",
                                 element: <NPOPage />,
+                            },
+                        ],
+                    },
+                    {
+                        path: "news",
+                        children: [
+                            {
+                                index: true,
+                                element: <NewsListPage />,
+                            },
+                            {
+                                path: ":id",
+                                element: <NewsPage />,
                             },
                         ],
                     },
