@@ -1,9 +1,10 @@
-import { Card, Statistic, Row, Col, Table, Typography, Tag, Space, Spin } from "antd";
+import { Card, Statistic, Row, Col, Table, Typography, Tag, Space, Spin, Button } from "antd";
 import {
     EyeOutlined,
     UserOutlined,
     CalendarOutlined,
     CheckCircleOutlined,
+    ArrowLeftOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 
@@ -11,11 +12,13 @@ import { useGetNPOStatisticsQuery } from "@services/api/npo.api";
 import { useGetNPOByIdQuery } from "@services/api/npo.api";
 import useAppSelector from "@hooks/useAppSelector";
 import { skipToken } from "@reduxjs/toolkit/query";
+import { useNavigate } from "react-router-dom";
 import type { IProfileViewerStats, IEventStats } from "@app-types/npo.types";
 
 const { Title } = Typography;
 
 const StatisticsPage = () => {
+    const navigate = useNavigate();
     const userId = useAppSelector((state) => state.auth.userId);
     const { data: npoData } = useGetNPOByIdQuery(userId ?? skipToken);
     const { data: statistics, isLoading } = useGetNPOStatisticsQuery(npoData?.id ?? skipToken);
@@ -106,6 +109,14 @@ const StatisticsPage = () => {
     return (
         <div style={{ padding: 24 }}>
             <Card>
+                <Button
+                    type="link"
+                    icon={<ArrowLeftOutlined />}
+                    onClick={() => navigate("/org")}
+                    style={{ marginBottom: 16, padding: 0 }}
+                >
+                    Назад в профиль НКО
+                </Button>
                 <Title level={2} style={{ marginBottom: 24 }}>
                     Статистика организации
                 </Title>

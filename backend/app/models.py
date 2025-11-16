@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, Float, Enum as SQLEnum, ARRAY
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, Float, Enum as SQLEnum, ARRAY, UniqueConstraint
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
@@ -273,4 +273,25 @@ class EventView(Base):
     
     event = relationship("Event")
     viewer = relationship("User")
+
+class FavoriteType(str, enum.Enum):
+    NEWS = "news"
+    EVENT = "event"
+    KNOWLEDGE = "knowledge"
+
+class Favorite(Base):
+    __tablename__ = "favorites"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    item_type = Column(SQLEnum(FavoriteType), nullable=False)  # news, event, knowledge
+    item_id = Column(Integer, nullable=False)  # ID новости, события или материала
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    user = relationship("User", backref="favorites")
+    
+    __table_args__ = (
+        # Уникальный индекс: один пользователь не может добавить один и тот же элемент дважды
+        UniqueConstraint('user_id', 'item_type', 'item_id', name='uq_user_item'),
+    )
 

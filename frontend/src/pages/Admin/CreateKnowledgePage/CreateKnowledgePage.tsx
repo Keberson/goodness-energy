@@ -18,11 +18,12 @@ import {
     MinusCircleOutlined,
     PlusOutlined,
     InfoCircleOutlined,
+    ArrowLeftOutlined,
 } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import { useUploadFileMutation } from "@services/api/files.api";
 import { useCreateKnowledgeMutation } from "@services/api/knowledges.api";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 
 import "./styles.scss";
 
@@ -30,6 +31,7 @@ const { Title } = Typography;
 const { TextArea } = Input;
 
 const CreateKnowledgePage = () => {
+    const navigate = useNavigate();
     const { notification } = App.useApp();
     const [form] = Form.useForm();
     const [uploadFile] = useUploadFileMutation();
@@ -148,6 +150,14 @@ const CreateKnowledgePage = () => {
     return (
         <div className="create-knowledge-page">
             <Card>
+                <Button
+                    type="link"
+                    icon={<ArrowLeftOutlined />}
+                    onClick={() => navigate("/knowledges")}
+                    style={{ marginBottom: 16, padding: 0 }}
+                >
+                    Назад к списку материалов
+                </Button>
                 <Title level={3}>Создать новый материал</Title>
                 <Form
                     form={form}

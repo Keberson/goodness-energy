@@ -1,10 +1,11 @@
 import { Card, Typography, Tag, Space, List, Empty, Button, Popconfirm, message } from "antd";
-import { ClockCircleOutlined, EnvironmentOutlined, CloseOutlined } from "@ant-design/icons";
+import { ClockCircleOutlined, EnvironmentOutlined, CloseOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
 import { useGetVolunteerEventsQuery, useDeleteEventResponseMutation } from "@services/api/volunteer.api";
 import type { IEvent } from "@app-types/events.types";
 import { useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import useAppSelector from "@hooks/useAppSelector";
 import { skipToken } from "@reduxjs/toolkit/query";
 import "./styles.scss";
@@ -12,6 +13,7 @@ import "./styles.scss";
 const { Title, Paragraph, Text } = Typography;
 
 const MyEventsPage = () => {
+    const navigate = useNavigate();
     const userId = useAppSelector((state) => state.auth.userId);
     const { data: events, isLoading } = useGetVolunteerEventsQuery(userId ?? skipToken);
     const [deleteEventResponse] = useDeleteEventResponseMutation();
@@ -67,6 +69,14 @@ const MyEventsPage = () => {
         <div className="my-events-page">
             <div className="my-events-page__container">
                 <Card className="my-events-page__card" loading={isLoading}>
+                    <Button
+                        type="link"
+                        icon={<ArrowLeftOutlined />}
+                        onClick={() => navigate("/profile")}
+                        style={{ marginBottom: 16, padding: 0 }}
+                    >
+                        Назад в личный кабинет
+                    </Button>
                     <Title level={2} className="my-events-page__title">
                         Мои события
                     </Title>

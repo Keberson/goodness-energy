@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, Typography, Space, Tag, Carousel, Button, App } from "antd";
-import { DeleteOutlined } from "@ant-design/icons";
+import { Card, Typography, Space, Tag, Carousel, Button, App, Flex } from "antd";
+import { DeleteOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 
 import "./styles.scss";
 
@@ -9,6 +9,7 @@ import useAppSelector from "@hooks/useAppSelector";
 
 import FilePreview from "@components/FilePreview/FilePreview";
 import VideoPlayer from "@components/VideoPlayer/VideoPlayer";
+import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
 
 const { Title, Paragraph, Text } = Typography;
 
@@ -54,18 +55,29 @@ const KnowledgeDetailPage = () => {
             {data && (
                 <Card
                     extra={
-                        isAdmin && (
-                            <Button
-                                danger
-                                icon={<DeleteOutlined />}
-                                onClick={handleDelete}
-                                loading={isDeleting}
-                            >
-                                Удалить материал
-                            </Button>
-                        )
+                        <Flex gap={8}>
+                            <FavoriteButton itemType="knowledge" itemId={data.id} />
+                            {isAdmin && (
+                                <Button
+                                    danger
+                                    icon={<DeleteOutlined />}
+                                    onClick={handleDelete}
+                                    loading={isDeleting}
+                                >
+                                    Удалить материал
+                                </Button>
+                            )}
+                        </Flex>
                     }
                 >
+                    <Button
+                        type="link"
+                        icon={<ArrowLeftOutlined />}
+                        onClick={() => navigate("/knowledges")}
+                        style={{ marginBottom: 16, padding: 0 }}
+                    >
+                        Назад к списку материалов
+                    </Button>
                     <Space direction="vertical" size="large" style={{ width: "100%" }}>
                         <div>
                             <Title level={2}>{data.name}</Title>

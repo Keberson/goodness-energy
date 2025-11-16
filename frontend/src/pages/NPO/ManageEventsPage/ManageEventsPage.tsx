@@ -19,13 +19,14 @@ import {
 import {
     PlusOutlined,
     DeleteOutlined,
+    ArrowLeftOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { type Dayjs } from "dayjs";
 import "dayjs/locale/ru";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { useCity } from "@hooks/useCity";
 
 import type { IEvent, EventStatus } from "@app-types/events.types";
@@ -59,6 +60,7 @@ const statusOptions: { label: string; value: EventStatus; color: string }[] = [
 ];
 
 const ManageEventsPage = () => {
+    const navigate = useNavigate();
     const userId = useAppSelector((state) => state.auth.userId);
     const { data: npoData } = useGetNPOByIdQuery(userId ?? skipToken);
     const { data: events, isLoading } = useGetNPOEventsQuery(npoData?.id ?? skipToken);
@@ -307,6 +309,14 @@ const ManageEventsPage = () => {
     return (
         <div style={{ padding: 24 }}>
             <Card>
+                <Button
+                    type="link"
+                    icon={<ArrowLeftOutlined />}
+                    onClick={() => navigate("/org")}
+                    style={{ marginBottom: 16, padding: 0 }}
+                >
+                    Назад в профиль НКО
+                </Button>
                 <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
                     <Title level={2}>Управление событиями</Title>
                     <Button type="primary" icon={<PlusOutlined />} onClick={handleCreate}>

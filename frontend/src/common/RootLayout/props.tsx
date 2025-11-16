@@ -15,6 +15,7 @@ import {
     SafetyCertificateOutlined,
     LoginOutlined,
     LogoutOutlined,
+    StarOutlined,
 } from "@ant-design/icons";
 import type { ItemType } from "antd/es/menu/interface";
 import type { ReactNode } from "react";
@@ -76,6 +77,11 @@ export const volunteerMenuItems: MenuItem[] = [
                 key: "my-events",
                 icon: <HistoryOutlined />,
                 label: "Мои события",
+            },
+            {
+                key: "favorites",
+                icon: <StarOutlined />,
+                label: "Избранное",
             },
             {
                 key: "logout",

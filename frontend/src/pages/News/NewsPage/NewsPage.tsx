@@ -1,7 +1,8 @@
-import { Card, Typography, Tag, Space, Descriptions, Button } from "antd";
+import { Card, Typography, Tag, Space, Descriptions, Button, Flex } from "antd";
 import { CalendarOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetNewsByIdQuery } from "@services/api/news.api";
+import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
 
 const { Title, Paragraph } = Typography;
 
@@ -63,9 +64,12 @@ const NewsPage = () => {
                 >
                     Назад к списку новостей
                 </Button>
-                <Title level={2} style={{ marginBottom: 24 }}>
-                    {data.name}
-                </Title>
+                <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
+                    <Title level={2} style={{ marginBottom: 0 }}>
+                        {data.name}
+                    </Title>
+                    <FavoriteButton itemType="news" itemId={data.id} />
+                </Flex>
                 <Descriptions column={1} bordered style={{ marginBottom: 24 }}>
                     <Descriptions.Item label="Тип">
                         <Tag color={getTypeColor(data.type)}>{getTypeLabel(data.type)}</Tag>

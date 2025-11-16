@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
-from app.models import NewsType, EventStatus, NPOStatus, NPOCity
+from app.models import NewsType, EventStatus, NPOStatus, NPOCity, FavoriteType
 
 # Схемы аутентификации
 class UserLogin(BaseModel):
@@ -245,3 +245,27 @@ class NPOStatisticsResponse(BaseModel):
     
     # Статистика откликов
     total_event_responses: int
+
+# Схемы избранного
+class FavoriteCreate(BaseModel):
+    item_type: FavoriteType
+    item_id: int
+
+class FavoriteResponse(BaseModel):
+    id: int
+    user_id: int
+    item_type: FavoriteType
+    item_id: int
+    created_at: datetime
+    
+    class Config:
+        from_attributes = True
+
+class FavoriteItemResponse(BaseModel):
+    """Ответ с информацией об избранном элементе"""
+    favorite_id: int
+    item_type: FavoriteType
+    item_id: int
+    created_at: datetime
+    # Данные элемента (новость, событие или материал)
+    item: dict  # Будет содержать NewsResponse, EventResponse или KnowledgeResponse

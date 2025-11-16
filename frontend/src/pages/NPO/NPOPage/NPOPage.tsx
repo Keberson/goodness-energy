@@ -1,6 +1,7 @@
-import { Card, Tabs, Typography } from "antd";
-import { useParams } from "react-router-dom";
+import { Card, Tabs, Typography, Button } from "antd";
+import { useParams, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { ArrowLeftOutlined } from "@ant-design/icons";
 
 import NPODetails from "./NPODetails/NPODetails";
 
@@ -11,6 +12,7 @@ const { TabPane } = Tabs;
 
 const NPOPage = () => {
     const { id } = useParams();
+    const navigate = useNavigate();
     const npoId = Number(id!);
     const { data } = useGetNPOByIdQuery(npoId);
     const [registerView] = useRegisterNPOViewMutation();
@@ -28,6 +30,14 @@ const NPOPage = () => {
         <div style={{ padding: 24 }}>
             {data && (
                 <Card>
+                    <Button
+                        type="link"
+                        icon={<ArrowLeftOutlined />}
+                        onClick={() => navigate("/npo")}
+                        style={{ marginBottom: 16, padding: 0 }}
+                    >
+                        Назад к списку НКО
+                    </Button>
                     <Title level={2} style={{ marginBottom: 24 }}>
                         {data.name}
                     </Title>

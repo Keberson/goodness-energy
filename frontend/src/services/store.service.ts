@@ -12,6 +12,7 @@ import { knowledgesApi } from "./api/knowledges.api";
 import { filesApi } from "./api/files.api";
 import { eventsApi } from "./api/events.api";
 import { adminApi } from "./api/admin.api";
+import { favoritesApi } from "./api/favorites.api";
 
 import loadingReducer from "./slices/loading.slice";
 import cityReducer from "./slices/city.slice";
@@ -31,6 +32,7 @@ const rootReducer = combineReducers({
     filesApi: filesApi.reducer,
     eventsApi: eventsApi.reducer,
     adminApi: adminApi.reducer,
+    favoritesApi: favoritesApi.reducer,
     loading: loadingReducer,
     city: cityReducer,
     auth: authReducer,
@@ -50,6 +52,7 @@ export const store = configureStore({
             .concat(filesApi.middleware)
             .concat(eventsApi.middleware)
             .concat(adminApi.middleware)
+            .concat(favoritesApi.middleware)
             .concat(loadingMiddleware)
             .concat(errorMiddleware),
 });

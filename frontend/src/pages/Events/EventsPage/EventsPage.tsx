@@ -10,10 +10,11 @@ import { useRegisterEventViewMutation } from "@services/api/npo.api";
 import { useGetVolunteerEventsQuery, useRespondToEventMutation } from "@services/api/volunteer.api";
 import type { IEvent } from "@app-types/events.types";
 import { useMemo, useState, useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import useAppSelector from "@hooks/useAppSelector";
 import { useCity } from "@hooks/useCity";
 import { skipToken } from "@reduxjs/toolkit/query";
+import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
 import "./styles.scss";
 
 const { Title, Paragraph, Text } = Typography;
@@ -21,9 +22,28 @@ const { Title, Paragraph, Text } = Typography;
 const EventsPage = () => {
     const { data: events, isLoading } = useGetEventsQuery();
     const { currentCity } = useCity();
-    const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
+    const [searchParams, setSearchParams] = useSearchParams();
+    const dateParam = searchParams.get("date");
+    
+    // Инициализируем selectedDate из URL параметра или текущей даты
+    const initialDate = dateParam ? dayjs(dateParam) : dayjs();
+    const [selectedDate, setSelectedDate] = useState<Dayjs>(initialDate);
     const [mode, setMode] = useState<"month" | "year">("month");
     const [registerEventView] = useRegisterEventViewMutation();
+    
+    // Обновляем selectedDate при изменении параметра date в URL
+    useEffect(() => {
+        if (dateParam) {
+            const parsedDate = dayjs(dateParam);
+            if (parsedDate.isValid()) {
+                setSelectedDate(parsedDate);
+                // Очищаем параметр date из URL после установки даты
+                const newSearchParams = new URLSearchParams(searchParams);
+                newSearchParams.delete("date");
+                setSearchParams(newSearchParams, { replace: true });
+            }
+        }
+    }, [dateParam, searchParams, setSearchParams]);
     
     // Проверка авторизации и получение событий волонтёра
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
@@ -307,24 +327,27 @@ const EventsPage = () => {
                                                 className="events-page__event-card"
                                             >
                                                 <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                                                    <div>
-                                                        <Title level={5} style={{ margin: 0 }}>
-                                                            {event.name}
-                                                        </Title>
-                                                        <Tag
-                                                            color={
-                                                                event.status === "published"
-                                                                    ? "green"
-                                                                    : event.status === "cancelled"
-                                                                    ? "red"
-                                                                    : event.status === "completed"
-                                                                    ? "blue"
-                                                                    : "default"
-                                                            }
-                                                        >
-                                                            {getStatusLabel(event.status)}
-                                                        </Tag>
-                                                    </div>
+                                                    <Flex justify="space-between" align="flex-start">
+                                                        <div style={{ flex: 1 }}>
+                                                            <Title level={5} style={{ margin: 0 }}>
+                                                                {event.name}
+                                                            </Title>
+                                                            <Tag
+                                                                color={
+                                                                    event.status === "published"
+                                                                        ? "green"
+                                                                        : event.status === "cancelled"
+                                                                        ? "red"
+                                                                        : event.status === "completed"
+                                                                        ? "blue"
+                                                                        : "default"
+                                                                }
+                                                            >
+                                                                {getStatusLabel(event.status)}
+                                                            </Tag>
+                                                        </div>
+                                                        <FavoriteButton itemType="event" itemId={event.id} size="small" />
+                                                    </Flex>
 
                                                     {event.description && (
                                                         <Paragraph

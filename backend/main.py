@@ -2,7 +2,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from app.database import engine, Base, SessionLocal
-from app.routers import auth, npo, volunteer, admin, news, files, map, knowledges, events
+from app.routers import auth, npo, volunteer, admin, news, files, map, knowledges, events, favorites
 from app.minio_client import ensure_bucket_exists
 from app.models import User
 from pathlib import Path
@@ -112,6 +112,7 @@ app.include_router(news.router, prefix="/news", tags=["news"])
 app.include_router(files.router, prefix="/files", tags=["files"])
 app.include_router(knowledges.router, prefix="/knowledges", tags=["knowledges"])
 app.include_router(events.router, prefix="/events", tags=["events"])
+app.include_router(favorites.router, prefix="/favorites", tags=["favorites"])
 
 @app.get("/")
 async def root():
