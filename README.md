@@ -103,7 +103,7 @@ goodness-energy/
 
 1. **Клонируйте репозиторий:**
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:Keberson/goodness-energy.git
    cd goodness-energy
    ```
 
