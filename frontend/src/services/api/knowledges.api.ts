@@ -47,7 +47,22 @@ export const knowledgesApi = createApi({
             }),
             invalidatesTags: [{ type: "Knowledge", id: "LIST" }],
         }),
+        deleteKnowledge: builder.mutation<void, number>({
+            query: (id) => ({
+                url: `/${id}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: (_, __, id) => [
+                { type: "Knowledge", id },
+                { type: "Knowledge", id: "LIST" },
+            ],
+        }),
     }),
 });
 
-export const { useGetKnowledgesQuery, useGetKnowledgeByIdQuery, useCreateKnowledgeMutation } = knowledgesApi;
+export const {
+    useGetKnowledgesQuery,
+    useGetKnowledgeByIdQuery,
+    useCreateKnowledgeMutation,
+    useDeleteKnowledgeMutation,
+} = knowledgesApi;
