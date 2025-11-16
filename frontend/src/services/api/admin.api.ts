@@ -1,21 +1,14 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import type { INPO, NPOStatus } from "@app-types/npo.types";
-import type { IEvent } from "@app-types/events.types";
-import type { INews } from "@app-types/news.types";
+import { prepareHeaders } from "./utils/prepareHeaders";
 
 export const adminApi = createApi({
     reducerPath: "adminApi",
     tagTypes: ["UnconfirmedNPO", "Event", "News"],
     baseQuery: fetchBaseQuery({
         baseUrl: `${import.meta.env.VITE_API_BASE_URL}/admin`,
-        prepareHeaders: (headers, { getState }) => {
-            const token = (getState() as any).auth?.token;
-            if (token) {
-                headers.set("authorization", `Bearer ${token}`);
-            }
-            return headers;
-        },
+        prepareHeaders,
     }),
     endpoints: (builder) => ({
         getUnconfirmedNPOs: builder.query<INPO[], void>({
@@ -71,4 +64,3 @@ export const {
     useDeleteNPOMutation,
     useDeleteEventMutation,
 } = adminApi;
-

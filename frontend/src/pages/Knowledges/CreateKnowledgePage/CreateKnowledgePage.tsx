@@ -1,6 +1,5 @@
-import { useState } from "react";
-import { Card, Typography, Form, Input, Button, Upload, message, Space } from "antd";
-import { UploadOutlined, VideoCameraOutlined, FileOutlined } from "@ant-design/icons";
+import { Card, Typography, Form, Input, Button, Upload, message } from "antd";
+import { UploadOutlined, VideoCameraOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 
 const { Title } = Typography;
