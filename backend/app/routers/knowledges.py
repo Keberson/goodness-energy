@@ -27,7 +27,7 @@ async def get_all_knowledges(db: Session = Depends(get_db)):
             text=knowledge.text,
             attachedIds=attached_ids,
             tags=tags,
-            type=knowledge.type,
+            links=knowledge.links,
             created_at=knowledge.created_at
         ))
     
@@ -43,7 +43,7 @@ async def create_knowledge(
     knowledge = Knowledge(
         name=knowledge_data.name,
         text=knowledge_data.text,
-        type=knowledge_data.type
+        links=knowledge_data.links
     )
     db.add(knowledge)
     db.flush()
@@ -72,7 +72,7 @@ async def create_knowledge(
         text=knowledge.text,
         attachedIds=attached_ids,
         tags=tags,
-        type=knowledge.type,
+        links=knowledge.links,
         created_at=knowledge.created_at
     )
 
@@ -96,8 +96,8 @@ async def update_knowledge(
         knowledge.name = knowledge_update.name
     if knowledge_update.text is not None:
         knowledge.text = knowledge_update.text
-    if knowledge_update.type is not None:
-        knowledge.type = knowledge_update.type
+    if knowledge_update.links is not None:
+        knowledge.links = knowledge_update.links
     
     # Обновление тегов
     if knowledge_update.tags is not None:
@@ -125,7 +125,7 @@ async def update_knowledge(
         text=knowledge.text,
         attachedIds=attached_ids,
         tags=tags,
-        type=knowledge.type,
+        links=knowledge.links,
         created_at=knowledge.created_at
     )
 
