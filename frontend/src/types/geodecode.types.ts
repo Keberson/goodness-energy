@@ -1,4 +1,13 @@
 export interface IGeodecode {
-    lat: string;
-    lon: string;
+    response: {
+        GeoObjectCollection: {
+            featureMember: {
+                GeoObject: {
+                    Point: {
+                        pos: string;
+                    };
+                };
+            }[];
+        };
+    };
 }

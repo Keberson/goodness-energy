@@ -9,6 +9,7 @@ import {
     PlayCircleOutlined,
 } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
+import { NavLink } from "react-router-dom";
 
 const { Title, Paragraph } = Typography;
 
@@ -20,26 +21,31 @@ const HomePage = () => {
             icon: <EnvironmentOutlined />,
             title: "Карта",
             description: "Найти организации по городу и направлению деятельности",
+            link: "map",
         },
         {
             icon: <TeamOutlined />,
             title: "НКО",
             description: "Узнать о волонтёрских проектах в вашем городе",
+            link: "npo",
         },
         {
             icon: <CalendarOutlined />,
             title: "Календарь",
             description: "Отметьте интересные события, чтобы ничего не пропустить",
+            link: "",
         },
         {
             icon: <ReadOutlined />,
             title: "База знаний",
             description: "Просматривайте видео и материалы для скачивания",
+            link: "",
         },
         {
             icon: <NotificationOutlined />,
             title: "Новости",
             description: "Будьте в курсе последних инициатив и грантов",
+            link: "",
         },
     ];
 
@@ -116,9 +122,11 @@ const HomePage = () => {
                             hoverable
                             className="home__feature-card"
                             actions={[
-                                <Button type="link" icon={<ArrowRightOutlined />}>
-                                    Перейти
-                                </Button>,
+                                <NavLink to={feature.link}>
+                                    <Button type="link" icon={<ArrowRightOutlined />}>
+                                        Перейти
+                                    </Button>
+                                </NavLink>,
                             ]}
                         >
                             <Card.Meta

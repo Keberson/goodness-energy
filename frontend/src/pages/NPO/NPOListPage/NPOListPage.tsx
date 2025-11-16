@@ -24,7 +24,9 @@ const NPOListPage = () => {
                 </Title>
                 <Table<INPO>
                     columns={columns}
-                    dataSource={(data ?? []).map((item) => ({ ...item, key: item.id }))}
+                    dataSource={(data ?? [])
+                        .map((item) => ({ ...item, key: item.id }))
+                        .filter((item) => item.city === currentCity)}
                     loading={isLoading}
                     scroll={{ x: 1200 }}
                     tableLayout="fixed"

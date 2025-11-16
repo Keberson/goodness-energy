@@ -6,11 +6,15 @@ export const geodecodeApi = createApi({
     reducerPath: "geodecodeApi",
     tagTypes: [],
     baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api"}/auth`,
+        baseUrl: `https://geocode-maps.yandex.ru/1.x`,
     }),
     endpoints: (builder) => ({
-        geodecode: builder.query<IGeodecode[], string>({
-            query: (address) => ({ url: `/search?format=json&q=${encodeURIComponent(address)}` }),
+        geodecode: builder.query<IGeodecode, string>({
+            query: (address) => ({
+                url: `/?apikey=7d835504-479d-4bce-b1f2-8e30c96660e7&geocode=${encodeURIComponent(
+                    address
+                )}&format=json`,
+            }),
         }),
     }),
 });

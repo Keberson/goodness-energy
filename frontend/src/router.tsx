@@ -13,6 +13,7 @@ import RegistrationPage from "./pages/Auth/RegistrationPage/RegistrationPage";
 import ProfilePage from "./pages/Volunteer/ProfilePage/ProfilePage";
 import MapPage from "./pages/MapPage/MapPage";
 import NPOListPage from "./pages/NPO/NPOListPage/NPOListPage";
+import NPOPage from "./pages/NPO/NPOPage/NPOPage";
 
 const router = createBrowserRouter([
     {
@@ -32,7 +33,16 @@ const router = createBrowserRouter([
                     },
                     {
                         path: "npo",
-                        element: <NPOListPage />,
+                        children: [
+                            {
+                                index: true,
+                                element: <NPOListPage />,
+                            },
+                            {
+                                path: ":id",
+                                element: <NPOPage />,
+                            },
+                        ],
                     },
                     {
                         path: "login",

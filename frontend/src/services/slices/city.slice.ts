@@ -6,7 +6,7 @@ interface CityState {
 }
 
 const initialState: CityState = {
-    currentCity: "Саров",
+    currentCity: "Ангарск",
     availableCities: [
         "Ангарск",
         "Байкальск",

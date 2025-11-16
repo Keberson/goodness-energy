@@ -24,7 +24,7 @@ const LoginPage = () => {
     const onFinish = async (values: FormValues) => {
         try {
             const response = await loginAPI(values).unwrap();
-            dispatch(login({ token: response.access_token, type: response.user_type }));
+            dispatch(login({ token: response.access_token, type: response.user_type, id: response.id }));
         } catch (error) {}
     };
 
