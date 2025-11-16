@@ -62,26 +62,43 @@ const HomePage = () => {
         },
     ];
 
-    // Группируем события по датам
+    // Группируем события по датам (событие отображается на каждый день от start до end)
     const eventsByDate = useMemo(() => {
         if (!events) return new Map<string, IEvent[]>();
 
         const map = new Map<string, IEvent[]>();
         events.forEach((event) => {
-            const eventDate = dayjs(event.start).format("YYYY-MM-DD");
-            if (!map.has(eventDate)) {
-                map.set(eventDate, []);
+            const startDate = dayjs(event.start).startOf("day");
+            const endDate = dayjs(event.end).startOf("day");
+            
+            // Добавляем событие на каждый день от начала до конца включительно
+            let currentDate = startDate;
+            while (currentDate.isBefore(endDate, "day") || currentDate.isSame(endDate, "day")) {
+                const dateKey = currentDate.format("YYYY-MM-DD");
+                if (!map.has(dateKey)) {
+                    map.set(dateKey, []);
+                }
+                map.get(dateKey)!.push(event);
+                currentDate = currentDate.add(1, "day");
             }
-            map.get(eventDate)!.push(event);
         });
         return map;
     }, [events]);
 
-    // Получаем события для выбранной даты
+    // Получаем события для выбранной даты (события, которые идут в этот день)
     const selectedDateEvents = useMemo(() => {
-        const dateKey = selectedDate.format("YYYY-MM-DD");
-        return eventsByDate.get(dateKey) || [];
-    }, [selectedDate, eventsByDate]);
+        const dateStart = selectedDate.startOf("day");
+        const dateEnd = selectedDate.endOf("day");
+        
+        // Фильтруем события, которые пересекаются с выбранной датой
+        return (events || []).filter((event) => {
+            const eventStart = dayjs(event.start);
+            const eventEnd = dayjs(event.end);
+            // Событие попадает в выбранный день, если оно начинается до конца дня и заканчивается после начала дня
+            return (eventStart.isBefore(dateEnd) || eventStart.isSame(dateEnd)) && 
+                   (eventEnd.isAfter(dateStart) || eventEnd.isSame(dateStart));
+        });
+    }, [selectedDate, events]);
 
     // Регистрируем просмотры для всех событий выбранной даты
     useEffect(() => {
@@ -170,8 +187,8 @@ const HomePage = () => {
                                     <div style={{ fontSize: "12px" }}>{event.description}</div>
                                 )}
                                 <div style={{ fontSize: "11px", marginTop: 4 }}>
-                                    {dayjs(event.start).format("HH:mm")} -{" "}
-                                    {dayjs(event.end).format("HH:mm")}
+                                    {dayjs(event.start).format("DD.MM.YYYY HH:mm")} -{" "}
+                                    {dayjs(event.end).format("DD.MM.YYYY HH:mm")}
                                 </div>
                             </div>
                         }
