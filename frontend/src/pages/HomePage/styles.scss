@@ -63,3 +63,68 @@
         gap: $flex-gap;
     }
 }
+
+.events-calendar {
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        margin-bottom: 16px;
+    }
+
+    &__header-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+    }
+
+    &__header-title {
+        flex: 1;
+        font-size: 16px;
+        font-weight: 500;
+        text-align: center;
+        cursor: pointer;
+        
+        &:hover {
+            color: #1890ff;
+        }
+    }
+
+    &__events-indicators {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        align-items: center;
+        justify-content: flex-start;
+        margin-top: 2px;
+    }
+
+    &__event-indicator {
+        cursor: pointer;
+        
+        .ant-badge-status-dot {
+            width: 8px;
+            height: 8px;
+        }
+    }
+
+    &__more-indicator {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 4px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #1890ff;
+        background-color: #e6f7ff;
+        border: 1px solid #91d5ff;
+        border-radius: 10px;
+        cursor: pointer;
+        line-height: 1;
+    }
+}

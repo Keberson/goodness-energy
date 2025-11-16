@@ -1,4 +1,5 @@
-import { Card, Row, Col, Typography, Button, Tag, Flex, Calendar } from "antd";
+import { Card, Row, Col, Typography, Button, Flex, Calendar, Badge, Tooltip } from "antd";
+import type { BadgeProps } from "antd";
 import {
     EnvironmentOutlined,
     TeamOutlined,
@@ -7,15 +8,25 @@ import {
     ArrowRightOutlined,
     NotificationOutlined,
     PlayCircleOutlined,
+    LeftOutlined,
+    RightOutlined,
 } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
+import dayjs from "dayjs";
+import "dayjs/locale/ru";
 import { NavLink } from "react-router-dom";
+import { useGetEventsQuery } from "@services/api/events.api";
+import type { IEvent } from "@app-types/events.types";
+import { useMemo, useState } from "react";
 
 const { Title, Paragraph } = Typography;
 
 import "./styles.scss";
 
 const HomePage = () => {
+    const { data: events } = useGetEventsQuery();
+    const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
+    const [mode, setMode] = useState<"month" | "year">("month");
     const features = [
         {
             icon: <EnvironmentOutlined />,
@@ -39,7 +50,7 @@ const HomePage = () => {
             icon: <ReadOutlined />,
             title: "База знаний",
             description: "Просматривайте видео и материалы для скачивания",
-            link: "",
+            link: "knowledges",
         },
         {
             icon: <NotificationOutlined />,
@@ -49,34 +60,114 @@ const HomePage = () => {
         },
     ];
 
-    const getListData = (value: Dayjs) => {
-        let listData: { type: string; content: string }[] = [];
+    // Группируем события по датам
+    const eventsByDate = useMemo(() => {
+        if (!events) return new Map<string, IEvent[]>();
 
-        if (value.date() === 15) {
-            listData = [
-                { type: "warning", content: "Субботник в парке" },
-                { type: "success", content: "Сбор вещей" },
-            ];
-        }
-        if (value.date() === 20) {
-            listData = [{ type: "success", content: "Благотворительный концерт" }];
-        }
-        return listData;
+        const map = new Map<string, IEvent[]>();
+        events.forEach((event) => {
+            const eventDate = dayjs(event.start).format("YYYY-MM-DD");
+            if (!map.has(eventDate)) {
+                map.set(eventDate, []);
+            }
+            map.get(eventDate)!.push(event);
+        });
+        return map;
+    }, [events]);
+
+    // Функция для получения статуса события
+    const getStatusColor = (status: string): BadgeProps["status"] => {
+        const statusMap: Record<string, BadgeProps["status"]> = {
+            published: "success",
+            draft: "default",
+            cancelled: "error",
+            completed: "processing",
+        };
+        return statusMap[status] || "default";
     };
 
-    const dateCellRender = (value: Dayjs) => {
-        const listData = getListData(value);
+    // Кастомный заголовок календаря
+    const headerRender = ({ value, onChange }: any) => {
+        const monthName = value.locale("ru").format("MMMM YYYY");
+
+        const onPrev = () => {
+            const newValue = value.subtract(1, "month");
+            onChange(newValue);
+        };
+
+        const onNext = () => {
+            const newValue = value.add(1, "month");
+            onChange(newValue);
+        };
+
+        const onToday = () => {
+            onChange(dayjs());
+        };
+
         return (
-            <div className="home__events__cell">
-                {listData.map((item, index) => (
-                    <Tag
-                        key={index}
-                        color={item.type === "warning" ? "orange" : "green"}
-                        style={{ margin: "1px", fontSize: "10px" }}
+            <div className="events-calendar__header">
+                <Button
+                    type="text"
+                    icon={<LeftOutlined />}
+                    onClick={onPrev}
+                    className="events-calendar__header-button"
+                />
+                <Button type="text" onClick={onToday} className="events-calendar__header-title">
+                    {monthName}
+                </Button>
+                <Button
+                    type="text"
+                    icon={<RightOutlined />}
+                    onClick={onNext}
+                    className="events-calendar__header-button"
+                />
+            </div>
+        );
+    };
+
+    // Функция для рендеринга ячеек календаря
+    const dateCellRender = (value: Dayjs) => {
+        const dateKey = value.format("YYYY-MM-DD");
+        const dayEvents = eventsByDate.get(dateKey) || [];
+
+        if (dayEvents.length === 0) {
+            return null;
+        }
+
+        return (
+            <div className="events-calendar__events-indicators">
+                {dayEvents.slice(0, 3).map((event) => (
+                    <Tooltip
+                        key={event.id}
+                        title={
+                            <div>
+                                <div style={{ fontWeight: "bold", marginBottom: 4 }}>
+                                    {event.name}
+                                </div>
+                                {event.description && (
+                                    <div style={{ fontSize: "12px" }}>{event.description}</div>
+                                )}
+                                <div style={{ fontSize: "11px", marginTop: 4 }}>
+                                    {dayjs(event.start).format("HH:mm")} -{" "}
+                                    {dayjs(event.end).format("HH:mm")}
+                                </div>
+                            </div>
+                        }
+                        placement="top"
                     >
-                        {item.content}
-                    </Tag>
+                        <Badge
+                            status={getStatusColor(event.status)}
+                            className="events-calendar__event-indicator"
+                        />
+                    </Tooltip>
                 ))}
+                {dayEvents.length > 3 && (
+                    <Tooltip title={`Еще ${dayEvents.length - 3} событий`} placement="top">
+                        <span className="events-calendar__more-indicator">
+                            +{dayEvents.length - 3}
+                        </span>
+                    </Tooltip>
+                )}
             </div>
         );
     };
@@ -148,7 +239,20 @@ const HomePage = () => {
                 }
                 className="home__events"
             >
-                <Calendar cellRender={dateCellRender} />
+                <Calendar
+                    value={selectedDate}
+                    onChange={setSelectedDate}
+                    mode={mode}
+                    onPanelChange={(date, newMode) => {
+                        if (newMode === "month") {
+                            setMode("month");
+                            setSelectedDate(date);
+                        }
+                    }}
+                    headerRender={headerRender}
+                    dateCellRender={dateCellRender}
+                    className="events-calendar"
+                />
                 <NavLink to="/events">
                     <Button type="primary" className="home__events__view-all" block>
                         Смотреть все события
@@ -171,15 +275,21 @@ const HomePage = () => {
                 </Paragraph>
 
                 <Flex vertical gap={12} className="home__quick-actions">
-                    <Button type="primary" size="large" icon={<TeamOutlined />}>
-                        Стать волонтёром
-                    </Button>
-                    <Button size="large" icon={<EnvironmentOutlined />}>
-                        Найти организации на карте
-                    </Button>
-                    <Button size="large" icon={<ReadOutlined />}>
-                        Изучить материалы
-                    </Button>
+                    <NavLink to="/npo">
+                        <Button type="primary" size="large" icon={<TeamOutlined />} block>
+                            Стать волонтёром
+                        </Button>
+                    </NavLink>
+                    <NavLink to="/map">
+                        <Button size="large" icon={<EnvironmentOutlined />} block>
+                            Найти организации на карте
+                        </Button>
+                    </NavLink>
+                    <NavLink to="/knowledges">
+                        <Button size="large" icon={<ReadOutlined />} block>
+                            Изучить материалы
+                        </Button>
+                    </NavLink>
                 </Flex>
             </Card>
         </div>
