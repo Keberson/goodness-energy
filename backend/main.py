@@ -1,4 +1,5 @@
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from app.database import engine, Base, SessionLocal
 from app.routers import auth, npo, volunteer, admin, news, files, map, knowledges, events, favorites
@@ -91,6 +92,15 @@ async def startup_event():
         except Exception as e:
             logger.error(f"Не удалось выполнить init-data.sql: {e}")
             logger.error(traceback.format_exc())
+
+# CORS middleware (промежуточное ПО для CORS)
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Подключение роутеров
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
