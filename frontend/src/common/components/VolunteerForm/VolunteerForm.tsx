@@ -1,3 +1,4 @@
+import React from "react";
 import { DatePicker, Flex, Form, Input, Select } from "antd";
 import { MailOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
@@ -7,27 +8,35 @@ import PhoneInput from "@components/controls/PhoneInput/PhoneInput";
 const { Option } = Select;
 const { TextArea } = Input;
 
-const VolunteerForm = () => {
+interface VolunteerFormProps {
+    hideAuthFields?: boolean;
+}
+
+const VolunteerForm: React.FC<VolunteerFormProps> = ({ hideAuthFields = false }) => {
     return (
         <>
-            <Form.Item
-                label="Логин"
-                name="login"
-                rules={[{ required: true, message: "Введите логин" }]}
-            >
-                <Input prefix={<UserOutlined />} placeholder="Логин" size="large" />
-            </Form.Item>
-            <Form.Item
-                label="Пароль"
-                name="password"
-                rules={[{ required: true, message: "Введите пароль" }]}
-            >
-                <Input.Password
-                    prefix={<LockOutlined />}
-                    placeholder="Придумайте пароль"
-                    size="large"
-                />
-            </Form.Item>
+            {!hideAuthFields && (
+                <>
+                    <Form.Item
+                        label="Логин"
+                        name="login"
+                        rules={[{ required: true, message: "Введите логин" }]}
+                    >
+                        <Input prefix={<UserOutlined />} placeholder="Логин" size="large" />
+                    </Form.Item>
+                    <Form.Item
+                        label="Пароль"
+                        name="password"
+                        rules={[{ required: true, message: "Введите пароль" }]}
+                    >
+                        <Input.Password
+                            prefix={<LockOutlined />}
+                            placeholder="Придумайте пароль"
+                            size="large"
+                        />
+                    </Form.Item>
+                </>
+            )}
             <Flex gap="middle">
                 <Form.Item
                     label="Фамилия"

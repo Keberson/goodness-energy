@@ -12,6 +12,7 @@ import Providers from "./common/Providers/Providers";
 import LoginPage from "./pages/Auth/LoginPage/LoginPage";
 import RegistrationPage from "./pages/Auth/RegistrationPage/RegistrationPage";
 import ProfilePage from "./pages/Volunteer/ProfilePage/ProfilePage";
+import MyEventsPage from "./pages/Volunteer/MyEventsPage/MyEventsPage";
 import NPOProfilePage from "./pages/NPO/NPOProfilePage/NPOProfilePage";
 import ManageEventsPage from "./pages/NPO/ManageEventsPage/ManageEventsPage";
 import StatisticsPage from "./pages/NPO/StatisticsPage/StatisticsPage";
@@ -104,6 +105,14 @@ const router = createBrowserRouter([
                         element: (
                             <ProtectedRoute>
                                 <ProfilePage />
+                            </ProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "my-events",
+                        element: (
+                            <ProtectedRoute>
+                                <MyEventsPage />
                             </ProtectedRoute>
                         ),
                     },
