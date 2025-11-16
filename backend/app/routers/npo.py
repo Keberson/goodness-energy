@@ -21,6 +21,32 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+def safe_parse_city(city_str: str) -> NPOCity:
+    """Безопасное преобразование строки города в enum"""
+    if not city_str:
+        return NPOCity.ANGARSK
+    try:
+        # Пробуем найти значение в enum по значению
+        for city_enum in NPOCity:
+            if city_enum.value == city_str:
+                return city_enum
+        # Если не найдено, возвращаем значение по умолчанию
+        logger.warning(f"Город '{city_str}' не найден в enum NPOCity, используется ANGARSK")
+        return NPOCity.ANGARSK
+    except Exception as e:
+        logger.error(f"Ошибка при преобразовании города '{city_str}': {e}")
+        return NPOCity.ANGARSK
+
+def safe_parse_json(json_str: str) -> dict:
+    """Безопасный парсинг JSON"""
+    if not json_str:
+        return None
+    try:
+        return json.loads(json_str)
+    except (json.JSONDecodeError, TypeError) as e:
+        logger.error(f"Ошибка при парсинге JSON '{json_str}': {e}")
+        return None
+
 def get_npo_by_user_id(user_id: int, db: Session) -> NPO:
     npo = db.query(NPO).filter(NPO.user_id == user_id).first()
     if not npo:
@@ -33,34 +59,38 @@ def get_npo_by_user_id(user_id: int, db: Session) -> NPO:
 @router.get("", response_model=List[NPOResponse])
 async def get_all_npos(db: Session = Depends(get_db)):
     """Список всех организаций"""
-    npos = db.query(NPO).all()
-    result = []
-    
-    for npo in npos:
-        gallery_ids = [g.file_id for g in npo.gallery]
-        tags = [t.tag for t in npo.tags]
-        active_events_count = db.query(Event).filter(
-            Event.npo_id == npo.id,
-            Event.status == EventStatus.PUBLISHED
-        ).count()
+    try:
+        npos = db.query(NPO).all()
+        result = []
         
-        result.append(NPOResponse(
-            id=npo.id,
-            name=npo.name,
-            description=npo.description,
-            coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)] if npo.coordinates_lat is not None and npo.coordinates_lon is not None else None,
-            address=npo.address,
-            city=NPOCity(npo.city) if npo.city else NPOCity.ANGARSK,
-            timetable=npo.timetable,
-            galleryIds=gallery_ids,
-            tags=tags,
-            links=json.loads(npo.links) if npo.links else None,
-            vacancies=active_events_count,
-            status=npo.status if npo.status is not None else NPOStatus.NOT_CONFIRMED,
-            created_at=npo.created_at
-        ))
-    
-    return result
+        for npo in npos:
+            gallery_ids = [g.file_id for g in npo.gallery]
+            tags = [t.tag for t in npo.tags]
+            active_events_count = db.query(Event).filter(
+                Event.npo_id == npo.id,
+                Event.status == EventStatus.PUBLISHED
+            ).count()
+            
+            result.append(NPOResponse(
+                id=npo.id,
+                name=npo.name,
+                description=npo.description,
+                coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)] if npo.coordinates_lat is not None and npo.coordinates_lon is not None else None,
+                address=npo.address,
+                city=safe_parse_city(npo.city),
+                timetable=npo.timetable,
+                galleryIds=gallery_ids,
+                tags=tags,
+                links=safe_parse_json(npo.links),
+                vacancies=active_events_count,
+                status=npo.status if npo.status is not None else NPOStatus.NOT_CONFIRMED,
+                created_at=npo.created_at
+            ))
+        
+        return result
+    except Exception as e:
+        logger.error(f"Ошибка в get_all_npos: {e}", exc_info=True)
+        raise
 
 @router.get("/tags", response_model=List[str])
 async def get_all_npo_tags(db: Session = Depends(get_db)):
@@ -94,11 +124,11 @@ async def get_npo_by_id(
         description=npo.description,
         coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)] if npo.coordinates_lat is not None and npo.coordinates_lon is not None else None,
         address=npo.address,
-        city=NPOCity(npo.city) if npo.city else NPOCity.ANGARSK,
+        city=safe_parse_city(npo.city),
         timetable=npo.timetable,
         galleryIds=gallery_ids,
         tags=tags,
-        links=json.loads(npo.links) if npo.links else None,
+        links=safe_parse_json(npo.links),
         vacancies=active_events_count,
         status=npo.status if npo.status is not None else NPOStatus.NOT_CONFIRMED,
         created_at=npo.created_at

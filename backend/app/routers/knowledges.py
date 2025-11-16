@@ -33,24 +33,33 @@ router = APIRouter()
 @router.get("", response_model=List[KnowledgeResponse])
 async def get_all_knowledges(db: Session = Depends(get_db)):
     """Получение всех данных из базы знаний"""
-    knowledges = db.query(Knowledge).order_by(Knowledge.created_at.desc()).all()
-    result = []
-    
-    for knowledge in knowledges:
-        tags = [t.tag for t in knowledge.tags]
-        attached_ids = [a.file_id for a in knowledge.attachments]
+    try:
+        knowledges = db.query(Knowledge).order_by(Knowledge.created_at.desc()).all()
+        result = []
         
-        result.append(KnowledgeResponse(
-            id=knowledge.id,
-            name=knowledge.name,
-            text=knowledge.text,
-            attachedIds=attached_ids,
-            tags=tags,
-            links=knowledge.links,
-            created_at=knowledge.created_at
-        ))
-    
-    return result
+        for knowledge in knowledges:
+            try:
+                tags = [t.tag for t in knowledge.tags]
+                attached_ids = [a.file_id for a in knowledge.attachments]
+                
+                result.append(KnowledgeResponse(
+                    id=knowledge.id,
+                    name=knowledge.name,
+                    text=knowledge.text,
+                    attachedIds=attached_ids,
+                    tags=tags,
+                    links=knowledge.links,
+                    created_at=knowledge.created_at
+                ))
+            except Exception as e:
+                logger.error(f"Ошибка при обработке записи базы знаний {knowledge.id}: {e}", exc_info=True)
+                # Пропускаем проблемную запись и продолжаем
+                continue
+        
+        return result
+    except Exception as e:
+        logger.error(f"Ошибка в get_all_knowledges: {e}", exc_info=True)
+        raise
 
 @router.get("/{knowledge_id}", response_model=KnowledgeResponse)
 async def get_knowledge_by_id(knowledge_id: int, db: Session = Depends(get_db)):
