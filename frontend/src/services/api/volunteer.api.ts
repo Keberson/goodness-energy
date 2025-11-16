@@ -1,12 +1,15 @@
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+
 import type { IVolunteer, IVolunteerEdit } from "@app-types/volunteer.types";
 
-import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { prepareHeaders } from "./utils/prepareHeaders";
 
 export const volunteerApi = createApi({
     reducerPath: "volunteerApi",
     tagTypes: ["Volunteer"],
     baseQuery: fetchBaseQuery({
         baseUrl: `${import.meta.env.VITE_API_BASE_URL}/volunteer`,
+        prepareHeaders,
     }),
     endpoints: (builder) => ({
         getVolunteers: builder.query<IVolunteer[], void>({
@@ -24,7 +27,14 @@ export const volunteerApi = createApi({
             providesTags: (_result, _error, id) => [{ type: "Volunteer", id }],
         }),
         editVolunteer: builder.mutation<void, { id: number; body: IVolunteerEdit }>({
-            query: (payload) => ({ url: `/${payload.id}`, method: "PUT", body: payload.body }),
+            query: (payload) => ({
+                url: `/${payload.id}`,
+                method: "PUT",
+                body: payload.body,
+                headers: {
+                    Authorization: `Bearer ${localStorage.getItem("jwtToken")}`,
+                },
+            }),
             invalidatesTags: (_, __, payload) => [{ type: "Volunteer", id: payload.id }],
         }),
     }),

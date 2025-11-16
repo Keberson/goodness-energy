@@ -175,7 +175,6 @@ export const mapMenuItems = (
 export const findActiveMenuKeyPath = (items: any[], pathname: string): string[] => {
     for (const item of items) {
         if (item.key === pathname || (item.key !== "/" && pathname.startsWith(item.key + "/"))) {
-            console.log(item.key);
             return [item.key];
         }
 
