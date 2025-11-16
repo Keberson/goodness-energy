@@ -1,6 +1,7 @@
 import { useState } from "react";
-import { Card, Button, Flex, Typography } from "antd";
-import { EditOutlined } from "@ant-design/icons";
+import { Card, Button, Flex, Typography, Space } from "antd";
+import { EditOutlined, BarChartOutlined } from "@ant-design/icons";
+import { useNavigate } from "react-router-dom";
 
 import NPOProfileView from "./NPOProfileView/NPOProfileView";
 import NPOProfileEdit from "./NPOProfileEdit/NPOProfileEdit";
@@ -13,6 +14,7 @@ const { Title } = Typography;
 
 const NPOProfilePage = () => {
     const [editing, setEditing] = useState(false);
+    const navigate = useNavigate();
     const userId = useAppSelector((state) => state.auth.userId);
     const { data } = useGetNPOByIdQuery(userId ?? skipToken);
 
@@ -22,13 +24,21 @@ const NPOProfilePage = () => {
                 <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
                     <Title level={2}>Личный кабинет организации</Title>
                     {!editing && (
-                        <Button
-                            type="primary"
-                            icon={<EditOutlined />}
-                            onClick={() => setEditing(true)}
-                        >
-                            Редактировать
-                        </Button>
+                        <Space>
+                            <Button
+                                icon={<BarChartOutlined />}
+                                onClick={() => navigate("/statistics")}
+                            >
+                                Статистика
+                            </Button>
+                            <Button
+                                type="primary"
+                                icon={<EditOutlined />}
+                                onClick={() => setEditing(true)}
+                            >
+                                Редактировать
+                            </Button>
+                        </Space>
                     )}
                 </Flex>
 

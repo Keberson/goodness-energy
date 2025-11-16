@@ -251,3 +251,25 @@ class KnowledgeAttachment(Base):
     knowledge = relationship("Knowledge", back_populates="attachments")
     file = relationship("File")
 
+class NPOView(Base):
+    __tablename__ = "npo_views"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    npo_id = Column(Integer, ForeignKey("npos.id"), nullable=False)
+    viewer_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # null для неавторизованных пользователей
+    viewed_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    npo = relationship("NPO")
+    viewer = relationship("User")
+
+class EventView(Base):
+    __tablename__ = "event_views"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    viewer_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # null для неавторизованных пользователей
+    viewed_at = Column(DateTime(timezone=True), server_default=func.now())
+    
+    event = relationship("Event")
+    viewer = relationship("User")
+

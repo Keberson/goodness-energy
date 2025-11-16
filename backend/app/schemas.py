@@ -210,3 +210,35 @@ class KnowledgeResponse(BaseModel):
     
     class Config:
         from_attributes = True
+
+# Схемы статистики
+class ProfileViewerStats(BaseModel):
+    viewer_id: Optional[int]
+    viewer_login: Optional[str]
+    view_count: int
+    last_viewed_at: Optional[datetime]
+
+class EventStats(BaseModel):
+    event_id: int
+    event_name: str
+    view_count: int
+    response_count: int
+    status: EventStatus
+    created_at: datetime
+
+class NPOStatisticsResponse(BaseModel):
+    # Статистика просмотров профиля
+    total_profile_views: int
+    unique_viewers: int
+    profile_viewers: List[ProfileViewerStats]
+    
+    # Статистика событий
+    total_events: int
+    events_by_status: dict  # {status: count}
+    event_stats: List[EventStats]
+    
+    # Статистика новостей
+    total_news: int
+    
+    # Статистика откликов
+    total_event_responses: int

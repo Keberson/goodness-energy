@@ -226,3 +226,29 @@ def get_current_admin_user(
         )
     return current_user
 
+async def get_optional_user(
+    request: Request,
+    credentials: Optional[HTTPAuthorizationCredentials] = Depends(HTTPBearer(auto_error=False)),
+    db: Session = Depends(get_db)
+) -> Optional[User]:
+    """Получение текущего пользователя, если он авторизован. Возвращает None для неавторизованных."""
+    token = None
+    if credentials:
+        token = credentials.credentials
+    if not token:
+        token = get_token_from_request(request)
+    
+    if not token:
+        return None
+    
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id_str = payload.get("sub")
+        if user_id_str is None:
+            return None
+        user_id: int = int(user_id_str)
+        user = db.query(User).filter(User.id == user_id).first()
+        return user
+    except (JWTError, ValueError, TypeError):
+        return None
+

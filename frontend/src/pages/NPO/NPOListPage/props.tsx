@@ -1,5 +1,4 @@
-import { type TableColumnsType, Tag, Button, Space, Typography, Tooltip } from "antd";
-import { EyeOutlined } from "@ant-design/icons";
+import { type TableColumnsType, Tag, Space, Typography, Tooltip } from "antd";
 
 import type { INPO } from "@app-types/npo.types";
 import type { NavigateFunction } from "react-router-dom";
@@ -24,7 +23,15 @@ export const getNPOColumns = (navigate: NavigateFunction): TableColumnsType<INPO
         key: "name",
         width: 200,
         fixed: "left",
-        render: (name: string) => <Text strong>{name}</Text>,
+        render: (name: string, record: INPO) => (
+            <Text
+                strong
+                style={{ cursor: "pointer", color: "#1890ff" }}
+                onClick={() => navigate(`/npo/${record.id}`)}
+            >
+                {name}
+            </Text>
+        ),
     },
     {
         title: "Описание",
@@ -72,24 +79,6 @@ export const getNPOColumns = (navigate: NavigateFunction): TableColumnsType<INPO
             <Tag color={vacancies > 0 ? "green" : "default"}>
                 {vacancies > 0 ? `${vacancies} открыто` : "Нет вакансий"}
             </Tag>
-        ),
-    },
-    {
-        title: "Действия",
-        key: "actions",
-        width: 200,
-        align: "center" as const,
-        fixed: "right",
-        render: (_, record: INPO) => (
-            <Space>
-                <Button
-                    type="link"
-                    icon={<EyeOutlined />}
-                    onClick={() => navigate(`/npo/${record.id}`)}
-                >
-                    Подробнее
-                </Button>
-            </Space>
         ),
     },
 ];

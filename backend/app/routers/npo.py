@@ -1,13 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from typing import List
+from sqlalchemy import func, distinct
+from typing import List, Optional
+from datetime import datetime
 from app.database import get_db
-from app.models import NPO, NPOGallery, NPOTag, Event, EventTag, News, NewsTag, NewsAttachment, EventStatus, User, NPOStatus, NPOCity
+from app.models import (
+    NPO, NPOGallery, NPOTag, Event, EventTag, News, NewsTag, NewsAttachment, 
+    EventStatus, User, NPOStatus, NPOCity, NPOView, EventView, EventResponse as EventResponseModel
+)
 from app.schemas import (
     NPOResponse, NPOMapPoint, NPOUpdate, EventCreate, EventUpdate, 
-    EventResponse, EventStatusUpdate, NewsCreate, NewsResponse
+    EventResponse, EventStatusUpdate, NewsCreate, NewsResponse,
+    NPOStatisticsResponse, ProfileViewerStats, EventStats
 )
-from app.auth import get_current_npo_user, get_current_user
+from app.auth import get_current_npo_user, get_current_user, get_optional_user
 import json
 import logging
 
@@ -584,4 +590,141 @@ async def get_npo_news(
         ))
     
     return result
+
+# Эндпоинты для статистики
+@router.post("/{npo_id}/view")
+async def register_npo_view(
+    npo_id: int,
+    current_user: Optional[User] = Depends(get_optional_user),
+    db: Session = Depends(get_db)
+):
+    """Регистрация просмотра профиля НКО"""
+    npo = db.query(NPO).filter(NPO.id == npo_id).first()
+    if not npo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="НКО не найдена"
+        )
+    
+    viewer_id = current_user.id if current_user else None
+    
+    # Создаем запись о просмотре
+    npo_view = NPOView(npo_id=npo_id, viewer_id=viewer_id)
+    db.add(npo_view)
+    db.commit()
+    
+    return {"message": "Просмотр зарегистрирован"}
+
+@router.post("/{npo_id}/event/{event_id}/view")
+async def register_event_view(
+    npo_id: int,
+    event_id: int,
+    current_user: Optional[User] = Depends(get_optional_user),
+    db: Session = Depends(get_db)
+):
+    """Регистрация просмотра события"""
+    event = db.query(Event).filter(Event.id == event_id, Event.npo_id == npo_id).first()
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Событие не найдено"
+        )
+    
+    viewer_id = current_user.id if current_user else None
+    
+    # Создаем запись о просмотре
+    event_view = EventView(event_id=event_id, viewer_id=viewer_id)
+    db.add(event_view)
+    db.commit()
+    
+    return {"message": "Просмотр события зарегистрирован"}
+
+@router.get("/{npo_id}/statistics", response_model=NPOStatisticsResponse)
+async def get_npo_statistics(
+    npo_id: int,
+    current_user = Depends(get_current_npo_user),
+    db: Session = Depends(get_db)
+):
+    """Получение статистики НКО"""
+    npo = get_npo_by_user_id(current_user.id, db)
+    
+    if npo.id != npo_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Вы можете просматривать статистику только своей НКО"
+        )
+    
+    # Статистика просмотров профиля
+    total_profile_views = db.query(NPOView).filter(NPOView.npo_id == npo_id).count()
+    unique_viewers = db.query(func.count(func.distinct(NPOView.viewer_id))).filter(
+        NPOView.npo_id == npo_id,
+        NPOView.viewer_id.isnot(None)
+    ).scalar() or 0
+    
+    # Статистика по просмотрам от пользователей
+    viewer_stats_query = db.query(
+        NPOView.viewer_id,
+        func.count(NPOView.id).label('view_count'),
+        func.max(NPOView.viewed_at).label('last_viewed_at')
+    ).filter(
+        NPOView.npo_id == npo_id,
+        NPOView.viewer_id.isnot(None)
+    ).group_by(NPOView.viewer_id).order_by(func.count(NPOView.id).desc())
+    
+    profile_viewers = []
+    for viewer_id, view_count, last_viewed_at in viewer_stats_query.all():
+        user = db.query(User).filter(User.id == viewer_id).first()
+        profile_viewers.append(ProfileViewerStats(
+            viewer_id=viewer_id,
+            viewer_login=user.login if user else None,
+            view_count=view_count,
+            last_viewed_at=last_viewed_at
+        ))
+    
+    # Статистика событий
+    total_events = db.query(Event).filter(Event.npo_id == npo_id).count()
+    
+    # События по статусам
+    events_by_status = {}
+    for event_status in EventStatus:
+        count = db.query(Event).filter(
+            Event.npo_id == npo_id,
+            Event.status == event_status
+        ).count()
+        events_by_status[event_status.value] = count
+    
+    # Детальная статистика по событиям
+    events = db.query(Event).filter(Event.npo_id == npo_id).all()
+    event_stats = []
+    for event in events:
+        view_count = db.query(EventView).filter(EventView.event_id == event.id).count()
+        response_count = db.query(EventResponseModel).filter(EventResponseModel.event_id == event.id).count()
+        
+        event_stats.append(EventStats(
+            event_id=event.id,
+            event_name=event.name,
+            view_count=view_count,
+            response_count=response_count,
+            status=event.status,
+            created_at=event.created_at
+        ))
+    
+    # Статистика новостей
+    total_news = db.query(News).filter(News.npo_id == npo_id).count()
+    
+    # Статистика откликов на события
+    total_event_responses = db.query(EventResponseModel).join(Event).filter(
+        Event.npo_id == npo_id
+    ).count()
+    
+    return NPOStatisticsResponse(
+        total_profile_views=total_profile_views,
+        unique_viewers=unique_viewers,
+        profile_viewers=profile_viewers,
+        total_events=total_events,
+        events_by_status=events_by_status,
+        event_stats=event_stats,
+        total_news=total_news,
+        total_event_responses=total_event_responses
+    )
 

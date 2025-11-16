@@ -3,8 +3,13 @@ export interface IGeodecode {
         GeoObjectCollection: {
             featureMember: {
                 GeoObject: {
-                    Point: {
+                    Point?: {
                         pos: string;
+                    };
+                    metaDataProperty?: {
+                        GeocoderMetaData?: {
+                            text?: string;
+                        };
                     };
                 };
             }[];
