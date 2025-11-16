@@ -105,7 +105,7 @@ export const npoMenuItems: MenuItem[] = [
                 label: "Управление событиями",
             },
             {
-                key: "stats",
+                key: "statistics",
                 icon: <BarChartOutlined />,
                 label: "Статистика",
             },

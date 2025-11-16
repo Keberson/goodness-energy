@@ -19,7 +19,13 @@ const NPORegistration = () => {
 
     const onFinish = async (values: INPOCreate) => {
         const geoResponse = await geodecode(values.address).unwrap();
-        const geo = geoResponse.response.GeoObjectCollection.featureMember[0].GeoObject.Point.pos
+        const geoObject = geoResponse.response.GeoObjectCollection.featureMember?.[0]?.GeoObject;
+        
+        if (!geoObject?.Point?.pos) {
+            throw new Error("Не удалось получить координаты для указанного адреса");
+        }
+        
+        const geo = geoObject.Point.pos
             .split(" ")
             .map((item) => Number(item))
             .reverse();

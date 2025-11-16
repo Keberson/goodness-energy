@@ -14,6 +14,7 @@ import RegistrationPage from "./pages/Auth/RegistrationPage/RegistrationPage";
 import ProfilePage from "./pages/Volunteer/ProfilePage/ProfilePage";
 import NPOProfilePage from "./pages/NPO/NPOProfilePage/NPOProfilePage";
 import ManageEventsPage from "./pages/NPO/ManageEventsPage/ManageEventsPage";
+import StatisticsPage from "./pages/NPO/StatisticsPage/StatisticsPage";
 import MapPage from "./pages/MapPage/MapPage";
 import NPOListPage from "./pages/NPO/NPOListPage/NPOListPage";
 import NPOPage from "./pages/NPO/NPOPage/NPOPage";
@@ -119,6 +120,14 @@ const router = createBrowserRouter([
                         element: (
                             <NPOProtectedRoute>
                                 <ManageEventsPage />
+                            </NPOProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "statistics",
+                        element: (
+                            <NPOProtectedRoute>
+                                <StatisticsPage />
                             </NPOProtectedRoute>
                         ),
                     },

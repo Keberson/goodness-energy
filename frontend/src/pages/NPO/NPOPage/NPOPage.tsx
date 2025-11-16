@@ -1,16 +1,28 @@
 import { Card, Tabs, Typography } from "antd";
 import { useParams } from "react-router-dom";
+import { useEffect } from "react";
 
 import NPODetails from "./NPODetails/NPODetails";
 
-import { useGetNPOByIdQuery } from "@services/api/npo.api";
+import { useGetNPOByIdQuery, useRegisterNPOViewMutation } from "@services/api/npo.api";
 
 const { Title, Text } = Typography;
 const { TabPane } = Tabs;
 
 const NPOPage = () => {
     const { id } = useParams();
-    const { data } = useGetNPOByIdQuery(Number(id!));
+    const npoId = Number(id!);
+    const { data } = useGetNPOByIdQuery(npoId);
+    const [registerView] = useRegisterNPOViewMutation();
+
+    useEffect(() => {
+        if (npoId) {
+            // Регистрируем просмотр профиля НКО
+            registerView(npoId).catch(() => {
+                // Игнорируем ошибки при регистрации просмотра
+            });
+        }
+    }, [npoId, registerView]);
 
     return (
         <div style={{ padding: 24 }}>

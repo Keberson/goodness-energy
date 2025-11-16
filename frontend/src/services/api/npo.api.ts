@@ -1,4 +1,4 @@
-import type { INPO, INPOEditRequest } from "@app-types/npo.types";
+import type { INPO, INPOEditRequest, INPOStatistics } from "@app-types/npo.types";
 import type { IEvent, EventStatus } from "@app-types/events.types";
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
@@ -29,7 +29,7 @@ export interface IEventStatusUpdateRequest {
 
 export const npoApi = createApi({
     reducerPath: "npoApi",
-    tagTypes: ["NPO", "Event"],
+    tagTypes: ["NPO", "Event", "Statistics"],
     baseQuery: fetchBaseQuery({
         baseUrl: `${import.meta.env.VITE_API_BASE_URL}/npo`,
         prepareHeaders: (headers, { getState }) => {
@@ -76,7 +76,10 @@ export const npoApi = createApi({
                 method: "POST",
                 body: payload.body,
             }),
-            invalidatesTags: [{ type: "Event", id: "LIST" }],
+            invalidatesTags: (_, __, payload) => [
+                { type: "Event", id: "LIST" },
+                { type: "Statistics", id: payload.npoId },
+            ],
         }),
         updateEvent: builder.mutation<
             IEvent,
@@ -90,6 +93,7 @@ export const npoApi = createApi({
             invalidatesTags: (_, __, payload) => [
                 { type: "Event", id: payload.eventId },
                 { type: "Event", id: "LIST" },
+                { type: "Statistics", id: payload.npoId },
             ],
         }),
         deleteEvent: builder.mutation<void, { npoId: number; eventId: number }>({
@@ -100,6 +104,7 @@ export const npoApi = createApi({
             invalidatesTags: (_, __, payload) => [
                 { type: "Event", id: payload.eventId },
                 { type: "Event", id: "LIST" },
+                { type: "Statistics", id: payload.npoId },
             ],
         }),
         updateEventStatus: builder.mutation<
@@ -114,6 +119,32 @@ export const npoApi = createApi({
             invalidatesTags: (_, __, payload) => [
                 { type: "Event", id: payload.eventId },
                 { type: "Event", id: "LIST" },
+                { type: "Statistics", id: payload.npoId },
+            ],
+        }),
+        // Statistics endpoints
+        registerNPOView: builder.mutation<void, number>({
+            query: (npoId) => ({
+                url: `/${npoId}/view`,
+                method: "POST",
+            }),
+            invalidatesTags: (_, __, npoId) => [
+                { type: "Statistics", id: npoId },
+            ],
+        }),
+        registerEventView: builder.mutation<void, { npoId: number; eventId: number }>({
+            query: (payload) => ({
+                url: `/${payload.npoId}/event/${payload.eventId}/view`,
+                method: "POST",
+            }),
+            invalidatesTags: (_, __, payload) => [
+                { type: "Statistics", id: payload.npoId },
+            ],
+        }),
+        getNPOStatistics: builder.query<INPOStatistics, number>({
+            query: (npoId) => ({ url: `/${npoId}/statistics` }),
+            providesTags: (_, __, npoId) => [
+                { type: "Statistics", id: npoId },
             ],
         }),
     }),
@@ -128,4 +159,7 @@ export const {
     useUpdateEventMutation,
     useDeleteEventMutation,
     useUpdateEventStatusMutation,
+    useRegisterNPOViewMutation,
+    useRegisterEventViewMutation,
+    useGetNPOStatisticsQuery,
 } = npoApi;

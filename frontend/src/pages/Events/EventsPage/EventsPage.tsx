@@ -6,8 +6,9 @@ import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
 import { useGetEventsQuery } from "@services/api/events.api";
+import { useRegisterEventViewMutation } from "@services/api/npo.api";
 import type { IEvent } from "@app-types/events.types";
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import "./styles.scss";
 
 const { Title, Paragraph, Text } = Typography;
@@ -16,6 +17,7 @@ const EventsPage = () => {
     const { data: events, isLoading } = useGetEventsQuery();
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [mode, setMode] = useState<"month" | "year">("month");
+    const [registerEventView] = useRegisterEventViewMutation();
 
     // Группируем события по датам (событие отображается на каждый день от start до end)
     const eventsByDate = useMemo(() => {
@@ -54,6 +56,20 @@ const EventsPage = () => {
                    (eventEnd.isAfter(dateStart) || eventEnd.isSame(dateStart));
         });
     }, [selectedDate, events]);
+
+    // Регистрируем просмотры для всех событий выбранной даты
+    useEffect(() => {
+        if (selectedDateEvents.length > 0) {
+            selectedDateEvents.forEach((event) => {
+                registerEventView({
+                    npoId: event.npo_id,
+                    eventId: event.id,
+                }).catch(() => {
+                    // Игнорируем ошибки при регистрации просмотра
+                });
+            });
+        }
+    }, [selectedDate, selectedDateEvents, registerEventView]);
 
     // Функция для получения статуса события
     const getStatusColor = (status: string): BadgeProps["status"] => {

@@ -49,3 +49,30 @@ export interface INPOEditRequest {
     address: string;
     coordinates: [number, number];
 }
+
+export interface IProfileViewerStats {
+    viewer_id: number | null;
+    viewer_login: string | null;
+    view_count: number;
+    last_viewed_at: string | null;
+}
+
+export interface IEventStats {
+    event_id: number;
+    event_name: string;
+    view_count: number;
+    response_count: number;
+    status: string;
+    created_at: string;
+}
+
+export interface INPOStatistics {
+    total_profile_views: number;
+    unique_viewers: number;
+    profile_viewers: IProfileViewerStats[];
+    total_events: number;
+    events_by_status: Record<string, number>;
+    event_stats: IEventStats[];
+    total_news: number;
+    total_event_responses: number;
+}
