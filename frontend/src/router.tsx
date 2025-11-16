@@ -5,6 +5,7 @@ import HomePage from "./pages/HomePage/HomePage";
 import AuthRoute from "@components/routes/AuthRoute/AuthRoute";
 import ProtectedRoute from "@components/routes/ProtectedRoute/ProtectedRoute";
 import NPOProtectedRoute from "@components/routes/NPOProtectedRoute/NPOProtectedRoute";
+import AdminProtectedRoute from "@components/routes/AdminProtectedRoute/AdminProtectedRoute";
 
 import RootLayout from "./common/RootLayout/RootLayout";
 import Providers from "./common/Providers/Providers";
@@ -21,6 +22,7 @@ import NewsPage from "./pages/News/NewsPage/NewsPage";
 import KnowledgesPage from "./pages/Knowledges/KnowledgesPage/KnowledgesPage";
 import KnowledgeDetailPage from "./pages/Knowledges/KnowledgesDetailPage/KnowledgesDetailPage";
 import EventsPage from "./pages/Events/EventsPage/EventsPage";
+import CreateKnowledgePage from "./pages/Admin/CreateKnowledgePage/CreateKnowledgePage";
 
 const router = createBrowserRouter([
     {
@@ -111,6 +113,22 @@ const router = createBrowserRouter([
                             <NPOProtectedRoute>
                                 <NPOProfilePage />
                             </NPOProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "admin",
+                        element: (
+                            <AdminProtectedRoute>
+                                <CreateKnowledgePage />
+                            </AdminProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "create-knowledge",
+                        element: (
+                            <AdminProtectedRoute>
+                                <CreateKnowledgePage />
+                            </AdminProtectedRoute>
                         ),
                     },
                 ],
