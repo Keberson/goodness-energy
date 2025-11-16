@@ -18,5 +18,8 @@ jobs:
       - name: Pull latest code
         run: git pull origin main
 
+      - name: Clean frontend volume
+        run: docker compose down frontend nginx && docker volume rm goodness-energy_frontend-build || true
+
       - name: Deploy frontend and nginx
         run: docker compose up -d --build frontend nginx
