@@ -186,21 +186,24 @@ const FavoritesPage = () => {
                     />
                 ) : (
                     <div>
-                        {Object.entries(groupedFavorites).map(([type, items]) => (
-                            <div key={type} style={{ marginBottom: 32 }}>
-                                <Title level={3}>
-                                    <Tag color={getItemTypeColor(type as FavoriteType)}>
-                                        {getItemTypeLabel(type as FavoriteType)}
-                                    </Tag>
-                                </Title>
-                                <Divider />
-                                {items.map((favorite) => (
-                                    <div key={favorite.favorite_id}>
-                                        {renderFavoriteItem(favorite)}
-                                    </div>
-                                ))}
-                            </div>
-                        ))}
+                        {Object.entries(groupedFavorites).map(([type, items]) => {
+                            const typedItems = items as IFavoriteItem[];
+                            return (
+                                <div key={type} style={{ marginBottom: 32 }}>
+                                    <Title level={3}>
+                                        <Tag color={getItemTypeColor(type as FavoriteType)}>
+                                            {getItemTypeLabel(type as FavoriteType)}
+                                        </Tag>
+                                    </Title>
+                                    <Divider />
+                                    {typedItems.map((favorite: IFavoriteItem) => (
+                                        <div key={favorite.favorite_id}>
+                                            {renderFavoriteItem(favorite)}
+                                        </div>
+                                    ))}
+                                </div>
+                            );
+                        })}
                     </div>
                 )}
             </Card>

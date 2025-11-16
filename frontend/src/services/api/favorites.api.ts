@@ -28,7 +28,7 @@ export const favoritesApi = createApi({
                 method: "POST",
                 body,
             }),
-            invalidatesTags: (result, error, { item_type, item_id }) => [
+            invalidatesTags: (_result, _error, { item_type, item_id }) => [
                 { type: "Favorite", id: "LIST" },
                 { type: "Favorite", id: `${item_type}-${item_id}` },
             ],
@@ -38,7 +38,7 @@ export const favoritesApi = createApi({
                 url: `/${item_type}/${item_id}`,
                 method: "DELETE",
             }),
-            invalidatesTags: (result, error, { item_type, item_id }) => [
+            invalidatesTags: (_result, _error, { item_type, item_id }) => [
                 { type: "Favorite", id: "LIST" },
                 { type: "Favorite", id: `${item_type}-${item_id}` },
             ],
