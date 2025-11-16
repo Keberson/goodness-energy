@@ -56,6 +56,12 @@ async def get_all_npos(db: Session = Depends(get_db)):
     
     return result
 
+@router.get("/tags", response_model=List[str])
+async def get_all_npo_tags(db: Session = Depends(get_db)):
+    """Получение всех возможных тегов НКО"""
+    tags = db.query(NPOTag.tag).distinct().order_by(NPOTag.tag).all()
+    return [tag[0] for tag in tags]
+
 @router.get("/{npo_id}", response_model=NPOResponse)
 async def get_npo_by_id(
     npo_id: int,
