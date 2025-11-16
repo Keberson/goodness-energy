@@ -1,8 +1,8 @@
-import { Divider, Flex, Layout, Menu, Typography } from "antd";
+import { Divider, Flex, Layout, Menu, Typography, App } from "antd";
 import type { ItemType } from "antd/es/menu/interface";
 import { GlobalOutlined } from "@ant-design/icons";
-import { useLocation, NavLink, Outlet } from "react-router-dom";
-import { useContext, useMemo, useState } from "react";
+import { useLocation, NavLink, Outlet, useNavigate } from "react-router-dom";
+import { useContext, useMemo, useState, useEffect, useRef } from "react";
 
 import "./styles.scss";
 
@@ -27,17 +27,30 @@ const { Sider, Content } = Layout;
 const { Title } = Typography;
 
 const RootLayout = () => {
-    const [collapsed, setCollapsed] = useState<boolean>(true);
+    const [collapsed, setCollapsed] = useState<boolean>(false);
     const location = useLocation();
+    const navigate = useNavigate();
     const { open } = useContext(ModalContext);
     const { currentCity } = useCity();
+    const { message } = App.useApp();
+    const shouldRedirectRef = useRef(false);
 
     const dispatch = useAppDispatch();
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
     const userType = useAppSelector((state) => state.auth.userType);
 
+    // Редирект на главную при выходе из аккаунта
+    useEffect(() => {
+        if (shouldRedirectRef.current && !isAuthenticated) {
+            shouldRedirectRef.current = false;
+            navigate("/", { replace: true });
+        }
+    }, [isAuthenticated, navigate]);
+
     const logoutHandler = () => {
+        shouldRedirectRef.current = true;
         dispatch(logout());
+        message.success("Вы успешно вышли из аккаунта");
     };
 
     const openCityChange = () => {

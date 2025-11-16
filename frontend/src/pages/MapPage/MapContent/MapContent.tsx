@@ -6,16 +6,17 @@ import "./styles.scss";
 import ModalContext from "@contexts/ModalContext";
 import { useGetMapNPOsQuery } from "@services/api/map.api";
 import type { IMapItem } from "@app-types/map.types";
+import NPOInfoModal from "./NPOInfoModal";
 
 const MapContent = () => {
-    const { open } = useContext(ModalContext);
+    const { open, close } = useContext(ModalContext);
     const { data } = useGetMapNPOsQuery();
 
-    const handlePointClick = (_: IMapItem["info"]) => {
+    const handlePointClick = (npoInfo: IMapItem["info"]) => {
         open({
-            content: <></>,
+            content: <NPOInfoModal npoInfo={npoInfo} onClose={close} />,
             props: {
-                title: "Просмотр точки",
+                title: "Просмотр информации об НКО",
                 footer: <></>,
                 className: "modal-point-preview",
                 fullHeight: true,

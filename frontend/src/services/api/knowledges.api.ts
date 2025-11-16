@@ -47,6 +47,27 @@ export const knowledgesApi = createApi({
             }),
             invalidatesTags: [{ type: "Knowledge", id: "LIST" }],
         }),
+        updateKnowledge: builder.mutation<
+            IKnowledge,
+            {
+                id: number;
+                name?: string;
+                text?: string;
+                attachedIds?: number[];
+                tags?: string[];
+                links?: string[];
+            }
+        >({
+            query: ({ id, ...body }) => ({
+                url: `/${id}`,
+                method: "PUT",
+                body,
+            }),
+            invalidatesTags: (_, __, { id }) => [
+                { type: "Knowledge", id },
+                { type: "Knowledge", id: "LIST" },
+            ],
+        }),
         deleteKnowledge: builder.mutation<void, number>({
             query: (id) => ({
                 url: `/${id}`,
@@ -64,5 +85,6 @@ export const {
     useGetKnowledgesQuery,
     useGetKnowledgeByIdQuery,
     useCreateKnowledgeMutation,
+    useUpdateKnowledgeMutation,
     useDeleteKnowledgeMutation,
 } = knowledgesApi;

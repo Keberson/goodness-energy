@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from "react-router-dom";
 import { Card, Typography, Space, Tag, Carousel, Button, App, Flex } from "antd";
-import { DeleteOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import { DeleteOutlined, ArrowLeftOutlined, DownloadOutlined } from "@ant-design/icons";
 
 import "./styles.scss";
 
@@ -48,6 +48,66 @@ const KnowledgeDetailPage = () => {
                 }
             },
         });
+    };
+
+    const handleDownloadAllFiles = async () => {
+        if (!id || !data || !data.attachedIds || data.attachedIds.length === 0) return;
+
+        try {
+            const token = localStorage.getItem("jwtToken");
+            const headers: HeadersInit = {};
+            if (token) {
+                headers["authorization"] = `Bearer ${token}`;
+            }
+
+            const response = await fetch(
+                `${import.meta.env.VITE_API_BASE_URL}/knowledges/${id}/download`,
+                {
+                    method: "GET",
+                    headers,
+                }
+            );
+
+            if (!response.ok) {
+                throw new Error("Не удалось скачать файлы");
+            }
+
+            // Получаем имя файла из заголовка Content-Disposition
+            const contentDisposition = response.headers.get("content-disposition");
+            let filename = `knowledge_${id}_files.zip`;
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = filenameMatch[1].replace(/['"]/g, "");
+                    // Декодируем UTF-8 имя файла если есть
+                    const utf8Match = contentDisposition.match(/filename\*=UTF-8''(.+)/);
+                    if (utf8Match) {
+                        filename = decodeURIComponent(utf8Match[1]);
+                    }
+                }
+            }
+
+            // Создаем blob и скачиваем файл
+            const blob = await response.blob();
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+            document.body.removeChild(a);
+
+            notification.success({
+                message: "Файлы скачаны",
+                description: "Все файлы успешно скачаны.",
+            });
+        } catch (error) {
+            notification.error({
+                message: "Ошибка",
+                description: "Не удалось скачать файлы. Попробуйте еще раз.",
+            });
+        }
     };
 
     return (
@@ -106,7 +166,16 @@ const KnowledgeDetailPage = () => {
 
                         {data.attachedIds && data.attachedIds.length > 0 && (
                             <div>
-                                <Title level={4}>Прикрепленные файлы</Title>
+                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+                                    <Title level={4} style={{ margin: 0 }}>Прикрепленные файлы</Title>
+                                    <Button
+                                        type="primary"
+                                        icon={<DownloadOutlined />}
+                                        onClick={handleDownloadAllFiles}
+                                    >
+                                        Скачать все файлы {data.attachedIds.length > 1 ? `(${data.attachedIds.length})` : ""}
+                                    </Button>
+                                </div>
                                 <Carousel
                                     dots={false}
                                     arrows
