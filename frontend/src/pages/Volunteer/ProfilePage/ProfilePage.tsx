@@ -5,28 +5,16 @@ import { EditOutlined } from "@ant-design/icons";
 import ProfileView from "./ProfileView/ProfileView";
 import ProfileEdit from "./ProfileEdit/ProfileEdit";
 
+import { useGetVolunteerByIdQuery } from "@services/api/volunteer.api";
+import useAppSelector from "@hooks/useAppSelector";
+import { skipToken } from "@reduxjs/toolkit/query";
+
 const { Title } = Typography;
 
 const ProfilePage = () => {
     const [editing, setEditing] = useState(false);
-
-    const profileData = {
-        id: "1",
-        firstName: "Иван",
-        secondName: "Иванов",
-        middleName: "Иванович",
-        about: "Активный волонтер с 2020 года",
-        birthday: "1996-06-15",
-        city: "Новоуральск",
-        sex: "male",
-        email: "ivanov@example.com",
-        phone: "+7 (999) 123-45-67",
-    };
-
-    const handleSave = (values: any) => {
-        console.log("Save profile:", values);
-        setEditing(false);
-    };
+    const userId = useAppSelector((state) => state.auth.userId);
+    const { data } = useGetVolunteerByIdQuery(userId ?? skipToken);
 
     return (
         <div style={{ padding: 24 }}>
@@ -44,15 +32,13 @@ const ProfilePage = () => {
                     )}
                 </Flex>
 
-                {editing ? (
+                {data && editing && (
                     <ProfileEdit
-                        profileData={profileData}
-                        onSave={handleSave}
+                        profileData={data}
                         onCancel={() => setEditing(false)}
                     />
-                ) : (
-                    <ProfileView profileData={profileData} />
                 )}
+                {data && !editing && <ProfileView profileData={data} />}
             </Card>
         </div>
     );

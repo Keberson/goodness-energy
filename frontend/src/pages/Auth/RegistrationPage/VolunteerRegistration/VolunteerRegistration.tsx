@@ -13,7 +13,9 @@ const VolunteerRegistration = () => {
     const onFinish = async (values: IRegVolunteerRequest) => {
         try {
             const response = await register(values).unwrap();
-            dispatch(login({ token: response.access_token, type: response.user_type }));
+            dispatch(
+                login({ token: response.access_token, type: response.user_type, id: response.id })
+            );
         } catch (error) {}
     };
 

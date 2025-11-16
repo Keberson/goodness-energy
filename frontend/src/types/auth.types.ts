@@ -9,6 +9,7 @@ export interface IAuthResponse {
     access_token: string;
     token_type: string;
     user_type: UserTypes;
+    id: number;
 }
 
 export interface IRegVolunteerRequest {

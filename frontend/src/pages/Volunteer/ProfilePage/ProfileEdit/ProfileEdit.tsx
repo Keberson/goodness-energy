@@ -3,34 +3,25 @@ import { Form, Button, Flex } from "antd";
 
 import VolunteerForm from "@components/VolunteerForm/VolunteerForm";
 
-interface ProfileData {
-    firstName: string;
-    secondName: string;
-    middleName?: string;
-    about?: string;
-    birthday?: string;
-    city: string;
-    sex?: string;
-    email: string;
-    phone?: string;
-}
+import type { IVolunteer } from "@app-types/volunteer.types";
+
+import { useEditVolunteerMutation } from "@services/api/volunteer.api";
 
 interface ProfileEditProps {
-    profileData: ProfileData;
-    onSave: (values: any) => void;
+    profileData: IVolunteer;
     onCancel: () => void;
 }
 
-const ProfileEdit: React.FC<ProfileEditProps> = ({ profileData, onSave, onCancel }) => {
-    const [form] = Form.useForm<ProfileData>();
-    console.log(profileData);
+const ProfileEdit: React.FC<ProfileEditProps> = ({ profileData, onCancel }) => {
+    const [editVolunteer] = useEditVolunteerMutation();
 
-    const handleSubmit = (values: any) => {
-        onSave(values);
+    const handleSubmit = async (values: IVolunteer) => {
+        await editVolunteer({ id: profileData.id, body: values });
+        onCancel();
     };
 
     return (
-        <Form form={form} layout="vertical" initialValues={profileData} onFinish={handleSubmit}>
+        <Form layout="vertical" initialValues={profileData} onFinish={handleSubmit}>
             <VolunteerForm />
 
             <Flex gap={8} justify="flex-end">

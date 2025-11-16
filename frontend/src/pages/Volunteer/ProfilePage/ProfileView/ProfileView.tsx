@@ -3,22 +3,12 @@ import { Descriptions, Avatar, Typography, Flex } from "antd";
 import { UserOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
+import type { IVolunteer } from "@app-types/volunteer.types";
+
 const { Title, Paragraph } = Typography;
 
-interface ProfileData {
-    firstName: string;
-    secondName: string;
-    middleName?: string;
-    about?: string;
-    birthday?: string;
-    city: string;
-    sex?: string;
-    email: string;
-    phone?: string;
-}
-
 interface ProfileViewProps {
-    profileData: ProfileData;
+    profileData: IVolunteer;
 }
 
 const ProfileView: React.FC<ProfileViewProps> = ({ profileData }) => {
@@ -31,7 +21,7 @@ const ProfileView: React.FC<ProfileViewProps> = ({ profileData }) => {
             <Avatar size={100} icon={<UserOutlined />} />
             <div style={{ flex: 1 }}>
                 <Title level={3}>
-                    {profileData.secondName} {profileData.firstName} {profileData.middleName}
+                    {profileData.secondName} {profileData.firstName} {profileData.middleName || ""}
                 </Title>
 
                 <Descriptions column={1} bordered>
