@@ -188,9 +188,10 @@ export const mapMenuItems = (
 
 export const findActiveMenuKeyPath = (items: any[], pathname: string): string[] => {
     for (const item of items) {
-        // Сначала проверяем дочерние элементы, чтобы избежать коллизий
-        // Это важно: если есть дочерний элемент, который точно совпадает, 
-        // мы не должны совпадать с родительским элементом
+        if (item.key === pathname || (item.key !== "/" && pathname.startsWith(item.key + "/"))) {
+            return [item.key];
+        }
+
         if (item.children) {
             const childPath = findActiveMenuKeyPath(item.children, pathname);
 

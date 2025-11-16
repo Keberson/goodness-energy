@@ -1,7 +1,7 @@
 import type { UserTypes } from "@app-types/auth.types";
 import { createSlice, type PayloadAction } from "@reduxjs/toolkit";
 
-type AuthState = AuthLoginState | AuthLogoutState;
+export type AuthState = AuthLoginState | AuthLogoutState;
 
 interface AuthLoginState {
     token: string;
