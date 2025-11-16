@@ -1,5 +1,4 @@
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import text
 from app.database import engine, Base, SessionLocal
 from app.routers import auth, npo, volunteer, admin, news, files, map, knowledges, events, favorites
@@ -8,32 +7,10 @@ from app.models import User
 from pathlib import Path
 import traceback
 import logging
-import os
 
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Social Hack 2025 API", version="1.0.0")
-
-# CORS middleware должен быть добавлен сразу после создания app
-# Получаем разрешенные origins из переменных окружения или используем по умолчанию
-allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://89.169.178.111,http://localhost:5173,http://localhost:3000")
-
-# Разбиваем строку на список origins
-allow_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
-
-# Если origins не указаны, используем дефолтные значения
-if not allow_origins:
-    allow_origins = ["http://89.169.178.111", "http://localhost:5173", "http://localhost:3000"]
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allow_origins,  # Явно указываем разрешенные origins
-    allow_credentials=True,  # Разрешаем credentials для работы с cookies и авторизацией
-    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"],
-    allow_headers=["*"],
-    expose_headers=["*"],
-    max_age=3600,  # Кэширование preflight запросов на 1 час
-)
 
 @app.on_event("startup")
 async def startup_event():
