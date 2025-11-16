@@ -7,6 +7,7 @@ import { geodecodeApi } from "./api/geodecode.api";
 import { mapApi } from "./api/map.api";
 import { npoApi } from "./api/npo.api";
 import { volunteerApi } from "./api/volunteer.api";
+import { newsApi } from "./api/news.api";
 import { knowledgesApi } from "./api/knowledges.api";
 
 import loadingReducer from "./slices/loading.slice";
@@ -22,6 +23,7 @@ const rootReducer = combineReducers({
     mapApi: mapApi.reducer,
     npoApi: npoApi.reducer,
     volunteerApi: volunteerApi.reducer,
+    newsApi: newsApi.reducer,
     knowledgesApi: knowledgesApi.reducer,
     loading: loadingReducer,
     city: cityReducer,
@@ -37,6 +39,7 @@ export const store = configureStore({
             .concat(mapApi.middleware)
             .concat(npoApi.middleware)
             .concat(volunteerApi.middleware)
+            .concat(newsApi.middleware)
             .concat(knowledgesApi.middleware)
             .concat(loadingMiddleware)
             .concat(errorMiddleware),

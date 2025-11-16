@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, Float, Enum as SQLEnum
+from sqlalchemy import Column, Integer, String, Text, DateTime, Boolean, ForeignKey, Float, Enum as SQLEnum, ARRAY
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.database import Base
@@ -225,7 +225,7 @@ class Knowledge(Base):
     id = Column(Integer, primary_key=True, index=True)
     name = Column(String, nullable=False)
     text = Column(Text, nullable=False)
-    type = Column(SQLEnum(NewsType), nullable=False)
+    links = Column(ARRAY(String))  # Список строк
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

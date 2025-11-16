@@ -27,11 +27,34 @@ async def get_all_knowledges(db: Session = Depends(get_db)):
             text=knowledge.text,
             attachedIds=attached_ids,
             tags=tags,
-            type=knowledge.type,
+            links=knowledge.links,
             created_at=knowledge.created_at
         ))
     
     return result
+
+@router.get("/{knowledge_id}", response_model=KnowledgeResponse)
+async def get_knowledge_by_id(knowledge_id: int, db: Session = Depends(get_db)):
+    """Получение записи из базы знаний по ID"""
+    knowledge = db.query(Knowledge).filter(Knowledge.id == knowledge_id).first()
+    if not knowledge:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Запись в базе знаний не найдена"
+        )
+    
+    tags = [t.tag for t in knowledge.tags]
+    attached_ids = [a.file_id for a in knowledge.attachments]
+    
+    return KnowledgeResponse(
+        id=knowledge.id,
+        name=knowledge.name,
+        text=knowledge.text,
+        attachedIds=attached_ids,
+        tags=tags,
+        links=knowledge.links,
+        created_at=knowledge.created_at
+    )
 
 @router.post("", response_model=KnowledgeResponse, status_code=status.HTTP_201_CREATED)
 async def create_knowledge(
@@ -43,7 +66,7 @@ async def create_knowledge(
     knowledge = Knowledge(
         name=knowledge_data.name,
         text=knowledge_data.text,
-        type=knowledge_data.type
+        links=knowledge_data.links
     )
     db.add(knowledge)
     db.flush()
@@ -72,7 +95,7 @@ async def create_knowledge(
         text=knowledge.text,
         attachedIds=attached_ids,
         tags=tags,
-        type=knowledge.type,
+        links=knowledge.links,
         created_at=knowledge.created_at
     )
 
@@ -96,8 +119,8 @@ async def update_knowledge(
         knowledge.name = knowledge_update.name
     if knowledge_update.text is not None:
         knowledge.text = knowledge_update.text
-    if knowledge_update.type is not None:
-        knowledge.type = knowledge_update.type
+    if knowledge_update.links is not None:
+        knowledge.links = knowledge_update.links
     
     # Обновление тегов
     if knowledge_update.tags is not None:
@@ -125,7 +148,7 @@ async def update_knowledge(
         text=knowledge.text,
         attachedIds=attached_ids,
         tags=tags,
-        type=knowledge.type,
+        links=knowledge.links,
         created_at=knowledge.created_at
     )
 
