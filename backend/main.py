@@ -15,26 +15,20 @@ logger = logging.getLogger(__name__)
 app = FastAPI(title="Social Hack 2025 API", version="1.0.0")
 
 # CORS middleware должен быть добавлен сразу после создания app
-# Разрешаем все origins (включая продовый сервер)
 # Получаем разрешенные origins из переменных окружения или используем по умолчанию
-allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "*")
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "http://89.169.178.111,http://localhost:5173,http://localhost:3000")
 
-# Для продового сервера можно явно указать origins через переменную окружения
-# Например: ALLOWED_ORIGINS=http://89.169.178.111,http://localhost:5173
-if allowed_origins_env == "*":
-    # Если "*", разрешаем все origins (без credentials для совместимости)
-    # Это работает для большинства случаев, но может не работать с credentials
-    allow_origins = ["*"]
-    allow_credentials = False
-else:
-    # Иначе используем список из переменной окружения (с credentials)
-    allow_origins = [origin.strip() for origin in allowed_origins_env.split(",")]
-    allow_credentials = True
+# Разбиваем строку на список origins
+allow_origins = [origin.strip() for origin in allowed_origins_env.split(",") if origin.strip()]
+
+# Если origins не указаны, используем дефолтные значения
+if not allow_origins:
+    allow_origins = ["http://89.169.178.111", "http://localhost:5173", "http://localhost:3000"]
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allow_origins,
-    allow_credentials=allow_credentials,
+    allow_origins=allow_origins,  # Явно указываем разрешенные origins
+    allow_credentials=True,  # Разрешаем credentials для работы с cookies и авторизацией
     allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"],
     allow_headers=["*"],
     expose_headers=["*"],
