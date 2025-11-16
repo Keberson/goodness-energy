@@ -77,6 +77,21 @@ async def upload_file(
     
     return FileResponse(id=db_file.id, filename=db_file.filename, file_type=db_file.file_type)
 
+@router.get("/{file_id}/info", response_model=FileResponse)
+async def get_file_info(
+    file_id: int,
+    db: Session = Depends(get_db)
+):
+    """Получение информации о файле по ID (имя и тип)"""
+    db_file = db.query(FileModel).filter(FileModel.id == file_id).first()
+    if not db_file:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Файл с id {file_id} не найден в базе данных"
+        )
+    
+    return FileResponse(id=db_file.id, filename=db_file.filename, file_type=db_file.file_type)
+
 @router.get("/{file_id}")
 async def get_file(
     file_id: int,
