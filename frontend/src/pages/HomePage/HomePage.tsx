@@ -33,7 +33,7 @@ const HomePage = () => {
             icon: <CalendarOutlined />,
             title: "Календарь",
             description: "Отметьте интересные события, чтобы ничего не пропустить",
-            link: "",
+            link: "events",
         },
         {
             icon: <ReadOutlined />,
@@ -149,9 +149,11 @@ const HomePage = () => {
                 className="home__events"
             >
                 <Calendar cellRender={dateCellRender} />
-                <Button type="primary" className="home__events__view-all" block>
-                    Смотреть все события
-                </Button>
+                <NavLink to="/events">
+                    <Button type="primary" className="home__events__view-all" block>
+                        Смотреть все события
+                    </Button>
+                </NavLink>
             </Card>
 
             <Card

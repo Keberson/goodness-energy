@@ -1,0 +1,33 @@
+import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+
+import type { IEvent } from "@app-types/events.types";
+
+export const eventsApi = createApi({
+    reducerPath: "eventsApi",
+    tagTypes: ["Event"],
+    baseQuery: fetchBaseQuery({
+        baseUrl: `${import.meta.env.VITE_API_BASE_URL}/events`,
+        prepareHeaders: (headers) => {
+            const token = localStorage.getItem("token");
+            if (token) {
+                headers.set("Authorization", `Bearer ${token}`);
+            }
+            return headers;
+        },
+    }),
+    endpoints: (builder) => ({
+        getEvents: builder.query<IEvent[], void>({
+            query: () => ({ url: `` }),
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.map(({ id }) => ({ type: "Event" as const, id })),
+                          { type: "Event", id: "LIST" },
+                      ]
+                    : [{ type: "Event", id: "LIST" }],
+        }),
+    }),
+});
+
+export const { useGetEventsQuery } = eventsApi;
+
