@@ -4,11 +4,19 @@
     min-height: 0;
     min-width: 0;
 
+    @media (max-width: 767px) {
+        flex-direction: column;
+    }
+
     &-wrapper {
         display: flex;
         flex-direction: column;
         height: 100%;
         width: 100%;
         overflow: hidden;
+
+        @media (max-width: 767px) {
+            height: calc(100vh - 60px);
+        }
     }
 }

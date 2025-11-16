@@ -54,7 +54,7 @@ const NewsPage = () => {
     }
 
     return (
-        <div style={{ padding: 24, minHeight: "calc(100vh - 48px)" }}>
+        <div style={{ padding: 24, minHeight: "calc(100vh - 48px)" }} className="news-page">
             <Card>
                 <Button
                     type="link"
@@ -64,7 +64,7 @@ const NewsPage = () => {
                 >
                     Назад к списку новостей
                 </Button>
-                <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
+                <Flex justify="space-between" align="center" style={{ marginBottom: 24 }} wrap="wrap" gap={8}>
                     <Title level={2} style={{ marginBottom: 0 }}>
                         {data.name}
                     </Title>

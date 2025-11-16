@@ -17,7 +17,7 @@ const NPOListPage = () => {
     const columns = getNPOColumns(navigate);
 
     return (
-        <div style={{ padding: 24, minHeight: "calc(100vh - 48px)" }}>
+        <div style={{ padding: 24, minHeight: "calc(100vh - 48px)" }} className="npo-list-page">
             <Card style={{ minHeight: "calc(100vh - 96px)" }}>
                 <Title level={3} style={{ marginBottom: 24 }}>
                     Некоммерческие организации в городе {currentCity}
@@ -28,8 +28,8 @@ const NPOListPage = () => {
                         .map((item) => ({ ...item, key: item.id }))
                         .filter((item) => item.city === currentCity)}
                     loading={isLoading}
-                    scroll={{ x: 1200 }}
-                    tableLayout="fixed"
+                    scroll={{ x: "max-content" }}
+                    tableLayout="auto"
                 />
             </Card>
         </div>

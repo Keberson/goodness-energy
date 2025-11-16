@@ -8,10 +8,38 @@ from app.models import User
 from pathlib import Path
 import traceback
 import logging
+import os
 
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Social Hack 2025 API", version="1.0.0")
+
+# CORS middleware должен быть добавлен сразу после создания app
+# Разрешаем все origins (включая продовый сервер)
+# Получаем разрешенные origins из переменных окружения или используем по умолчанию
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", "*")
+
+# Для продового сервера можно явно указать origins через переменную окружения
+# Например: ALLOWED_ORIGINS=http://89.169.178.111,http://localhost:5173
+if allowed_origins_env == "*":
+    # Если "*", разрешаем все origins (без credentials для совместимости)
+    # Это работает для большинства случаев, но может не работать с credentials
+    allow_origins = ["*"]
+    allow_credentials = False
+else:
+    # Иначе используем список из переменной окружения (с credentials)
+    allow_origins = [origin.strip() for origin in allowed_origins_env.split(",")]
+    allow_credentials = True
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=allow_origins,
+    allow_credentials=allow_credentials,
+    allow_methods=["GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH", "HEAD"],
+    allow_headers=["*"],
+    expose_headers=["*"],
+    max_age=3600,  # Кэширование preflight запросов на 1 час
+)
 
 @app.on_event("startup")
 async def startup_event():
@@ -92,15 +120,6 @@ async def startup_event():
         except Exception as e:
             logger.error(f"Не удалось выполнить init-data.sql: {e}")
             logger.error(traceback.format_exc())
-
-# CORS middleware (промежуточное ПО для CORS)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Подключение роутеров
 app.include_router(auth.router, prefix="/auth", tags=["auth"])

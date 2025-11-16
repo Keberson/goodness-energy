@@ -1,6 +1,6 @@
-import { Divider, Flex, Layout, Menu, Typography, App } from "antd";
+import { Divider, Flex, Layout, Menu, Typography, App, Drawer, Button } from "antd";
 import type { ItemType } from "antd/es/menu/interface";
-import { GlobalOutlined } from "@ant-design/icons";
+import { GlobalOutlined, MenuOutlined } from "@ant-design/icons";
 import { useLocation, NavLink, Outlet, useNavigate } from "react-router-dom";
 import { useContext, useMemo, useState, useEffect, useRef } from "react";
 
@@ -28,12 +28,27 @@ const { Title } = Typography;
 
 const RootLayout = () => {
     const [collapsed, setCollapsed] = useState<boolean>(false);
+    const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+    const [isMobile, setIsMobile] = useState<boolean>(window.innerWidth < 768);
     const location = useLocation();
     const navigate = useNavigate();
     const { open } = useContext(ModalContext);
     const { currentCity } = useCity();
     const { message } = App.useApp();
     const shouldRedirectRef = useRef(false);
+
+    useEffect(() => {
+        const handleResize = () => {
+            const mobile = window.innerWidth < 768;
+            setIsMobile(mobile);
+            if (!mobile) {
+                setMobileMenuOpen(false);
+            }
+        };
+
+        window.addEventListener("resize", handleResize);
+        return () => window.removeEventListener("resize", handleResize);
+    }, []);
 
     const dispatch = useAppDispatch();
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
@@ -112,10 +127,10 @@ const RootLayout = () => {
         [location, authItems]
     );
 
-    return (
-        <Layout>
-            <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} className="menu">
-                <NavLink to="/">
+    const menuContent = (
+        <>
+            {!isMobile && (
+                <NavLink to="/" onClick={() => setMobileMenuOpen(false)}>
                     <Flex className="menu__logo-container">
                         <img
                             src="/logo-white.png"
@@ -125,46 +140,86 @@ const RootLayout = () => {
                         {!collapsed && (
                             <Title
                                 level={4}
-                                className={`menu__logo-container__title ${
-                                    collapsed && "collapsed"
-                                }`}
+                                className="menu__logo-container__title"
                             >
                                 Добрые дела
                             </Title>
                         )}
                     </Flex>
                 </NavLink>
-                <Divider className="menu__divider" />
-                <Menu theme="dark" mode="inline" items={topItems} selectedKeys={topActiveKeyPath} />
+            )}
+            {!isMobile && <Divider className="menu__divider" />}
+            <Menu theme="dark" mode="inline" items={topItems} selectedKeys={topActiveKeyPath} onClick={() => setMobileMenuOpen(false)} />
 
-                <div className="menu__gap" />
+            <div className="menu__gap" />
 
-                {isAuthenticated && (
-                    <Menu
-                        theme="dark"
-                        mode="inline"
-                        items={userMenuItems}
-                        selectedKeys={userActiveKeyPath}
-                        className="menu__bottom"
-                    />
-                )}
-                {!isAuthenticated && (
-                    <Menu
-                        theme="dark"
-                        mode="inline"
-                        items={authItems}
-                        selectedKeys={authActiveKeyPath}
-                        className="menu__bottom"
-                    />
-                )}
+            {isAuthenticated && (
                 <Menu
                     theme="dark"
                     mode="inline"
-                    selectable={false}
-                    items={cityItems}
+                    items={userMenuItems}
+                    selectedKeys={userActiveKeyPath}
                     className="menu__bottom"
+                    onClick={() => setMobileMenuOpen(false)}
                 />
-            </Sider>
+            )}
+            {!isAuthenticated && (
+                <Menu
+                    theme="dark"
+                    mode="inline"
+                    items={authItems}
+                    selectedKeys={authActiveKeyPath}
+                    className="menu__bottom"
+                    onClick={() => setMobileMenuOpen(false)}
+                />
+            )}
+            <Menu
+                theme="dark"
+                mode="inline"
+                selectable={false}
+                items={cityItems}
+                className="menu__bottom"
+            />
+        </>
+    );
+
+    return (
+        <Layout>
+            {!isMobile ? (
+                <Sider collapsible collapsed={collapsed} onCollapse={setCollapsed} className="menu">
+                    {menuContent}
+                </Sider>
+            ) : (
+                <>
+                    <Drawer
+                        title={
+                            <Flex align="center" gap={8}>
+                                <img
+                                    src="/logo-white.png"
+                                    alt="Logo"
+                                    style={{ width: 24, height: 24 }}
+                                />
+                                <span style={{ color: "#fff" }}>Добрые дела</span>
+                            </Flex>
+                        }
+                        placement="left"
+                        onClose={() => setMobileMenuOpen(false)}
+                        open={mobileMenuOpen}
+                        bodyStyle={{ padding: 0, backgroundColor: "#001529" }}
+                        headerStyle={{ backgroundColor: "#001529", borderBottom: "none", padding: "16px" }}
+                        width={280}
+                        className="mobile-drawer"
+                    >
+                        {menuContent}
+                    </Drawer>
+                    <Button
+                        type="text"
+                        icon={<MenuOutlined />}
+                        onClick={() => setMobileMenuOpen(true)}
+                        className="mobile-menu-button"
+                    />
+                </>
+            )}
             <Content className="content__wrapper">
                 <Outlet />
             </Content>

@@ -4,26 +4,49 @@
 .home {
     &__container {
         padding: $container-padding-vertical $container-padding-horizontal;
+
+        @media (max-width: 767px) {
+            padding: 16px 12px;
+        }
     }
 
     &__header {
         margin-bottom: 24px;
         background: linear-gradient(135deg, $rosatom-white -5%, $rosatom-blue-2 100%);
 
+        @media (max-width: 767px) {
+            margin-bottom: 16px;
+        }
+
         &__title {
             margin-bottom: 16px;
             color: $rosatom-dark-blue-1 !important;
+
+            @media (max-width: 767px) {
+                font-size: 24px !important;
+                margin-bottom: 12px;
+            }
         }
 
         &__description {
             font-size: 16px;
             line-height: 1.6;
             color: $rosatom-text-primary !important;
+
+            @media (max-width: 767px) {
+                font-size: 14px;
+                line-height: 1.5;
+            }
         }
 
         &__subtitle {
             margin-top: 32px;
             color: $rosatom-text-primary !important;
+
+            @media (max-width: 767px) {
+                margin-top: 16px;
+                font-size: 16px !important;
+            }
         }
 
         &__image {
@@ -36,6 +59,10 @@
     &__features {
         margin-bottom: 48px;
         justify-content: center;
+
+        @media (max-width: 767px) {
+            margin-bottom: 32px;
+        }
     }
 
     &__feature-card {

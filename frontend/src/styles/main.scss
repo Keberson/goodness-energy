@@ -4,6 +4,10 @@
 :root {
     --font-family: #{$font-family-primary};
     --font-size-base: 16px;
+
+    @media (max-width: 767px) {
+        --font-size-base: 14px;
+    }
 }
 
 html,
@@ -19,4 +23,53 @@ body,
     margin: 0;
     padding: 0;
     box-sizing: border-box;
+}
+
+// Глобальные адаптивные стили
+@media (max-width: 767px) {
+    .ant-typography h1 {
+        font-size: 24px !important;
+    }
+
+    .ant-typography h2 {
+        font-size: 20px !important;
+    }
+
+    .ant-typography h3 {
+        font-size: 18px !important;
+    }
+
+    .ant-card {
+        margin-bottom: 16px;
+    }
+
+    .ant-card-head-title {
+        font-size: 16px !important;
+    }
+
+    // Адаптация страниц с inline стилями
+    [class*="-page"],
+    div[style*="padding: 24"] {
+        padding: 16px 12px !important;
+    }
+
+    .ant-descriptions {
+        .ant-descriptions-item-label {
+            width: 30% !important;
+        }
+    }
+
+    .ant-table {
+        font-size: 12px;
+    }
+
+    .ant-table-thead > tr > th {
+        padding: 8px 4px !important;
+        font-size: 12px;
+    }
+
+    .ant-table-tbody > tr > td {
+        padding: 8px 4px !important;
+        font-size: 12px;
+    }
 }
