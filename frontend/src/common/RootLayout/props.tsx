@@ -90,44 +90,58 @@ export const volunteerMenuItems: MenuItem[] = [
 
 export const npoMenuItems: MenuItem[] = [
     {
-        key: "/organization",
+        key: "npo-profile",
+        label: "Профиль",
         icon: <ShopOutlined />,
-        label: "Моя организация",
-    },
-    {
-        key: "/manage-events",
-        icon: <EditOutlined />,
-        label: "Управление событиями",
-    },
-    {
-        key: "/stats",
-        icon: <BarChartOutlined />,
-        label: "Статистика",
-    },
-    {
-        key: "logout",
-        icon: <LogoutOutlined />,
-        label: "Выйти",
-        link: false,
+        children: [
+            {
+                key: "org",
+                icon: <ShopOutlined />,
+                label: "Моя организация",
+            },
+            {
+                key: "manage-events",
+                icon: <EditOutlined />,
+                label: "Управление событиями",
+            },
+            {
+                key: "stats",
+                icon: <BarChartOutlined />,
+                label: "Статистика",
+            },
+            {
+                key: "logout",
+                icon: <LogoutOutlined />,
+                label: "Выйти",
+                link: false,
+            },
+        ],
     },
 ];
 
 export const adminMenuItems: MenuItem[] = [
     {
-        key: "/moderation",
+        key: "admin",
+        label: "Администрирование",
         icon: <SafetyCertificateOutlined />,
-        label: "Модерация",
-    },
-    {
-        key: "/users",
-        icon: <UsergroupAddOutlined />,
-        label: "Пользователи",
-    },
-    {
-        key: "logout",
-        icon: <LogoutOutlined />,
-        label: "Выйти",
-        link: false,
+        children: [
+            {
+                key: "moderation",
+                icon: <SafetyCertificateOutlined />,
+                label: "Модерация",
+            },
+            {
+                key: "users",
+                icon: <UsergroupAddOutlined />,
+                label: "Пользователи",
+            },
+            {
+                key: "logout",
+                icon: <LogoutOutlined />,
+                label: "Выйти",
+                link: false,
+            },
+        ],
     },
 ];
 
@@ -184,6 +198,19 @@ export const findActiveMenuKeyPath = (items: any[], pathname: string): string[] 
             if (childPath.length) {
                 return [item.key, ...childPath];
             }
+        }
+
+        // Только если нет дочерних элементов или они не совпали, проверяем сам элемент
+        // Точное совпадение
+        if (item.key === pathname) {
+            return [item.key];
+        }
+
+        // Проверяем, что путь начинается с ключа + "/"
+        // Например: /npo/123 должен совпадать с /npo
+        // Но /npo-profile НЕ должен совпадать с /npo, так как после /npo идет "-", а не "/"
+        if (item.key !== "/" && pathname.startsWith(item.key + "/")) {
+            return [item.key];
         }
     }
 

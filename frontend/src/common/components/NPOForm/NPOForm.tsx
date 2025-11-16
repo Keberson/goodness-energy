@@ -49,6 +49,16 @@ const NPOForm = () => {
                 <Input placeholder="г. Москва, ул. Пушкина, д. 1" size="large" />
             </Form.Item>
 
+            <Form.Item
+                label="Расписание"
+                name="timetable"
+            >
+                <TextArea
+                    placeholder="Расписание работы организации..."
+                    rows={3}
+                />
+            </Form.Item>
+
             <Form.Item name="coordinates" hidden>
                 <Input />
             </Form.Item>

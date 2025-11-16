@@ -119,11 +119,53 @@ async def update_npo(
     if npo_update.description is not None:
         npo.description = npo_update.description
     if npo_update.timetable is not None:
-        npo.timetable = npo_update.timetable
+        # Сохраняем только если это не пустая строка после удаления пробелов
+        timetable_str = str(npo_update.timetable).strip()
+        npo.timetable = timetable_str if timetable_str else None
     if npo_update.links is not None:
         npo.links = json.dumps(npo_update.links)
     if npo_update.city is not None:
         npo.city = npo_update.city.value  # Сохраняем строковое значение enum
+    if npo_update.address is not None:
+        npo.address = npo_update.address
+    if npo_update.coordinates is not None:
+        # Валидация координат НКО
+        if not isinstance(npo_update.coordinates, list):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Координаты НКО должны быть списком [lat, lon], получен {type(npo_update.coordinates).__name__}"
+            )
+        
+        if len(npo_update.coordinates) != 2:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Координаты НКО должны содержать ровно 2 значения [lat, lon], получено {len(npo_update.coordinates)} значение(й)"
+            )
+        
+        try:
+            coordinates_lat = float(npo_update.coordinates[0])
+            coordinates_lon = float(npo_update.coordinates[1])
+        except (ValueError, TypeError) as e:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Координаты НКО должны быть числами [lat, lon]. Ошибка: {str(e)}"
+            )
+        
+        # Проверка диапазона координат
+        if not (-90 <= coordinates_lat <= 90):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Широта НКО должна быть в диапазоне от -90 до 90, получено {coordinates_lat}"
+            )
+        
+        if not (-180 <= coordinates_lon <= 180):
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Долгота НКО должна быть в диапазоне от -180 до 180, получено {coordinates_lon}"
+            )
+        
+        npo.coordinates_lat = coordinates_lat
+        npo.coordinates_lon = coordinates_lon
     
     # Обновление галереи
     if npo_update.galleryIds is not None:
