@@ -33,6 +33,29 @@ async def get_all_knowledges(db: Session = Depends(get_db)):
     
     return result
 
+@router.get("/{knowledge_id}", response_model=KnowledgeResponse)
+async def get_knowledge_by_id(knowledge_id: int, db: Session = Depends(get_db)):
+    """Получение записи из базы знаний по ID"""
+    knowledge = db.query(Knowledge).filter(Knowledge.id == knowledge_id).first()
+    if not knowledge:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Запись в базе знаний не найдена"
+        )
+    
+    tags = [t.tag for t in knowledge.tags]
+    attached_ids = [a.file_id for a in knowledge.attachments]
+    
+    return KnowledgeResponse(
+        id=knowledge.id,
+        name=knowledge.name,
+        text=knowledge.text,
+        attachedIds=attached_ids,
+        tags=tags,
+        links=knowledge.links,
+        created_at=knowledge.created_at
+    )
+
 @router.post("", response_model=KnowledgeResponse, status_code=status.HTTP_201_CREATED)
 async def create_knowledge(
     knowledge_data: KnowledgeCreate,

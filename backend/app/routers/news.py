@@ -33,6 +33,29 @@ async def get_all_news(db: Session = Depends(get_db)):
     
     return result
 
+@router.get("/{news_id}", response_model=NewsResponse)
+async def get_news_by_id(news_id: int, db: Session = Depends(get_db)):
+    """Получение новости по ID"""
+    news = db.query(News).filter(News.id == news_id).first()
+    if not news:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Новость не найдена"
+        )
+    
+    tags = [t.tag for t in news.tags]
+    attached_ids = [a.file_id for a in news.attachments]
+    
+    return NewsResponse(
+        id=news.id,
+        name=news.name,
+        text=news.text,
+        attachedIds=attached_ids,
+        tags=tags,
+        type=news.type,
+        created_at=news.created_at
+    )
+
 @router.post("", response_model=NewsResponse, status_code=status.HTTP_201_CREATED)
 async def create_news(
     news_data: NewsCreate,
