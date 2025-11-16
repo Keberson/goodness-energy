@@ -5,7 +5,6 @@ import {
     HomeOutlined,
     ReadOutlined,
     TeamOutlined,
-    BulbOutlined,
     UserOutlined,
     IdcardOutlined,
     HistoryOutlined,
@@ -52,21 +51,14 @@ export const topMenuItems: MenuItem[] = [
         icon: <CalendarOutlined />,
     },
     {
-        key: "content",
-        label: "Контент",
-        icon: <BulbOutlined />,
-        children: [
-            {
-                key: "news",
-                label: "Новости",
-                icon: <NotificationOutlined />,
-            },
-            {
-                key: "knowledges",
-                label: "База знаний",
-                icon: <ReadOutlined />,
-            },
-        ],
+        key: "news",
+        label: "Новости",
+        icon: <NotificationOutlined />,
+    },
+    {
+        key: "knowledges",
+        label: "База знаний",
+        icon: <ReadOutlined />,
     },
 ];
 
@@ -182,7 +174,8 @@ export const mapMenuItems = (
 
 export const findActiveMenuKeyPath = (items: any[], pathname: string): string[] => {
     for (const item of items) {
-        if (item.key === pathname) {
+        if (item.key === pathname || (item.key !== "/" && pathname.startsWith(item.key + "/"))) {
+            console.log(item.key);
             return [item.key];
         }
 

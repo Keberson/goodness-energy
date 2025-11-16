@@ -54,10 +54,7 @@ const KnowledgeDetailPage = () => {
                                 >
                                     {data.attachedIds.map((fileId) => (
                                         <div key={fileId}>
-                                            <FilePreview
-                                                fileId={fileId}
-                                                fileName={`Файл-${fileId}.pdf`}
-                                            />
+                                            <FilePreview fileId={fileId} />
                                         </div>
                                     ))}
                                 </Carousel>

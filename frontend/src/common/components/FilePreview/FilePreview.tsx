@@ -1,30 +1,35 @@
 import React from "react";
 import { Button, Image, Typography } from "antd";
-import { DownloadOutlined, FileWordOutlined, FileImageOutlined } from "@ant-design/icons";
+import {
+    DownloadOutlined,
+    FileWordOutlined,
+    FileImageOutlined,
+    FileExcelOutlined,
+} from "@ant-design/icons";
+
+import { useGetFileInfoQuery } from "@services/api/files.api";
 
 const { Text } = Typography;
 
 interface FilePreviewProps {
     fileId: number;
-    fileName?: string;
 }
 
-const FilePreview: React.FC<FilePreviewProps> = ({ fileId, fileName }) => {
-    const getFileType = (): "pdf" | "image" | "doc" | "other" => {
-        if (!fileName) return "other";
+const FilePreview: React.FC<FilePreviewProps> = ({ fileId }) => {
+    const { data } = useGetFileInfoQuery(fileId);
 
-        const ext = fileName.split(".").pop()?.toLowerCase();
+    const getFileType = (ext: string): "pdf" | "image" | "doc" | "xls" | "other" => {
         if (["pdf"].includes(ext || "")) return "pdf";
         if (["jpg", "jpeg", "png", "gif", "webp"].includes(ext || "")) return "image";
         if (["doc", "docx"].includes(ext || "")) return "doc";
+        if (["csv", "xlsx", "xls"].includes(ext || "")) return "xls";
         return "other";
     };
 
-    const fileType = getFileType();
     const fileUrl = `${import.meta.env.VITE_API_BASE_URL}/files/${fileId}`;
 
-    const renderPreview = () => {
-        switch (fileType) {
+    const renderPreview = (fileType: string, fileName: string) => {
+        switch (getFileType(fileType)) {
             case "pdf":
                 return (
                     <div style={{ textAlign: "center" }}>
@@ -87,6 +92,24 @@ const FilePreview: React.FC<FilePreviewProps> = ({ fileId, fileName }) => {
                     </div>
                 );
 
+            case "xls":
+                return (
+                    <div style={{ textAlign: "center", padding: 20 }}>
+                        <FileExcelOutlined style={{ fontSize: 48, color: "#0fb317ff" }} />
+                        <div style={{ marginTop: 8 }}>
+                            <Text strong>{fileName}</Text>
+                        </div>
+                        <Button
+                            type="primary"
+                            icon={<DownloadOutlined />}
+                            href={fileUrl}
+                            style={{ marginTop: 16 }}
+                        >
+                            Скачать документ
+                        </Button>
+                    </div>
+                );
+
             default:
                 return (
                     <div style={{ textAlign: "center", padding: 20 }}>
@@ -116,7 +139,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ fileId, fileName }) => {
                 background: "#fafafa",
             }}
         >
-            {renderPreview()}
+            {data && renderPreview(data.file_type, data.filename)}
         </div>
     );
 };
