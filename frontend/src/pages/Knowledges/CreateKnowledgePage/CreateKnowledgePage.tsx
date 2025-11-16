@@ -8,22 +8,18 @@ const { TextArea } = Input;
 const CreateKnowledgePage = () => {
     const [form] = Form.useForm();
 
-    const onFinish = (values: any) => {
-        console.log("Received values of form: ", values);
+    const onFinish = () => {
         message.success("Материал успешно создан!");
         form.resetFields();
     };
 
     const uploadProps: UploadProps = {
         name: "file",
-        action: "/upload", // Здесь должен быть эндпоинт для загрузки файлов
+        action: "/upload",
         headers: {
             authorization: "authorization-text",
         },
         onChange(info) {
-            if (info.file.status !== "uploading") {
-                console.log(info.file, info.fileList);
-            }
             if (info.file.status === "done") {
                 message.success(`${info.file.name} файл успешно загружен`);
             } else if (info.file.status === "error") {
