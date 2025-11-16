@@ -18,6 +18,7 @@ import NewsListPage from "./pages/News/NewsListPage/NewsListPage";
 import NewsPage from "./pages/News/NewsPage/NewsPage";
 import KnowledgesPage from "./pages/Knowledges/KnowledgesPage/KnowledgesPage";
 import KnowledgeDetailPage from "./pages/Knowledges/KnowledgesDetailPage/KnowledgesDetailPage";
+import EventsPage from "./pages/Events/EventsPage/EventsPage";
 
 const router = createBrowserRouter([
     {
@@ -73,6 +74,10 @@ const router = createBrowserRouter([
                                 element: <KnowledgeDetailPage />,
                             },
                         ],
+                    },
+                    {
+                        path: "events",
+                        element: <EventsPage />,
                     },
                     {
                         path: "login",

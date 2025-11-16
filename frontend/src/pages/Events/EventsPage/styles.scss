@@ -1,0 +1,121 @@
+.events-page {
+    padding: 24px;
+    min-height: calc(100vh - 48px);
+
+    &__container {
+        width: 100%;
+        height: 100%;
+    }
+
+    &__card {
+        min-height: calc(100vh - 96px);
+    }
+
+    &__title {
+        margin-bottom: 24px;
+    }
+
+    &__content {
+        display: flex;
+        gap: 24px;
+        flex-wrap: wrap;
+
+        @media (max-width: 768px) {
+            flex-direction: column;
+        }
+    }
+
+    &__calendar-wrapper {
+        flex: 1;
+        min-width: 300px;
+    }
+
+    &__events-panel {
+        flex: 1;
+        min-width: 300px;
+        max-width: 500px;
+
+        @media (max-width: 768px) {
+            max-width: 100%;
+        }
+    }
+
+    &__events-title {
+        margin-bottom: 16px;
+    }
+
+    &__event-item {
+        padding: 0 !important;
+        margin-bottom: 12px;
+    }
+
+    &__event-card {
+        width: 100%;
+    }
+}
+
+.events-calendar {
+    &__header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 0;
+        margin-bottom: 16px;
+    }
+
+    &__header-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 32px;
+        height: 32px;
+    }
+
+    &__header-title {
+        flex: 1;
+        font-size: 16px;
+        font-weight: 500;
+        text-align: center;
+        cursor: pointer;
+        
+        &:hover {
+            color: #1890ff;
+        }
+    }
+
+    &__events-indicators {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px;
+        align-items: center;
+        justify-content: flex-start;
+        margin-top: 2px;
+    }
+
+    &__event-indicator {
+        cursor: pointer;
+        
+        .ant-badge-status-dot {
+            width: 8px;
+            height: 8px;
+        }
+    }
+
+    &__more-indicator {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 4px;
+        font-size: 10px;
+        font-weight: 600;
+        color: #1890ff;
+        background-color: #e6f7ff;
+        border: 1px solid #91d5ff;
+        border-radius: 10px;
+        cursor: pointer;
+        line-height: 1;
+    }
+}
+
