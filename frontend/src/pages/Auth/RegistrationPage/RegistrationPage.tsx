@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, Tabs, Flex, Typography, Divider, Button } from "antd";
+import { Tabs, Flex, Typography, Divider, Button } from "antd";
 import { UserOutlined, TeamOutlined } from "@ant-design/icons";
 
 import VolunteerRegistration from "./VolunteerRegistration/VolunteerRegistration";

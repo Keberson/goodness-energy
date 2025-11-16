@@ -11,7 +11,7 @@ const MapContent = () => {
     const { open } = useContext(ModalContext);
     const { data } = useGetMapNPOsQuery();
 
-    const handlePointClick = (npo: IMapItem["info"]) => {
+    const handlePointClick = (_: IMapItem["info"]) => {
         open({
             content: <></>,
             props: {
