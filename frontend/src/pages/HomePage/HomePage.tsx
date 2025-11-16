@@ -19,6 +19,7 @@ import { useGetEventsQuery } from "@services/api/events.api";
 import { useRegisterEventViewMutation } from "@services/api/npo.api";
 import type { IEvent } from "@app-types/events.types";
 import { useMemo, useState, useEffect } from "react";
+import { useCity } from "@hooks/useCity";
 
 const { Title, Paragraph } = Typography;
 
@@ -26,6 +27,7 @@ import "./styles.scss";
 
 const HomePage = () => {
     const { data: events } = useGetEventsQuery();
+    const { currentCity } = useCity();
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [mode, setMode] = useState<"month" | "year">("month");
     const [registerEventView] = useRegisterEventViewMutation();
@@ -62,12 +64,18 @@ const HomePage = () => {
         },
     ];
 
+    // Фильтруем события по выбранному городу
+    const filteredEvents = useMemo(() => {
+        if (!events) return [];
+        return events.filter((event) => event.city === currentCity);
+    }, [events, currentCity]);
+
     // Группируем события по датам (событие отображается на каждый день от start до end)
     const eventsByDate = useMemo(() => {
-        if (!events) return new Map<string, IEvent[]>();
+        if (!filteredEvents) return new Map<string, IEvent[]>();
 
         const map = new Map<string, IEvent[]>();
-        events.forEach((event) => {
+        filteredEvents.forEach((event) => {
             const startDate = dayjs(event.start).startOf("day");
             const endDate = dayjs(event.end).startOf("day");
             
@@ -83,7 +91,7 @@ const HomePage = () => {
             }
         });
         return map;
-    }, [events]);
+    }, [filteredEvents]);
 
     // Получаем события для выбранной даты (события, которые идут в этот день)
     const selectedDateEvents = useMemo(() => {
@@ -91,14 +99,14 @@ const HomePage = () => {
         const dateEnd = selectedDate.endOf("day");
         
         // Фильтруем события, которые пересекаются с выбранной датой
-        return (events || []).filter((event) => {
+        return (filteredEvents || []).filter((event) => {
             const eventStart = dayjs(event.start);
             const eventEnd = dayjs(event.end);
             // Событие попадает в выбранный день, если оно начинается до конца дня и заканчивается после начала дня
             return (eventStart.isBefore(dateEnd) || eventStart.isSame(dateEnd)) && 
                    (eventEnd.isAfter(dateStart) || eventEnd.isSame(dateStart));
         });
-    }, [selectedDate, events]);
+    }, [selectedDate, filteredEvents]);
 
     // Регистрируем просмотры для всех событий выбранной даты
     useEffect(() => {

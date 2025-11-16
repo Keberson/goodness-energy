@@ -84,6 +84,7 @@ class EventCreate(BaseModel):
     coordinates: Optional[List[float]] = None  # [lat, lon]
     quantity: Optional[int] = None
     tags: Optional[List[str]] = None
+    city: NPOCity  # Обязательное поле - город проведения события
 
 class EventUpdate(BaseModel):
     name: Optional[str] = None
@@ -93,6 +94,7 @@ class EventUpdate(BaseModel):
     coordinates: Optional[List[float]] = None
     quantity: Optional[int] = None
     tags: Optional[List[str]] = None
+    city: Optional[NPOCity] = None
 
 class EventStatusUpdate(BaseModel):
     status: EventStatus
@@ -108,6 +110,7 @@ class EventResponse(BaseModel):
     quantity: Optional[int]
     status: EventStatus
     tags: List[str]
+    city: Optional[str]  # Город НКО, создавшего событие
     created_at: datetime
     
     class Config:

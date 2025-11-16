@@ -18,6 +18,7 @@ async def get_all_events(db: Session = Depends(get_db)):
     result = []
     for event in events:
         tags = [t.tag for t in event.tags]
+        
         result.append(EventResponse(
             id=event.id,
             npo_id=event.npo_id,
@@ -29,6 +30,7 @@ async def get_all_events(db: Session = Depends(get_db)):
             quantity=event.quantity,
             status=event.status,
             tags=tags,
+            city=event.city,
             created_at=event.created_at
         ))
     

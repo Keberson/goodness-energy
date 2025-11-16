@@ -11,6 +11,7 @@ export interface IEventCreateRequest {
     coordinates?: [number, number] | null;
     quantity?: number | null;
     tags?: string[] | null;
+    city: string; // Обязательное поле - город проведения события
 }
 
 export interface IEventUpdateRequest {
@@ -21,6 +22,7 @@ export interface IEventUpdateRequest {
     coordinates?: [number, number] | null;
     quantity?: number | null;
     tags?: string[] | null;
+    city?: string;
 }
 
 export interface IEventStatusUpdateRequest {

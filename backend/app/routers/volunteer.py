@@ -332,6 +332,7 @@ async def get_volunteer_events(
                 quantity=event.quantity,
                 status=event.status,
                 tags=tags,
+                city=event.city,
                 created_at=event.created_at
             ))
     

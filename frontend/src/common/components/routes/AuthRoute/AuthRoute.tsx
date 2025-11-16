@@ -19,7 +19,7 @@ const AuthRoute: React.FC<AuthRouteProps> = ({ children }) => {
     }
 
     if (isAuthenticated && userType === "admin") {
-        return <Navigate to="/create-knowledge" replace />;
+        return <Navigate to="/moderation" replace />;
     }
 
     return <>{children}</>;

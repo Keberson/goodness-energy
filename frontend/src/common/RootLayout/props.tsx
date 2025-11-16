@@ -13,7 +13,6 @@ import {
     EditOutlined,
     BarChartOutlined,
     SafetyCertificateOutlined,
-    UsergroupAddOutlined,
     LoginOutlined,
     LogoutOutlined,
 } from "@ant-design/icons";
@@ -134,11 +133,6 @@ export const adminMenuItems: MenuItem[] = [
                 key: "create-knowledge",
                 icon: <EditOutlined />,
                 label: "Создать материал",
-            },
-            {
-                key: "users",
-                icon: <UsergroupAddOutlined />,
-                label: "Пользователи",
             },
             {
                 key: "logout",

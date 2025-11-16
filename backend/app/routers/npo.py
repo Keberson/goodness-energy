@@ -255,6 +255,7 @@ async def get_npo_events(
             quantity=event.quantity,
             status=event.status,
             tags=tags,
+            city=event.city,
             created_at=event.created_at
         ))
     
@@ -322,7 +323,8 @@ async def create_event(
         end=event_data.end,
         coordinates_lat=coordinates_lat,
         coordinates_lon=coordinates_lon,
-        quantity=event_data.quantity
+        quantity=event_data.quantity,
+        city=event_data.city.value  # Сохраняем строковое значение enum
     )
     db.add(event)
     db.flush()
@@ -348,6 +350,7 @@ async def create_event(
         quantity=event.quantity,
         status=event.status,
         tags=tags,
+        city=event.city,
         created_at=event.created_at
     )
 
@@ -423,6 +426,8 @@ async def update_event(
         event.coordinates_lon = coordinates_lon
     if event_update.quantity is not None:
         event.quantity = event_update.quantity
+    if event_update.city is not None:
+        event.city = event_update.city.value  # Сохраняем строковое значение enum
     
     # Обновление тегов
     if event_update.tags is not None:
@@ -446,6 +451,7 @@ async def update_event(
         quantity=event.quantity,
         status=event.status,
         tags=tags,
+        city=event.city,
         created_at=event.created_at
     )
 

@@ -767,7 +767,7 @@ VALUES (
 -- ============================================
 
 -- Событие 1: Экологическая акция
-INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, status, created_at)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
 VALUES (
   (SELECT id FROM npos LIMIT 1),
   'Экологическая акция "Чистый город"',
@@ -777,12 +777,13 @@ VALUES (
   55.7558,
   37.6173,
   50,
+  'Ангарск',
   'PUBLISHED',
   NOW()
 );
 
 -- Событие 2: Помощь пожилым людям
-INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, status, created_at)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
 VALUES (
   (SELECT id FROM npos LIMIT 1 OFFSET 1),
   'Волонтёрская помощь пожилым людям',
@@ -792,6 +793,7 @@ VALUES (
   59.9343,
   30.3351,
   30,
+  'Волгодонск',
   'PUBLISHED',
   NOW()
 );

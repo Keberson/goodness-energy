@@ -154,6 +154,7 @@ class Event(Base):
     coordinates_lat = Column(Float)
     coordinates_lon = Column(Float)
     quantity = Column(Integer)  # Количество участников
+    city = Column(String, nullable=False)  # Город проведения события
     status = Column(SQLEnum(EventStatus), default=EventStatus.DRAFT)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())

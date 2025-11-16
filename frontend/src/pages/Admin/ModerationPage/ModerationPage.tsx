@@ -46,7 +46,8 @@ const ModerationPage = () => {
             dataIndex: "name",
             key: "name",
             width: 200,
-            render: (name: string) => <Text strong>{name}</Text>,
+            ellipsis: true,
+            render: (name: string) => <Text strong title={name}>{name}</Text>,
         },
         {
             title: "Описание",
@@ -73,16 +74,29 @@ const ModerationPage = () => {
             dataIndex: "address",
             key: "address",
             width: 200,
+            ellipsis: true,
         },
         {
             title: "Теги",
             dataIndex: "tags",
             key: "tags",
-            width: 200,
+            width: 300,
             render: (tags: string[]) => (
-                <Space wrap size={[4, 4]}>
+                <Space wrap size={[4, 4]} style={{ maxWidth: "100%" }}>
                     {tags.slice(0, 3).map((tag, index) => (
-                        <Tag key={index}>{tag}</Tag>
+                        <Tag
+                            key={index}
+                            style={{
+                                maxWidth: "280px",
+                                overflow: "hidden",
+                                textOverflow: "ellipsis",
+                                whiteSpace: "nowrap",
+                                display: "inline-block",
+                            }}
+                            title={tag}
+                        >
+                            {tag}
+                        </Tag>
                     ))}
                     {tags.length > 3 && <Tag>+{tags.length - 3}</Tag>}
                 </Space>
@@ -98,14 +112,16 @@ const ModerationPage = () => {
         {
             title: "Действия",
             key: "actions",
-            width: 200,
+            width: 150,
             fixed: "right",
             render: (_: any, record: INPO) => (
-                <Space>
+                <Space direction="vertical" size="small" style={{ width: "100%" }}>
                     <Button
                         type="primary"
                         icon={<CheckOutlined />}
                         onClick={() => handleApproveNPO(record.id)}
+                        size="small"
+                        block
                     >
                         Подтвердить
                     </Button>
@@ -113,6 +129,8 @@ const ModerationPage = () => {
                         danger
                         icon={<CloseOutlined />}
                         onClick={() => handleRejectNPO(record.id)}
+                        size="small"
+                        block
                     >
                         Отклонить
                     </Button>
@@ -367,7 +385,7 @@ const ModerationPage = () => {
                     <TabPane
                         tab={
                             <span>
-                                НКО{" "}
+                                Неподтверждённые НКО{" "}
                                 {unconfirmedNPOs && unconfirmedNPOs.length > 0 && (
                                     <Tag color="red">{unconfirmedNPOs.length}</Tag>
                                 )}
@@ -379,8 +397,9 @@ const ModerationPage = () => {
                             columns={npoColumns}
                             dataSource={(unconfirmedNPOs || []).map((item) => ({ ...item, key: item.id }))}
                             loading={isLoadingNPOs}
-                            scroll={{ x: 1200 }}
+                            scroll={{ x: 1450 }}
                             pagination={{ pageSize: 10 }}
+                            tableLayout="fixed"
                         />
                     </TabPane>
                     <TabPane tab="События" key="events">

@@ -11,6 +11,7 @@ export interface IEvent {
     quantity: number | null;
     status: EventStatus;
     tags: string[];
+    city: string | null; // Город НКО, создавшего событие
     created_at: string;
 }
 

@@ -26,6 +26,7 @@ import "dayjs/locale/ru";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
 import { useSearchParams } from "react-router-dom";
+import { useCity } from "@hooks/useCity";
 
 import type { IEvent, EventStatus } from "@app-types/events.types";
 import {
@@ -66,6 +67,7 @@ const ManageEventsPage = () => {
     const [deleteEvent] = useDeleteEventMutation();
     const [updateEventStatus] = useUpdateEventStatusMutation();
     const [geodecode] = useLazyGeodecodeQuery();
+    const { availableCities } = useCity();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<IEvent | null>(null);
@@ -121,6 +123,7 @@ const ManageEventsPage = () => {
             quantity: event.quantity,
             tags: event.tags.join(", "),
             status: event.status,
+            city: event.city,
         });
         setIsModalOpen(true);
     };
@@ -178,6 +181,7 @@ const ManageEventsPage = () => {
                     coordinates,
                     quantity: values.quantity || null,
                     tags: tags.length > 0 ? tags : null,
+                    city: values.city,
                 };
                 await updateEvent({
                     npoId: npoData.id,
@@ -204,6 +208,7 @@ const ManageEventsPage = () => {
                     coordinates,
                     quantity: values.quantity || null,
                     tags: tags.length > 0 ? tags : null,
+                    city: values.city,
                 };
                 await createEvent({ npoId: npoData.id, body: createData }).unwrap();
                 message.success("Событие создано");
@@ -399,6 +404,25 @@ const ManageEventsPage = () => {
                                 format="DD.MM.YYYY HH:mm"
                                 style={{ width: "100%" }}
                                 placeholder={["Начало", "Окончание"]}
+                            />
+                        </Form.Item>
+
+                        <Form.Item
+                            name="city"
+                            label="Город"
+                            rules={[{ required: true, message: "Выберите город проведения события" }]}
+                            initialValue={npoData?.city}
+                        >
+                            <Select
+                                placeholder="Выберите город"
+                                showSearch
+                                filterOption={(input, option) =>
+                                    (option?.label ?? "").toLowerCase().includes(input.toLowerCase())
+                                }
+                                options={availableCities.map((city) => ({
+                                    label: city,
+                                    value: city,
+                                }))}
                             />
                         </Form.Item>
 

@@ -12,7 +12,7 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
-@router.get("/npo/unconfirmed", response_model=List[NPOResponse])
+@router.get("/npo/unconfirmed", response_model=List[NPOResponse], tags=["provide"])
 async def get_unconfirmed_npos(
     current_user = Depends(get_current_admin_user),
     db: Session = Depends(get_db)
@@ -49,7 +49,7 @@ async def get_unconfirmed_npos(
     
     return result
 
-@router.patch("/npo/{npo_id}/status")
+@router.patch("/npo/{npo_id}/status", tags=["validate"])
 async def update_npo_status(
     npo_id: int,
     status_update: NPOStatusUpdate,
@@ -70,7 +70,7 @@ async def update_npo_status(
     
     return {"message": "Статус НКО успешно обновлен", "npo_id": npo.id, "status": npo.status.value}
 
-@router.delete("/npo/{npo_id}")
+@router.delete("/npo/{npo_id}", tags=["validate"])
 async def delete_npo(
     npo_id: int,
     current_user = Depends(get_current_admin_user),
@@ -99,7 +99,7 @@ async def delete_npo(
     db.commit()
     return {"message": "НКО успешно удалена"}
 
-@router.delete("/event/{event_id}")
+@router.delete("/event/{event_id}", tags=["validate"])
 async def delete_event(
     event_id: int,
     current_user = Depends(get_current_admin_user),
