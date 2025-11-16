@@ -1,12 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import type { IVolunteer, IVolunteerEdit } from "@app-types/volunteer.types";
+import type { IEvent } from "@app-types/events.types";
 
 import { prepareHeaders } from "./utils/prepareHeaders";
 
 export const volunteerApi = createApi({
     reducerPath: "volunteerApi",
-    tagTypes: ["Volunteer"],
+    tagTypes: ["Volunteer", "Event"],
     baseQuery: fetchBaseQuery({
         baseUrl: `${import.meta.env.VITE_API_BASE_URL}/volunteer`,
         prepareHeaders,
@@ -37,8 +38,38 @@ export const volunteerApi = createApi({
             }),
             invalidatesTags: (_, __, payload) => [{ type: "Volunteer", id: payload.id }],
         }),
+        getVolunteerEvents: builder.query<IEvent[], number>({
+            query: (volunteerId) => ({ url: `/${volunteerId}/event` }),
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.map(({ id }) => ({ type: "Event" as const, id })),
+                          { type: "Event", id: "VOLUNTEER_LIST" },
+                      ]
+                    : [{ type: "Event", id: "VOLUNTEER_LIST" }],
+        }),
+        respondToEvent: builder.mutation<void, number>({
+            query: (eventId) => ({
+                url: `/event/${eventId}`,
+                method: "POST",
+            }),
+            invalidatesTags: [{ type: "Event", id: "VOLUNTEER_LIST" }],
+        }),
+        deleteEventResponse: builder.mutation<void, number>({
+            query: (eventId) => ({
+                url: `/event/${eventId}`,
+                method: "DELETE",
+            }),
+            invalidatesTags: [{ type: "Event", id: "VOLUNTEER_LIST" }],
+        }),
     }),
 });
 
-export const { useGetVolunteersQuery, useGetVolunteerByIdQuery, useEditVolunteerMutation } =
-    volunteerApi;
+export const {
+    useGetVolunteersQuery,
+    useGetVolunteerByIdQuery,
+    useEditVolunteerMutation,
+    useGetVolunteerEventsQuery,
+    useRespondToEventMutation,
+    useDeleteEventResponseMutation,
+} = volunteerApi;

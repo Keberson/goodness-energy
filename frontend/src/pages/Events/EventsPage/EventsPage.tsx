@@ -1,14 +1,18 @@
-import { Card, Typography, Tag, Space, List, Badge, Empty, Tooltip, Button } from "antd";
+import { Card, Typography, Tag, Space, List, Badge, Empty, Tooltip, Button, message, Flex } from "antd";
 import type { BadgeProps } from "antd";
 import { Calendar } from "antd";
-import { ClockCircleOutlined, EnvironmentOutlined, LeftOutlined, RightOutlined } from "@ant-design/icons";
+import { ClockCircleOutlined, EnvironmentOutlined, LeftOutlined, RightOutlined, CheckCircleOutlined, PlusOutlined } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
 import { useGetEventsQuery } from "@services/api/events.api";
 import { useRegisterEventViewMutation } from "@services/api/npo.api";
+import { useGetVolunteerEventsQuery, useRespondToEventMutation } from "@services/api/volunteer.api";
 import type { IEvent } from "@app-types/events.types";
 import { useMemo, useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import useAppSelector from "@hooks/useAppSelector";
+import { skipToken } from "@reduxjs/toolkit/query";
 import "./styles.scss";
 
 const { Title, Paragraph, Text } = Typography;
@@ -18,6 +22,25 @@ const EventsPage = () => {
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [mode, setMode] = useState<"month" | "year">("month");
     const [registerEventView] = useRegisterEventViewMutation();
+    
+    // Проверка авторизации и получение событий волонтёра
+    const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+    const userType = useAppSelector((state) => state.auth.userType);
+    const userId = useAppSelector((state) => state.auth.userId);
+    const isVolunteer = isAuthenticated && userType === "volunteer";
+    const isNPO = isAuthenticated && userType === "npo";
+    const navigate = useNavigate();
+    
+    const { data: volunteerEvents } = useGetVolunteerEventsQuery(
+        isVolunteer && userId ? userId : skipToken
+    );
+    const [respondToEvent] = useRespondToEventMutation();
+    
+    // Создаём Set для быстрой проверки, откликнулся ли волонтёр на событие
+    const respondedEventIds = useMemo(() => {
+        if (!volunteerEvents) return new Set<number>();
+        return new Set(volunteerEvents.map((event) => event.id));
+    }, [volunteerEvents]);
 
     // Группируем события по датам (событие отображается на каждый день от start до end)
     const eventsByDate = useMemo(() => {
@@ -90,6 +113,34 @@ const EventsPage = () => {
             completed: "Завершено",
         };
         return labels[status] || status;
+    };
+
+    const handleRespondToEvent = async (eventId: number) => {
+        if (!isVolunteer) {
+            message.warning("Для отклика на событие необходимо авторизоваться как волонтёр");
+            return;
+        }
+
+        try {
+            await respondToEvent(eventId).unwrap();
+            message.success("Вы успешно откликнулись на событие!");
+        } catch (error: any) {
+            if (error?.data?.detail) {
+                message.error(error.data.detail);
+            } else {
+                message.error("Не удалось откликнуться на событие");
+            }
+        }
+    };
+
+    const isEventResponded = (eventId: number): boolean => {
+        return respondedEventIds.has(eventId);
+    };
+
+    const isEventPast = (event: IEvent): boolean => {
+        const now = dayjs();
+        const eventEnd = dayjs(event.end);
+        return eventEnd.isBefore(now, "minute");
     };
 
     // Кастомный заголовок календаря без переключателя режимов
@@ -185,13 +236,28 @@ const EventsPage = () => {
         );
     };
 
+    const handleCreateEvent = () => {
+        navigate("/manage-events?create=true");
+    };
+
     return (
         <div className="events-page">
             <div className="events-page__container">
                 <Card className="events-page__card" loading={isLoading}>
-                    <Title level={3} className="events-page__title">
-                        Календарь событий
-                    </Title>
+                    <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
+                        <Title level={3} className="events-page__title" style={{ margin: 0 }}>
+                            Календарь событий
+                        </Title>
+                        {isNPO && (
+                            <Button
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                onClick={handleCreateEvent}
+                            >
+                                Создать событие
+                            </Button>
+                        )}
+                    </Flex>
 
                     <div className="events-page__content">
                         <div className="events-page__calendar-wrapper">
@@ -291,6 +357,37 @@ const EventsPage = () => {
                                                                 <Tag key={tag}>{tag}</Tag>
                                                             ))}
                                                         </Space>
+                                                    )}
+
+                                                    {isVolunteer && event.status === "published" && (
+                                                        <div style={{ marginTop: 8 }}>
+                                                            {isEventResponded(event.id) ? (
+                                                                <Button
+                                                                    type="default"
+                                                                    icon={<CheckCircleOutlined />}
+                                                                    disabled
+                                                                    style={{ width: "100%" }}
+                                                                >
+                                                                    Вы уже откликнулись
+                                                                </Button>
+                                                            ) : isEventPast(event) ? (
+                                                                <Button
+                                                                    type="default"
+                                                                    disabled
+                                                                    style={{ width: "100%" }}
+                                                                >
+                                                                    Событие завершено
+                                                                </Button>
+                                                            ) : (
+                                                                <Button
+                                                                    type="primary"
+                                                                    onClick={() => handleRespondToEvent(event.id)}
+                                                                    style={{ width: "100%" }}
+                                                                >
+                                                                    Откликнуться на событие
+                                                                </Button>
+                                                            )}
+                                                        </div>
                                                     )}
                                                 </Space>
                                             </Card>

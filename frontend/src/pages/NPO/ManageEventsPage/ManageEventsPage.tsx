@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
     Card,
     Table,
@@ -25,6 +25,7 @@ import dayjs, { type Dayjs } from "dayjs";
 import "dayjs/locale/ru";
 import utc from "dayjs/plugin/utc";
 import timezone from "dayjs/plugin/timezone";
+import { useSearchParams } from "react-router-dom";
 
 import type { IEvent, EventStatus } from "@app-types/events.types";
 import {
@@ -69,6 +70,22 @@ const ManageEventsPage = () => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<IEvent | null>(null);
     const [form] = Form.useForm();
+    const [searchParams, setSearchParams] = useSearchParams();
+
+    // Проверяем query параметр и открываем модальное окно при необходимости
+    useEffect(() => {
+        const createParam = searchParams.get("create");
+        if (createParam === "true" && npoData) {
+            setEditingEvent(null);
+            form.resetFields();
+            setIsModalOpen(true);
+            // Удаляем query параметр из URL
+            const newSearchParams = new URLSearchParams(searchParams);
+            newSearchParams.delete("create");
+            setSearchParams(newSearchParams, { replace: true });
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [npoData]);
 
     const handleCreate = () => {
         setEditingEvent(null);
