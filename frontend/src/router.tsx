@@ -13,6 +13,7 @@ import LoginPage from "./pages/Auth/LoginPage/LoginPage";
 import RegistrationPage from "./pages/Auth/RegistrationPage/RegistrationPage";
 import ProfilePage from "./pages/Volunteer/ProfilePage/ProfilePage";
 import NPOProfilePage from "./pages/NPO/NPOProfilePage/NPOProfilePage";
+import ManageEventsPage from "./pages/NPO/ManageEventsPage/ManageEventsPage";
 import MapPage from "./pages/MapPage/MapPage";
 import NPOListPage from "./pages/NPO/NPOListPage/NPOListPage";
 import NPOPage from "./pages/NPO/NPOPage/NPOPage";
@@ -110,6 +111,14 @@ const router = createBrowserRouter([
                         element: (
                             <NPOProtectedRoute>
                                 <NPOProfilePage />
+                            </NPOProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "manage-events",
+                        element: (
+                            <NPOProtectedRoute>
+                                <ManageEventsPage />
                             </NPOProtectedRoute>
                         ),
                     },
