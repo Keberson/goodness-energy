@@ -23,6 +23,7 @@ import KnowledgesPage from "./pages/Knowledges/KnowledgesPage/KnowledgesPage";
 import KnowledgeDetailPage from "./pages/Knowledges/KnowledgesDetailPage/KnowledgesDetailPage";
 import EventsPage from "./pages/Events/EventsPage/EventsPage";
 import CreateKnowledgePage from "./pages/Admin/CreateKnowledgePage/CreateKnowledgePage";
+import ModerationPage from "./pages/Admin/ModerationPage/ModerationPage";
 
 const router = createBrowserRouter([
     {
@@ -116,7 +117,7 @@ const router = createBrowserRouter([
                         ),
                     },
                     {
-                        path: "admin",
+                        path: "create-knowledge",
                         element: (
                             <AdminProtectedRoute>
                                 <CreateKnowledgePage />
@@ -124,10 +125,10 @@ const router = createBrowserRouter([
                         ),
                     },
                     {
-                        path: "create-knowledge",
+                        path: "moderation",
                         element: (
                             <AdminProtectedRoute>
-                                <CreateKnowledgePage />
+                                <ModerationPage />
                             </AdminProtectedRoute>
                         ),
                     },

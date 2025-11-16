@@ -1,15 +1,18 @@
+export type NPOStatus = "confirmed" | "not_confirmed";
+
 export interface INPO {
     id: number;
     name: string;
     description: string | null;
-    coordinates: [number, number];
+    coordinates: [number, number] | null;
     address: string;
     city: string;
     timetable: string | null;
     galleryIds: number[];
     tags: string[];
-    links: Record<string, string>;
+    links: Record<string, string> | null;
     vacancies: number;
+    status?: NPOStatus;
     created_at: string;
 }
 
