@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
-from app.models import NPO, Event, EventStatus
+from app.models import NPO, Event, EventStatus, NPOStatus, NPOCity
 from app.schemas import NPOMapPoint, NPOResponse
 import json
 
@@ -29,11 +29,13 @@ async def get_map_npo(db: Session = Depends(get_db)):
                 description=npo.description,
                 coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)],
                 address=npo.address,
+                city=NPOCity(npo.city) if npo.city else NPOCity.ANGARSK,
                 timetable=npo.timetable,
                 galleryIds=gallery_ids,
                 tags=tags,
                 links=json.loads(npo.links) if npo.links else None,
                 vacancies=active_events_count,
+                status=npo.status if npo.status is not None else NPOStatus.NOT_CONFIRMED,
                 created_at=npo.created_at
             )
             

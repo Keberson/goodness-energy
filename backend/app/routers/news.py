@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
 from app.models import News, NewsTag, NewsAttachment, NPO, Volunteer, UserRole
-from app.schemas import NewsResponse, NewsUpdate
+from app.schemas import NewsCreate, NewsResponse, NewsUpdate
 from app.auth import get_current_user
 import logging
 
@@ -33,6 +33,82 @@ async def get_all_news(db: Session = Depends(get_db)):
     
     return result
 
+@router.post("", response_model=NewsResponse, status_code=status.HTTP_201_CREATED)
+async def create_news(
+    news_data: NewsCreate,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Создание новости (доступно всем авторизованным пользователям)"""
+    npo_id = None
+    volunteer_id = None
+    admin_id = None
+    
+    # Определяем автора новости в зависимости от роли пользователя
+    if current_user.role == UserRole.NPO:
+        npo = db.query(NPO).filter(NPO.user_id == current_user.id).first()
+        if not npo:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="НКО не найдена"
+            )
+        npo_id = npo.id
+    elif current_user.role == UserRole.VOLUNTEER:
+        volunteer = db.query(Volunteer).filter(Volunteer.user_id == current_user.id).first()
+        if not volunteer:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Волонтер не найден"
+            )
+        volunteer_id = volunteer.id
+        # Волонтеры могут создавать только новости типа blog
+        if news_data.type != "blog":
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Волонтеры могут создавать только новости типа blog"
+            )
+    elif current_user.role == UserRole.ADMIN:
+        admin_id = current_user.id
+    
+    news = News(
+        npo_id=npo_id,
+        volunteer_id=volunteer_id,
+        admin_id=admin_id,
+        name=news_data.name,
+        text=news_data.text,
+        type=news_data.type
+    )
+    db.add(news)
+    db.flush()
+    
+    # Добавление тегов
+    if news_data.tags:
+        for tag in news_data.tags:
+            news_tag = NewsTag(news_id=news.id, tag=tag)
+            db.add(news_tag)
+    
+    # Добавление вложений
+    if news_data.attachedIds:
+        for file_id in news_data.attachedIds:
+            attachment = NewsAttachment(news_id=news.id, file_id=file_id)
+            db.add(attachment)
+    
+    db.commit()
+    db.refresh(news)
+    
+    tags = [t.tag for t in news.tags]
+    attached_ids = [a.file_id for a in news.attachments]
+    
+    return NewsResponse(
+        id=news.id,
+        name=news.name,
+        text=news.text,
+        attachedIds=attached_ids,
+        tags=tags,
+        type=news.type,
+        created_at=news.created_at
+    )
+
 @router.put("/{news_id}", response_model=NewsResponse)
 async def update_news(
     news_id: int,
@@ -48,9 +124,8 @@ async def update_news(
             detail="Новость не найдена"
         )
     
-    # Проверка прав доступа: только автор новости или админ может редактировать
+    # Проверка прав доступа: только автор новости может редактировать
     is_author = False
-    is_admin = current_user.role == UserRole.ADMIN
     
     if news.npo_id:
         npo = db.query(NPO).filter(NPO.id == news.npo_id).first()
@@ -64,7 +139,7 @@ async def update_news(
         if news.admin_id == current_user.id:
             is_author = True
     
-    if not is_author and not is_admin:
+    if not is_author:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Вы можете редактировать только свои новости"

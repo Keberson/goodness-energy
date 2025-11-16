@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
-from app.models import NewsType, EventStatus
+from app.models import NewsType, EventStatus, NPOStatus, NPOCity
 
 # Схемы аутентификации
 class UserLogin(BaseModel):
@@ -12,6 +12,7 @@ class Token(BaseModel):
     access_token: str
     token_type: str
     user_type: str  # "volunteer" | "npo" | "admin"
+    id: int  # ID из таблицы volunteers/npos/users (для admin)
 
 # Регистрация НКО
 class NPORegistration(BaseModel):
@@ -21,6 +22,7 @@ class NPORegistration(BaseModel):
     description: str
     coordinates: List[float]  # [lat, lon] - обязательное поле при регистрации
     address: str  # обязательное поле при регистрации
+    city: NPOCity  # обязательное поле при регистрации
     tags: List[str]  # хотя бы один тег (обязательно)
     links: Optional[dict] = None
     timetable: Optional[str] = None
@@ -47,6 +49,7 @@ class NPOUpdate(BaseModel):
     tags: Optional[List[str]] = None
     links: Optional[dict] = None
     timetable: Optional[str] = None
+    city: Optional[NPOCity] = None
 
 class NPOResponse(BaseModel):
     id: int
@@ -54,11 +57,13 @@ class NPOResponse(BaseModel):
     description: Optional[str]
     coordinates: Optional[List[float]]  # [lat, lon]
     address: Optional[str]
+    city: NPOCity
     timetable: Optional[str]
     galleryIds: List[int]
     tags: List[str]
     links: Optional[dict]
     vacancies: int  # Количество активных событий
+    status: NPOStatus
     created_at: datetime
     
     class Config:
@@ -169,6 +174,37 @@ class FileResponse(BaseModel):
     id: int
     filename: str
     file_type: str
+    
+    class Config:
+        from_attributes = True
+
+# Схема для обновления статуса НКО администратором
+class NPOStatusUpdate(BaseModel):
+    status: NPOStatus
+
+# Схемы базы знаний
+class KnowledgeCreate(BaseModel):
+    name: str
+    text: str
+    attachedIds: Optional[List[int]] = None
+    tags: Optional[List[str]] = None
+    type: NewsType
+
+class KnowledgeUpdate(BaseModel):
+    name: Optional[str] = None
+    text: Optional[str] = None
+    attachedIds: Optional[List[int]] = None
+    tags: Optional[List[str]] = None
+    type: Optional[NewsType] = None
+
+class KnowledgeResponse(BaseModel):
+    id: int
+    name: str
+    text: str
+    attachedIds: List[int]
+    tags: List[str]
+    type: NewsType
+    created_at: datetime
     
     class Config:
         from_attributes = True

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
-from app.models import NPO, NPOGallery, NPOTag, Event, EventTag, News, NewsTag, NewsAttachment, EventStatus, User
+from app.models import NPO, NPOGallery, NPOTag, Event, EventTag, News, NewsTag, NewsAttachment, EventStatus, User, NPOStatus, NPOCity
 from app.schemas import (
     NPOResponse, NPOMapPoint, NPOUpdate, EventCreate, EventUpdate, 
     EventResponse, EventStatusUpdate, NewsCreate, NewsResponse
@@ -44,15 +44,53 @@ async def get_all_npos(db: Session = Depends(get_db)):
             description=npo.description,
             coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)] if npo.coordinates_lat is not None and npo.coordinates_lon is not None else None,
             address=npo.address,
+            city=NPOCity(npo.city) if npo.city else NPOCity.ANGARSK,
             timetable=npo.timetable,
             galleryIds=gallery_ids,
             tags=tags,
             links=json.loads(npo.links) if npo.links else None,
             vacancies=active_events_count,
+            status=npo.status if npo.status is not None else NPOStatus.NOT_CONFIRMED,
             created_at=npo.created_at
         ))
     
     return result
+
+@router.get("/{npo_id}", response_model=NPOResponse)
+async def get_npo_by_id(
+    npo_id: int,
+    db: Session = Depends(get_db)
+):
+    """Получение данных об НКО по id"""
+    npo = db.query(NPO).filter(NPO.id == npo_id).first()
+    if not npo:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="НКО не найдена"
+        )
+    
+    gallery_ids = [g.file_id for g in npo.gallery]
+    tags = [t.tag for t in npo.tags]
+    active_events_count = db.query(Event).filter(
+        Event.npo_id == npo.id,
+        Event.status == EventStatus.PUBLISHED
+    ).count()
+    
+    return NPOResponse(
+        id=npo.id,
+        name=npo.name,
+        description=npo.description,
+        coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)] if npo.coordinates_lat is not None and npo.coordinates_lon is not None else None,
+        address=npo.address,
+        city=NPOCity(npo.city) if npo.city else NPOCity.ANGARSK,
+        timetable=npo.timetable,
+        galleryIds=gallery_ids,
+        tags=tags,
+        links=json.loads(npo.links) if npo.links else None,
+        vacancies=active_events_count,
+        status=npo.status if npo.status is not None else NPOStatus.NOT_CONFIRMED,
+        created_at=npo.created_at
+    )
 
 @router.put("/{npo_id}")
 async def update_npo(
@@ -78,6 +116,8 @@ async def update_npo(
         npo.timetable = npo_update.timetable
     if npo_update.links is not None:
         npo.links = json.dumps(npo_update.links)
+    if npo_update.city is not None:
+        npo.city = npo_update.city.value  # Сохраняем строковое значение enum
     
     # Обновление галереи
     if npo_update.galleryIds is not None:
