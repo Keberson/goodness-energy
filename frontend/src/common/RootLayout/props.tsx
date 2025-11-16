@@ -98,7 +98,7 @@ export const volunteerMenuItems: MenuItem[] = [
 
 export const npoMenuItems: MenuItem[] = [
     {
-        key: "/my-organization",
+        key: "/organization",
         icon: <ShopOutlined />,
         label: "Моя организация",
     },

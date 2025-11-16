@@ -7,6 +7,7 @@ import { geodecodeApi } from "./api/geodecode.api";
 import { mapApi } from "./api/map.api";
 import { npoApi } from "./api/npo.api";
 import { volunteerApi } from "./api/volunteer.api";
+import { knowledgesApi } from "./api/knowledges.api";
 
 import loadingReducer from "./slices/loading.slice";
 import cityReducer from "./slices/city.slice";
@@ -21,6 +22,7 @@ const rootReducer = combineReducers({
     mapApi: mapApi.reducer,
     npoApi: npoApi.reducer,
     volunteerApi: volunteerApi.reducer,
+    knowledgesApi: knowledgesApi.reducer,
     loading: loadingReducer,
     city: cityReducer,
     auth: authReducer,
@@ -35,6 +37,7 @@ export const store = configureStore({
             .concat(mapApi.middleware)
             .concat(npoApi.middleware)
             .concat(volunteerApi.middleware)
+            .concat(knowledgesApi.middleware)
             .concat(loadingMiddleware)
             .concat(errorMiddleware),
 });

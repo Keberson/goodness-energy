@@ -1,0 +1,14 @@
+.ant-carousel .slick-prev,
+.ant-carousel .slick-next {
+    font-size: 24px;
+    color: #000;
+    z-index: 1;
+}
+
+.ant-carousel .slick-prev {
+    left: -40px;
+}
+
+.ant-carousel .slick-next {
+    right: -40px;
+}

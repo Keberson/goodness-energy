@@ -14,6 +14,8 @@ import ProfilePage from "./pages/Volunteer/ProfilePage/ProfilePage";
 import MapPage from "./pages/MapPage/MapPage";
 import NPOListPage from "./pages/NPO/NPOListPage/NPOListPage";
 import NPOPage from "./pages/NPO/NPOPage/NPOPage";
+import KnowledgesPage from "./pages/Knowledges/KnowledgesPage/KnowledgesPage";
+import KnowledgeDetailPage from "./pages/Knowledges/KnowledgesDetailPage/KnowledgesDetailPage";
 
 const router = createBrowserRouter([
     {
@@ -41,6 +43,19 @@ const router = createBrowserRouter([
                             {
                                 path: ":id",
                                 element: <NPOPage />,
+                            },
+                        ],
+                    },
+                    {
+                        path: "knowledges",
+                        children: [
+                            {
+                                index: true,
+                                element: <KnowledgesPage />,
+                            },
+                            {
+                                path: ":id",
+                                element: <KnowledgeDetailPage />,
                             },
                         ],
                     },
