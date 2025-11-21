@@ -68,6 +68,7 @@ class User(Base):
     login = Column(String, unique=True, index=True, nullable=False)
     password_hash = Column(String, nullable=False)
     role = Column(SQLEnum(UserRole), nullable=False)
+    vk_id = Column(Integer, unique=True, index=True, nullable=True)  # VK ID пользователя
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class File(Base):
@@ -162,6 +163,7 @@ class Event(Base):
     npo = relationship("NPO", back_populates="events")
     tags = relationship("EventTag", back_populates="event", cascade="all, delete-orphan")
     responses = relationship("EventResponse", back_populates="event", cascade="all, delete-orphan")
+    attachments = relationship("EventAttachment", back_populates="event", cascade="all, delete-orphan")
 
 class EventTag(Base):
     __tablename__ = "event_tags"
@@ -182,6 +184,16 @@ class EventResponse(Base):
     
     event = relationship("Event", back_populates="responses")
     volunteer = relationship("Volunteer", back_populates="event_responses")
+
+class EventAttachment(Base):
+    __tablename__ = "event_attachments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    file_id = Column(Integer, ForeignKey("files.id"), nullable=False)
+    
+    event = relationship("Event", back_populates="attachments")
+    file = relationship("File")
 
 class News(Base):
     __tablename__ = "news"

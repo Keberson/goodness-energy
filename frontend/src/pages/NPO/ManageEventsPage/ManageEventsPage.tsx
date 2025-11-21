@@ -15,11 +15,15 @@ import {
     message,
     Popconfirm,
     Flex,
+    Upload,
+    Row,
+    Col,
 } from "antd";
 import {
     PlusOutlined,
     DeleteOutlined,
     ArrowLeftOutlined,
+    UploadOutlined,
 } from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import dayjs, { type Dayjs } from "dayjs";
@@ -41,6 +45,8 @@ import {
 } from "@services/api/npo.api";
 import { useGetNPOByIdQuery } from "@services/api/npo.api";
 import { useLazyGeodecodeQuery } from "@services/api/geodecode.api";
+import { useUploadFileMutation } from "@services/api/files.api";
+import FilePreview from "@components/FilePreview/FilePreview";
 import useAppSelector from "@hooks/useAppSelector";
 import { skipToken } from "@reduxjs/toolkit/query";
 
@@ -69,12 +75,15 @@ const ManageEventsPage = () => {
     const [deleteEvent] = useDeleteEventMutation();
     const [updateEventStatus] = useUpdateEventStatusMutation();
     const [geodecode] = useLazyGeodecodeQuery();
+    const [uploadFile] = useUploadFileMutation();
     const { availableCities } = useCity();
 
     const [isModalOpen, setIsModalOpen] = useState(false);
     const [editingEvent, setEditingEvent] = useState<IEvent | null>(null);
     const [form] = Form.useForm();
     const [searchParams, setSearchParams] = useSearchParams();
+    const [attachedIds, setAttachedIds] = useState<number[]>([]);
+    const [uploading, setUploading] = useState(false);
 
     // Проверяем query параметр и открываем модальное окно при необходимости
     useEffect(() => {
@@ -93,6 +102,7 @@ const ManageEventsPage = () => {
 
     const handleCreate = () => {
         setEditingEvent(null);
+        setAttachedIds([]);
         form.resetFields();
         setIsModalOpen(true);
     };
@@ -127,6 +137,7 @@ const ManageEventsPage = () => {
             status: event.status,
             city: event.city,
         });
+        setAttachedIds(event.attachedIds || []);
         setIsModalOpen(true);
     };
 
@@ -184,6 +195,7 @@ const ManageEventsPage = () => {
                     quantity: values.quantity || null,
                     tags: tags.length > 0 ? tags : null,
                     city: values.city,
+                    attachedIds: attachedIds.length > 0 ? attachedIds : null,
                 };
                 await updateEvent({
                     npoId: npoData.id,
@@ -211,11 +223,13 @@ const ManageEventsPage = () => {
                     quantity: values.quantity || null,
                     tags: tags.length > 0 ? tags : null,
                     city: values.city,
+                    attachedIds: attachedIds.length > 0 ? attachedIds : null,
                 };
                 await createEvent({ npoId: npoData.id, body: createData }).unwrap();
                 message.success("Событие создано");
             }
             setIsModalOpen(false);
+            setAttachedIds([]);
             form.resetFields();
         } catch (error: any) {
             if (error?.data?.detail) {
@@ -340,6 +354,7 @@ const ManageEventsPage = () => {
                         setIsModalOpen(false);
                         form.resetFields();
                         setEditingEvent(null);
+                        setAttachedIds([]);
                     }}
                     width={600}
                     style={{ top: 50 }}
@@ -380,6 +395,7 @@ const ManageEventsPage = () => {
                                         setIsModalOpen(false);
                                         form.resetFields();
                                         setEditingEvent(null);
+                                        setAttachedIds([]);
                                     }}
                                 >
                                     Отмена
@@ -453,6 +469,67 @@ const ManageEventsPage = () => {
                             label="Теги"
                             help="Разделяйте теги запятыми"
                         >
+                            <Input placeholder="тег1, тег2, тег3" />
+                        </Form.Item>
+
+                        <Form.Item label="Изображения события">
+                            <Upload
+                                beforeUpload={async (file) => {
+                                    try {
+                                        setUploading(true);
+                                        const result = await uploadFile(file).unwrap();
+                                        setAttachedIds((prev) => [...prev, result.id]);
+                                        message.success("Изображение успешно загружено");
+                                        return false;
+                                    } catch (error) {
+                                        message.error("Ошибка при загрузке изображения");
+                                        return false;
+                                    } finally {
+                                        setUploading(false);
+                                    }
+                                }}
+                                showUploadList={false}
+                                accept="image/*"
+                                multiple
+                            >
+                                <Button icon={<UploadOutlined />} loading={uploading} disabled={uploading}>
+                                    Загрузить изображения
+                                </Button>
+                            </Upload>
+                            {attachedIds.length > 0 && (
+                                <Row gutter={[16, 16]} style={{ marginTop: 16 }}>
+                                    {attachedIds.map((fileId) => (
+                                        <Col xs={24} sm={12} md={8} lg={6} key={fileId}>
+                                            <div style={{ position: "relative" }}>
+                                                <FilePreview fileId={fileId} />
+                                                <Button
+                                                    type="primary"
+                                                    danger
+                                                    size="small"
+                                                    icon={<DeleteOutlined />}
+                                                    style={{
+                                                        position: "absolute",
+                                                        top: 8,
+                                                        right: 8,
+                                                    }}
+                                                    onClick={() => setAttachedIds((prev) => prev.filter((id) => id !== fileId))}
+                                                >
+                                                    Удалить
+                                                </Button>
+                                            </div>
+                                        </Col>
+                                    ))}
+                                </Row>
+                            )}
+                        </Form.Item>
+                    </Form>
+                </Modal>
+            )}
+        </div>
+    );
+};
+
+export default ManageEventsPage;
                             <Input placeholder="тег1, тег2, тег3" />
                         </Form.Item>
 

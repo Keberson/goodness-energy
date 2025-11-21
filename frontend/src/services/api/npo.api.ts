@@ -12,6 +12,7 @@ export interface IEventCreateRequest {
     quantity?: number | null;
     tags?: string[] | null;
     city: string; // Обязательное поле - город проведения события
+    attachedIds?: number[] | null; // ID файлов (изображений)
 }
 
 export interface IEventUpdateRequest {
@@ -23,6 +24,7 @@ export interface IEventUpdateRequest {
     quantity?: number | null;
     tags?: string[] | null;
     city?: string;
+    attachedIds?: number[] | null; // ID файлов (изображений)
 }
 
 export interface IEventStatusUpdateRequest {

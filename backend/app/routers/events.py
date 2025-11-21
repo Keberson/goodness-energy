@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
-from app.models import Event, EventTag
+from app.models import Event, EventTag, EventAttachment
 from app.schemas import EventResponse
 import logging
 
@@ -18,6 +18,7 @@ async def get_all_events(db: Session = Depends(get_db)):
     result = []
     for event in events:
         tags = [t.tag for t in event.tags]
+        attached_ids = [a.file_id for a in event.attachments]
         
         result.append(EventResponse(
             id=event.id,
@@ -31,6 +32,7 @@ async def get_all_events(db: Session = Depends(get_db)):
             status=event.status,
             tags=tags,
             city=event.city,
+            attachedIds=attached_ids,
             created_at=event.created_at
         ))
     

@@ -12,6 +12,7 @@ export interface IEvent {
     status: EventStatus;
     tags: string[];
     city: string | null; // Город НКО, создавшего событие
+    attachedIds: number[]; // ID файлов (изображений)
     created_at: string;
 }
 

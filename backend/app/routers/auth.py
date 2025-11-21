@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, UserRole, NPO, Volunteer, NPOStatus
-from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration
+from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, VKIDLogin
 from app.auth import verify_password, get_password_hash, create_access_token
 import json
 import logging
+import httpx
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -177,6 +179,160 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Не удалось найти связанную запись пользователя"
         )
+    
+    access_token = create_access_token(data={"sub": str(user.id)})
+    return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
+
+@router.post("/vkid/login", response_model=Token)
+async def vkid_login(vkid_data: VKIDLogin, db: Session = Depends(get_db)):
+    """Авторизация через VK ID"""
+    VK_APP_ID = os.getenv("VK_APP_ID", "")
+    VK_CLIENT_SECRET = os.getenv("VK_CLIENT_SECRET", "")
+    
+    if not VK_APP_ID or not VK_CLIENT_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="VK ID не настроен на сервере"
+        )
+    
+    # Проверяем токен через VK API
+    try:
+        async with httpx.AsyncClient() as client:
+            response = await client.get(
+                "https://api.vk.com/method/users.get",
+                params={
+                    "access_token": vkid_data.token,
+                    "v": "5.131",
+                    "fields": "id,first_name,last_name"
+                },
+                timeout=10.0
+            )
+            vk_response = response.json()
+            
+            if "error" in vk_response:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail=f"Неверный токен VK ID: {vk_response['error'].get('error_msg', 'Ошибка авторизации')}"
+                )
+            
+            if "response" not in vk_response or len(vk_response["response"]) == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Не удалось получить данные пользователя из VK"
+                )
+            
+            vk_user = vk_response["response"][0]
+            vk_id = vk_user["id"]
+            vk_first_name = vk_user.get("first_name", "")
+            vk_last_name = vk_user.get("last_name", "")
+            
+    except httpx.RequestError as e:
+        logger.error(f"Ошибка при запросе к VK API: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при проверке токена VK ID"
+        )
+    
+    # Определяем роль пользователя
+    if vkid_data.user_type not in ["volunteer", "npo"]:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="user_type должен быть 'volunteer' или 'npo'"
+        )
+    
+    target_role = UserRole.VOLUNTEER if vkid_data.user_type == "volunteer" else UserRole.NPO
+    
+    # Ищем пользователя по VK ID
+    user = db.query(User).filter(User.vk_id == vk_id).first()
+    
+    if user:
+        # Пользователь уже зарегистрирован через VK ID
+        if user.role != target_role:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Пользователь с этим VK ID уже зарегистрирован как {user.role.value}"
+            )
+    else:
+        # Создаем нового пользователя
+        # Генерируем уникальный логин на основе VK ID
+        login = f"vk_{vk_id}"
+        # Проверяем, не занят ли такой логин
+        counter = 1
+        while db.query(User).filter(User.login == login).first():
+            login = f"vk_{vk_id}_{counter}"
+            counter += 1
+        
+        # Создаем пользователя с пустым паролем (авторизация только через VK ID)
+        password_hash = get_password_hash(f"vk_{vk_id}_{VK_CLIENT_SECRET}")  # Генерируем случайный пароль
+        user = User(
+            login=login,
+            password_hash=password_hash,
+            role=target_role,
+            vk_id=vk_id
+        )
+        db.add(user)
+        db.flush()
+        
+        # Создаем соответствующую запись (волонтер или НКО)
+        if target_role == UserRole.VOLUNTEER:
+            volunteer = Volunteer(
+                user_id=user.id,
+                first_name=vk_first_name,
+                second_name=vk_last_name,
+                middle_name=None,
+                about=None,
+                birthday=None,
+                city=None,
+                sex=None,
+                email=None,
+                phone=None
+            )
+            db.add(volunteer)
+            db.flush()
+            user_id = volunteer.id
+        else:  # NPO
+            # Для НКО нужны дополнительные данные, поэтому создаем минимальную запись
+            # В реальном приложении можно запросить дополнительные данные
+            npo = NPO(
+                user_id=user.id,
+                name=f"{vk_first_name} {vk_last_name}",
+                description=None,
+                coordinates_lat=None,
+                coordinates_lon=None,
+                address=None,
+                city=None,
+                timetable=None,
+                links=None,
+                status=NPOStatus.NOT_CONFIRMED
+            )
+            db.add(npo)
+            db.flush()
+            user_id = npo.id
+        
+        db.commit()
+        db.refresh(user)
+    
+    # Получаем id из соответствующей таблицы
+    if user.role == UserRole.NPO:
+        npo = db.query(NPO).filter(NPO.user_id == user.id).first()
+        if npo:
+            user_id = npo.id
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Не удалось найти НКО для пользователя"
+            )
+    elif user.role == UserRole.VOLUNTEER:
+        volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
+        if volunteer:
+            user_id = volunteer.id
+        else:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Не удалось найти волонтера для пользователя"
+            )
+    else:
+        user_id = user.id
     
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": user_id}

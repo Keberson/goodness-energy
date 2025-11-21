@@ -14,6 +14,10 @@ class Token(BaseModel):
     user_type: str  # "volunteer" | "npo" | "admin"
     id: int  # ID из таблицы volunteers/npos/users (для admin)
 
+class VKIDLogin(BaseModel):
+    token: str  # Токен от VK ID
+    user_type: str  # "volunteer" или "npo"
+
 # Регистрация НКО
 class NPORegistration(BaseModel):
     login: str
@@ -85,6 +89,7 @@ class EventCreate(BaseModel):
     quantity: Optional[int] = None
     tags: Optional[List[str]] = None
     city: NPOCity  # Обязательное поле - город проведения события
+    attachedIds: Optional[List[int]] = None  # ID файлов (изображений)
 
 class EventUpdate(BaseModel):
     name: Optional[str] = None
@@ -95,6 +100,7 @@ class EventUpdate(BaseModel):
     quantity: Optional[int] = None
     tags: Optional[List[str]] = None
     city: Optional[NPOCity] = None
+    attachedIds: Optional[List[int]] = None  # ID файлов (изображений)
 
 class EventStatusUpdate(BaseModel):
     status: EventStatus
@@ -111,6 +117,7 @@ class EventResponse(BaseModel):
     status: EventStatus
     tags: List[str]
     city: Optional[str]  # Город НКО, создавшего событие
+    attachedIds: List[int] = []  # ID файлов (изображений)
     created_at: datetime
     
     class Config:

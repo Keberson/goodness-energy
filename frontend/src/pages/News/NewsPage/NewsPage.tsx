@@ -1,8 +1,9 @@
-import { Card, Typography, Tag, Space, Descriptions, Button, Flex } from "antd";
+import { Card, Typography, Tag, Space, Descriptions, Button, Flex, Row, Col } from "antd";
 import { CalendarOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetNewsByIdQuery } from "@services/api/news.api";
 import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
+import FilePreview from "@components/FilePreview/FilePreview";
 
 const { Title, Paragraph } = Typography;
 
@@ -97,20 +98,23 @@ const NewsPage = () => {
                             </Space>
                         </Descriptions.Item>
                     )}
-                    {data.attachedIds && data.attachedIds.length > 0 && (
-                        <Descriptions.Item label="Вложения">
-                            <Space>
-                                {data.attachedIds.map((fileId) => (
-                                    <Tag key={fileId}>Файл #{fileId}</Tag>
-                                ))}
-                            </Space>
-                        </Descriptions.Item>
-                    )}
                 </Descriptions>
                 <Title level={4}>Содержание</Title>
                 <Paragraph style={{ whiteSpace: "pre-wrap", fontSize: 16, lineHeight: 1.8 }}>
                     {data.text}
                 </Paragraph>
+                {data.attachedIds && data.attachedIds.length > 0 && (
+                    <div style={{ marginTop: 24 }}>
+                        <Title level={4}>Прикрепленные файлы и изображения</Title>
+                        <Row gutter={[16, 16]}>
+                            {data.attachedIds.map((fileId) => (
+                                <Col xs={24} sm={12} md={8} lg={6} key={fileId}>
+                                    <FilePreview fileId={fileId} />
+                                </Col>
+                            ))}
+                        </Row>
+                    </div>
+                )}
             </Card>
         </div>
     );

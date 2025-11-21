@@ -5,7 +5,7 @@ from typing import List, Optional
 from datetime import datetime
 from app.database import get_db
 from app.models import (
-    NPO, NPOGallery, NPOTag, Event, EventTag, News, NewsTag, NewsAttachment, 
+    NPO, NPOGallery, NPOTag, Event, EventTag, EventAttachment, News, NewsTag, NewsAttachment, 
     EventStatus, User, NPOStatus, NPOCity, NPOView, EventView, EventResponse as EventResponseModel
 )
 from app.schemas import (
@@ -244,6 +244,7 @@ async def get_npo_events(
     result = []
     for event in events:
         tags = [t.tag for t in event.tags]
+        attached_ids = [a.file_id for a in event.attachments]
         result.append(EventResponse(
             id=event.id,
             npo_id=event.npo_id,
@@ -256,6 +257,7 @@ async def get_npo_events(
             status=event.status,
             tags=tags,
             city=event.city,
+            attachedIds=attached_ids,
             created_at=event.created_at
         ))
     
@@ -335,10 +337,18 @@ async def create_event(
             event_tag = EventTag(event_id=event.id, tag=tag)
             db.add(event_tag)
     
+    # Добавление вложений (изображений)
+    if event_data.attachedIds:
+        from app.models import EventAttachment
+        for file_id in event_data.attachedIds:
+            attachment = EventAttachment(event_id=event.id, file_id=file_id)
+            db.add(attachment)
+    
     db.commit()
     db.refresh(event)
     
     tags = [t.tag for t in event.tags]
+    attached_ids = [a.file_id for a in event.attachments]
     return EventResponse(
         id=event.id,
         npo_id=event.npo_id,
@@ -351,6 +361,7 @@ async def create_event(
         status=event.status,
         tags=tags,
         city=event.city,
+        attachedIds=attached_ids,
         created_at=event.created_at
     )
 
@@ -436,10 +447,19 @@ async def update_event(
             event_tag = EventTag(event_id=event.id, tag=tag)
             db.add(event_tag)
     
+    # Обновление вложений (изображений)
+    if event_update.attachedIds is not None:
+        from app.models import EventAttachment
+        db.query(EventAttachment).filter(EventAttachment.event_id == event.id).delete()
+        for file_id in event_update.attachedIds:
+            attachment = EventAttachment(event_id=event.id, file_id=file_id)
+            db.add(attachment)
+    
     db.commit()
     db.refresh(event)
     
     tags = [t.tag for t in event.tags]
+    attached_ids = [a.file_id for a in event.attachments]
     return EventResponse(
         id=event.id,
         npo_id=event.npo_id,
@@ -452,6 +472,7 @@ async def update_event(
         status=event.status,
         tags=tags,
         city=event.city,
+        attachedIds=attached_ids,
         created_at=event.created_at
     )
 
