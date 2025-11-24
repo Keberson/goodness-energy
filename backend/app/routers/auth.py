@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, UserRole, NPO, Volunteer, NPOStatus
-from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, VKIDLogin, VKIDCallback, VKIDCallback
-from app.auth import verify_password, get_password_hash, create_access_token
+from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, VKIDLogin, VKIDCallback, VKIDCallback, SelectedCityUpdate
+from app.auth import verify_password, get_password_hash, create_access_token, get_current_user
 import json
 import logging
 import httpx
@@ -144,44 +144,61 @@ async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depe
 
 @router.post("/login", response_model=Token)
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
-    user = db.query(User).filter(User.login == user_data.login).first()
-    if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверный логин или пароль",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Проверка пароля
-    if not verify_password(user_data.password, user.password_hash):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Неверный логин или пароль",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-    
-    # Получаем id из соответствующей таблицы в зависимости от роли
-    user_id = None
-    if user.role == UserRole.NPO:
-        npo = db.query(NPO).filter(NPO.user_id == user.id).first()
-        if npo:
-            user_id = npo.id
-    elif user.role == UserRole.VOLUNTEER:
-        volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
-        if volunteer:
-            user_id = volunteer.id
-    elif user.role == UserRole.ADMIN:
-        # Для админа используем id из таблицы users
-        user_id = user.id
-    
-    if user_id is None:
+    try:
+        logger.info(f"Попытка входа пользователя: {user_data.login}")
+        user = db.query(User).filter(User.login == user_data.login).first()
+        if not user:
+            logger.warning(f"Пользователь с логином {user_data.login} не найден")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный логин или пароль",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Проверка пароля
+        logger.debug(f"Проверка пароля для пользователя {user_data.login}")
+        if not verify_password(user_data.password, user.password_hash):
+            logger.warning(f"Неверный пароль для пользователя {user_data.login}")
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Неверный логин или пароль",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+        
+        # Получаем id из соответствующей таблицы в зависимости от роли
+        logger.debug(f"Получение ID для пользователя {user_data.login} с ролью {user.role}")
+        user_id = None
+        if user.role == UserRole.NPO:
+            npo = db.query(NPO).filter(NPO.user_id == user.id).first()
+            if npo:
+                user_id = npo.id
+        elif user.role == UserRole.VOLUNTEER:
+            volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
+            if volunteer:
+                user_id = volunteer.id
+        elif user.role == UserRole.ADMIN:
+            # Для админа используем id из таблицы users
+            user_id = user.id
+        
+        if user_id is None:
+            logger.error(f"Не удалось найти связанную запись для пользователя {user_data.login} с ролью {user.role}")
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail="Не удалось найти связанную запись пользователя"
+            )
+        
+        logger.info(f"Успешный вход пользователя {user_data.login} с ролью {user.role}, ID: {user_id}")
+        access_token = create_access_token(data={"sub": str(user.id)})
+        return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
+    except HTTPException:
+        # Пробрасываем HTTPException как есть
+        raise
+    except Exception as e:
+        logger.error(f"Неожиданная ошибка при входе пользователя {user_data.login}: {e}", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="Не удалось найти связанную запись пользователя"
+            detail=f"Внутренняя ошибка сервера: {str(e)}"
         )
-    
-    access_token = create_access_token(data={"sub": str(user.id)})
-    return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
 
 @router.post("/vkid/login", response_model=Token)
 async def vkid_login(vkid_data: VKIDLogin, db: Session = Depends(get_db)):
@@ -392,4 +409,24 @@ async def vkid_callback(callback_data: VKIDCallback, db: Session = Depends(get_d
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ошибка при обмене кода на токен VK ID"
         )
+
+@router.get("/selected-city")
+async def get_selected_city(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Получение выбранного города пользователя"""
+    return {"selected_city": current_user.selected_city}
+
+@router.put("/selected-city")
+async def update_selected_city(
+    city_update: SelectedCityUpdate,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Обновление выбранного города пользователя"""
+    current_user.selected_city = city_update.city
+    db.commit()
+    db.refresh(current_user)
+    return {"message": "Выбранный город успешно обновлен", "selected_city": current_user.selected_city}
 

@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from app.database import get_db
 from app.models import News, NewsTag, NewsAttachment, NPO, Volunteer, UserRole
 from app.schemas import NewsCreate, NewsResponse, NewsUpdate
@@ -12,9 +12,30 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.get("", response_model=List[NewsResponse])
-async def get_all_news(db: Session = Depends(get_db)):
-    """Получение всех новостей/База знаний"""
-    news_list = db.query(News).order_by(News.created_at.desc()).all()
+async def get_all_news(
+    city: Optional[str] = Query(None, description="Фильтр по городу"),
+    db: Session = Depends(get_db)
+):
+    """Получение всех новостей/База знаний с опциональной фильтрацией по городу"""
+    from sqlalchemy import or_, and_
+    
+    query = db.query(News)
+    
+    if city:
+        # Фильтруем новости по городу НКО или волонтера, или показываем новости от админов (глобальные)
+        # Используем подзапросы для более эффективной фильтрации
+        npo_ids_subquery = db.query(NPO.id).filter(NPO.city == city)
+        volunteer_ids_subquery = db.query(Volunteer.id).filter(Volunteer.city == city)
+        
+        query = query.filter(
+            or_(
+                and_(News.npo_id.isnot(None), News.npo_id.in_(npo_ids_subquery)),
+                and_(News.volunteer_id.isnot(None), News.volunteer_id.in_(volunteer_ids_subquery)),
+                News.admin_id.isnot(None)  # Новости от админов показываем всегда
+            )
+        )
+    
+    news_list = query.order_by(News.created_at.desc()).all()
     result = []
     
     for news in news_list:

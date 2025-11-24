@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from sqlalchemy import func, distinct
 from typing import List, Optional
@@ -31,9 +31,17 @@ def get_npo_by_user_id(user_id: int, db: Session) -> NPO:
     return npo
 
 @router.get("", response_model=List[NPOResponse])
-async def get_all_npos(db: Session = Depends(get_db)):
-    """Список всех организаций"""
-    npos = db.query(NPO).all()
+async def get_all_npos(
+    city: Optional[str] = Query(None, description="Фильтр по городу"),
+    db: Session = Depends(get_db)
+):
+    """Список всех организаций с опциональной фильтрацией по городу"""
+    query = db.query(NPO)
+    
+    if city:
+        query = query.filter(NPO.city == city)
+    
+    npos = query.all()
     result = []
     
     for npo in npos:

@@ -3,12 +3,14 @@ import { EyeOutlined, CalendarOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useGetNewsQuery } from "@services/api/news.api";
 import type { INews } from "@app-types/news.types";
+import { useCity } from "@hooks/useCity";
 
 const { Title, Paragraph } = Typography;
 
 const NewsListPage = () => {
     const navigate = useNavigate();
-    const { data, isLoading } = useGetNewsQuery();
+    const { currentCity } = useCity();
+    const { data, isLoading } = useGetNewsQuery(currentCity);
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {

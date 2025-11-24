@@ -137,12 +137,16 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
 
 def get_token_from_request(request: Request) -> Optional[str]:
     """Извлекает токен из заголовка Authorization"""
-    authorization = request.headers.get("Authorization")
+    # Проверяем оба варианта регистра (Authorization и authorization)
+    authorization = request.headers.get("Authorization") or request.headers.get("authorization")
     if not authorization:
         return None
     
-    if authorization.startswith("Bearer "):
-        return authorization[7:]
+    # Проверяем оба варианта написания Bearer (с учетом регистра)
+    auth_lower = authorization.lower()
+    if auth_lower.startswith("bearer "):
+        # Находим позицию после "bearer " (7 символов)
+        return authorization[7:].strip()
     return None
 
 async def get_current_user(
@@ -156,33 +160,38 @@ async def get_current_user(
         headers={"WWW-Authenticate": "Bearer"},
     )
     
+    # Логируем заголовки для отладки
+    auth_header = request.headers.get("Authorization")
+    logger.info(f"Authorization header: {auth_header[:50] if auth_header else 'None'}...")
+    logger.info(f"Все заголовки: {dict(request.headers)}")
+    
     # Пробуем получить токен из HTTPBearer
     token = None
     if credentials:
         token = credentials.credentials
-        logger.debug(f"Токен из HTTPBearer (первые 20 символов): {token[:20] if token else 'None'}...")
+        logger.info(f"Токен из HTTPBearer (первые 20 символов): {token[:20] if token else 'None'}...")
     
     # Если токен не получен через HTTPBearer, пробуем извлечь напрямую из Request
     if not token:
         token = get_token_from_request(request)
-        logger.debug(f"Токен из Request (первые 20 символов): {token[:20] if token else 'None'}...")
+        logger.info(f"Токен из Request (первые 20 символов): {token[:20] if token else 'None'}...")
     
     if not token:
-        logger.debug("Токен не найден")
+        logger.warning("Токен не найден в запросе")
         raise credentials_exception
     
     try:
         payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
         user_id_str = payload.get("sub")
-        logger.debug(f"Декодированный user_id (как строка): {user_id_str}")
+        logger.info(f"Декодированный user_id (как строка): {user_id_str}")
         if user_id_str is None:
-            logger.debug("user_id равен None в payload")
+            logger.warning("user_id равен None в payload")
             raise credentials_exception
         # Преобразуем строку обратно в int
         user_id: int = int(user_id_str)
-        logger.debug(f"Преобразован user_id в int: {user_id}")
+        logger.info(f"Преобразован user_id в int: {user_id}")
     except (JWTError, ValueError, TypeError) as e:
-        logger.debug(f"Ошибка декодирования токена: {e}")
+        logger.error(f"Ошибка декодирования токена: {e}", exc_info=True)
         raise credentials_exception
     
     user = db.query(User).filter(User.id == user_id).first()

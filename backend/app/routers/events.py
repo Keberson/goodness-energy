@@ -1,6 +1,6 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional
 from app.database import get_db
 from app.models import Event, EventTag, EventAttachment
 from app.schemas import EventResponse
@@ -11,9 +11,19 @@ logger = logging.getLogger(__name__)
 router = APIRouter()
 
 @router.get("", response_model=List[EventResponse])
-async def get_all_events(db: Session = Depends(get_db)):
-    """Получение всех событий"""
-    events = db.query(Event).order_by(Event.created_at.desc()).all()
+async def get_all_events(
+    city: Optional[str] = Query(None, description="Фильтр по городу"),
+    db: Session = Depends(get_db)
+):
+    """Получение всех событий с опциональной фильтрацией по городу"""
+    logger.info(f"Получен запрос на события с параметром city: {city}")
+    query = db.query(Event)
+    
+    if city:
+        logger.info(f"Фильтрация событий по городу: {city}")
+        query = query.filter(Event.city == city)
+    
+    events = query.order_by(Event.created_at.desc()).all()
     
     result = []
     for event in events:

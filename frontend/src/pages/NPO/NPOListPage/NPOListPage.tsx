@@ -11,8 +11,8 @@ const { Title } = Typography;
 
 const NPOListPage = () => {
     const navigate = useNavigate();
-    const { data, isLoading } = useGetNPOsQuery();
     const { currentCity } = useCity();
+    const { data, isLoading } = useGetNPOsQuery(currentCity);
 
     const columns = getNPOColumns(navigate);
 
@@ -24,9 +24,7 @@ const NPOListPage = () => {
                 </Title>
                 <Table<INPO>
                     columns={columns}
-                    dataSource={(data ?? [])
-                        .map((item) => ({ ...item, key: item.id }))
-                        .filter((item) => item.city === currentCity)}
+                    dataSource={(data ?? []).map((item) => ({ ...item, key: item.id }))}
                     loading={isLoading}
                     scroll={{ x: "max-content" }}
                     tableLayout="auto"

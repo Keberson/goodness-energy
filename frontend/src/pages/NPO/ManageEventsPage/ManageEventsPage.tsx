@@ -472,6 +472,16 @@ const ManageEventsPage = () => {
                             <Input placeholder="тег1, тег2, тег3" />
                         </Form.Item>
 
+                        {editingEvent && (
+                            <Form.Item
+                                name="status"
+                                label="Статус"
+                                rules={[{ required: true, message: "Выберите статус" }]}
+                            >
+                                <Select options={statusOptions} />
+                            </Form.Item>
+                        )}
+
                         <Form.Item label="Изображения события">
                             <Upload
                                 beforeUpload={async (file) => {

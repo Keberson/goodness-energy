@@ -8,7 +8,7 @@ export const eventsApi = createApi({
     baseQuery: fetchBaseQuery({
         baseUrl: `${import.meta.env.VITE_API_BASE_URL}/events`,
         prepareHeaders: (headers) => {
-            const token = localStorage.getItem("token");
+            const token = localStorage.getItem("jwtToken");
             if (token) {
                 headers.set("Authorization", `Bearer ${token}`);
             }
@@ -16,8 +16,14 @@ export const eventsApi = createApi({
         },
     }),
     endpoints: (builder) => ({
-        getEvents: builder.query<IEvent[], void>({
-            query: () => ({ url: `` }),
+        getEvents: builder.query<IEvent[], string | undefined>({
+            query: (city) => {
+                const params = city ? { city } : {};
+                return {
+                    url: ``,
+                    ...(city && { params }),
+                };
+            },
             providesTags: (result) =>
                 result
                     ? [

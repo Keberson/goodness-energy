@@ -69,6 +69,7 @@ class User(Base):
     password_hash = Column(String, nullable=False)
     role = Column(SQLEnum(UserRole), nullable=False)
     vk_id = Column(Integer, unique=True, index=True, nullable=True)  # VK ID пользователя
+    selected_city = Column(String, nullable=True)  # Выбранный город пользователя
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class File(Base):
@@ -306,4 +307,15 @@ class Favorite(Base):
         # Уникальный индекс: один пользователь не может добавить один и тот же элемент дважды
         UniqueConstraint('user_id', 'item_type', 'item_id', name='uq_user_item'),
     )
+
+class CityCoordinates(Base):
+    __tablename__ = "city_coordinates"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    city_name = Column(String, unique=True, nullable=False, index=True)  # Название города
+    center_lat = Column(Float, nullable=False)  # Широта центра города
+    center_lon = Column(Float, nullable=False)  # Долгота центра города
+    zoom = Column(Integer, nullable=False)  # Уровень зума для карты
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 
