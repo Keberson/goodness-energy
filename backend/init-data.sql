@@ -757,7 +757,7 @@ VALUES (
   '1998-08-20 00:00:00',
   'Санкт-Петербург',
   'male',
-  'maxim.kuzov@example.com',
+  'k3berson@gmail.com',
   '+79991234568',
   NOW()
 );
