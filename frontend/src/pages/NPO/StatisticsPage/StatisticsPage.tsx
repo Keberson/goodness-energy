@@ -1,4 +1,17 @@
-import { Card, Statistic, Row, Col, Table, Typography, Tag, Space, Spin, Button, Dropdown, message } from "antd";
+import {
+    Card,
+    Statistic,
+    Row,
+    Col,
+    Table,
+    Typography,
+    Tag,
+    Space,
+    Spin,
+    Button,
+    Dropdown,
+    message,
+} from "antd";
 import {
     EyeOutlined,
     UserOutlined,
@@ -9,16 +22,11 @@ import {
     FilePdfOutlined,
     FileExcelOutlined,
 } from "@ant-design/icons";
-
-import { getApiBaseUrl } from "@utils/apiUrl";
-} from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
+import { getApiBaseUrl } from "@utils/apiUrl";
 import type { MenuProps } from "antd";
 
-import { 
-    useGetNPOStatisticsQuery,
-    useGetNPOByIdQuery,
-} from "@services/api/npo.api";
+import { useGetNPOStatisticsQuery, useGetNPOByIdQuery } from "@services/api/npo.api";
 import useAppSelector from "@hooks/useAppSelector";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { useNavigate } from "react-router-dom";
@@ -50,7 +58,7 @@ const StatisticsPage = () => {
 
             const endpoint = format === "csv" ? "csv" : "pdf";
             const apiUrl = `${getApiBaseUrl()}/npo/${npoData.id}/analytics/export/${endpoint}`;
-            
+
             const response = await fetch(apiUrl, {
                 method: "GET",
                 headers: {
@@ -63,7 +71,9 @@ const StatisticsPage = () => {
             }
 
             const blob = await response.blob();
-            const filename = `npo_${npoData.id}_analytics_${new Date().toISOString().split("T")[0]}.${format}`;
+            const filename = `npo_${npoData.id}_analytics_${
+                new Date().toISOString().split("T")[0]
+            }.${format}`;
 
             // Создаем ссылку для скачивания
             const url = window.URL.createObjectURL(blob);
@@ -195,16 +205,19 @@ const StatisticsPage = () => {
                 >
                     Назад в профиль НКО
                 </Button>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 24 }}>
+                <div
+                    style={{
+                        display: "flex",
+                        justifyContent: "space-between",
+                        alignItems: "center",
+                        marginBottom: 24,
+                    }}
+                >
                     <Title level={2} style={{ margin: 0 }}>
                         Статистика организации
                     </Title>
                     <Dropdown menu={{ items: downloadMenuItems }} placement="bottomRight">
-                        <Button
-                            type="primary"
-                            icon={<DownloadOutlined />}
-                            loading={isDownloading}
-                        >
+                        <Button type="primary" icon={<DownloadOutlined />} loading={isDownloading}>
                             Скачать аналитику
                         </Button>
                     </Dropdown>

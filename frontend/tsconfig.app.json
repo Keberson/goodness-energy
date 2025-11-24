@@ -31,7 +31,8 @@
             "@services/*": ["./src/services/*"],
             "@contexts/*": ["./src/contexts/*"],
             "@app-types/*": ["./src/types/*"],
-            "@components/*": ["./src/common/components/*"]
+            "@components/*": ["./src/common/components/*"],
+            "@utils/*": ["./src/utils/*"]
         }
     },
     "include": ["src"]
