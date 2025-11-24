@@ -3,6 +3,7 @@ import { Descriptions, Tag, Space, Typography, Row, Col, Empty } from "antd";
 
 import type { INPO } from "@app-types/npo.types";
 import FilePreview from "@components/FilePreview/FilePreview";
+import NotificationSettings from "@components/NotificationSettings/NotificationSettings";
 
 const { Text, Paragraph, Title } = Typography;
 
@@ -79,6 +80,8 @@ const NPOProfileView: React.FC<NPOProfileViewProps> = ({ profileData }) => {
                     <Empty description="Фотографии не загружены" />
                 )}
             </div>
+
+            <NotificationSettings />
         </div>
     );
 };

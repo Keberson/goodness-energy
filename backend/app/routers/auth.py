@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, UserRole, NPO, Volunteer, NPOStatus
-from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate
+from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse
 from app.auth import verify_password, get_password_hash, create_access_token, get_current_user
 import json
 import logging
@@ -219,4 +219,39 @@ async def update_selected_city(
     db.commit()
     db.refresh(current_user)
     return {"message": "Выбранный город успешно обновлен", "selected_city": current_user.selected_city}
+
+@router.get("/notification-settings", response_model=NotificationSettingsResponse)
+async def get_notification_settings(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Получение настроек уведомлений пользователя"""
+    return NotificationSettingsResponse(
+        notify_city_news=current_user.notify_city_news,
+        notify_registrations=current_user.notify_registrations,
+        notify_events=current_user.notify_events
+    )
+
+@router.put("/notification-settings", response_model=NotificationSettingsResponse)
+async def update_notification_settings(
+    settings_update: NotificationSettingsUpdate,
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Обновление настроек уведомлений пользователя"""
+    if settings_update.notify_city_news is not None:
+        current_user.notify_city_news = settings_update.notify_city_news
+    if settings_update.notify_registrations is not None:
+        current_user.notify_registrations = settings_update.notify_registrations
+    if settings_update.notify_events is not None:
+        current_user.notify_events = settings_update.notify_events
+    
+    db.commit()
+    db.refresh(current_user)
+    
+    return NotificationSettingsResponse(
+        notify_city_news=current_user.notify_city_news,
+        notify_registrations=current_user.notify_registrations,
+        notify_events=current_user.notify_events
+    )
 

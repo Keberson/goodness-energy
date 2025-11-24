@@ -17,6 +17,20 @@ class Token(BaseModel):
 class SelectedCityUpdate(BaseModel):
     city: str  # Выбранный город пользователя
 
+# Схемы настроек уведомлений
+class NotificationSettingsUpdate(BaseModel):
+    notify_city_news: Optional[bool] = None  # Уведомления о новостях из города
+    notify_registrations: Optional[bool] = None  # Уведомления о регистрациях
+    notify_events: Optional[bool] = None  # Уведомления о событиях
+
+class NotificationSettingsResponse(BaseModel):
+    notify_city_news: bool
+    notify_registrations: bool
+    notify_events: bool
+    
+    class Config:
+        from_attributes = True
+
 # Регистрация НКО
 class NPORegistration(BaseModel):
     login: str

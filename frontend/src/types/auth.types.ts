@@ -1,5 +1,17 @@
 export type UserTypes = "npo" | "admin" | "volunteer";
 
+export interface INotificationSettings {
+    notify_city_news: boolean;
+    notify_registrations: boolean;
+    notify_events: boolean;
+}
+
+export interface INotificationSettingsUpdate {
+    notify_city_news?: boolean;
+    notify_registrations?: boolean;
+    notify_events?: boolean;
+}
+
 export interface ILoginRequest {
     login: string;
     password: string;

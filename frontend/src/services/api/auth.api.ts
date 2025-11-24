@@ -5,6 +5,8 @@ import type {
     IAuthResponse,
     IRegVolunteerRequest,
     IRegNPORequest,
+    INotificationSettings,
+    INotificationSettingsUpdate,
 } from "@app-types/auth.types";
 
 export const authApi = createApi({
@@ -40,6 +42,16 @@ export const authApi = createApi({
                 body,
             }),
         }),
+        getNotificationSettings: builder.query<INotificationSettings, void>({
+            query: () => ({ url: `/notification-settings` }),
+        }),
+        updateNotificationSettings: builder.mutation<INotificationSettings, INotificationSettingsUpdate>({
+            query: (body) => ({
+                url: `/notification-settings`,
+                method: "PUT",
+                body,
+            }),
+        }),
     }),
 });
 
@@ -49,4 +61,6 @@ export const {
     useRegisterNPOMutation,
     useGetSelectedCityQuery,
     useUpdateSelectedCityMutation,
+    useGetNotificationSettingsQuery,
+    useUpdateNotificationSettingsMutation,
 } = authApi;
