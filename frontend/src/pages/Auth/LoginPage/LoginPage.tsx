@@ -18,57 +18,86 @@ type FormValues = {
     password: string;
 };
 
-// Объявляем тип для VK ID SDK
-declare global {
-    interface Window {
-        VK?: {
-            init: (config: { apiId: number }) => void;
-            Auth: {
-                login: (
-                    callback: (response: {
-                        session: { access_token: string; user: { id: number } };
-                    }) => void,
-                    settings: number
-                ) => void;
-            };
-        };
-    }
-}
-
 const LoginPage = () => {
     const [loginAPI] = useLoginMutation();
     const [vkidLogin] = useVkidLoginMutation();
     const dispatch = useAppDispatch();
     const [vkidUserType, setVkidUserType] = useState<"volunteer" | "npo">("volunteer");
     const VK_APP_ID = import.meta.env.VITE_VK_APP_ID || "";
+    const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || "";
 
-    // Загружаем VK ID SDK
-    useEffect(() => {
-        if (!VK_APP_ID) {
-            console.warn("VK_APP_ID не настроен");
-            return;
-        }
+    const handleVKIDCallback = async (code: string, userType: "volunteer" | "npo") => {
+        try {
+            // Формируем redirect_uri (должен совпадать с тем, что был использован при авторизации)
+            const redirectUri = `${window.location.origin}${window.location.pathname}`;
 
-        // Проверяем, не загружен ли уже скрипт
-        if (window.VK) {
-            window.VK.init({ apiId: Number(VK_APP_ID) });
-            return;
-        }
+            // Отправляем code на backend для обмена на access_token
+            const response = await fetch(`${API_BASE_URL}/auth/vkid/callback`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ code, user_type: userType, redirect_uri: redirectUri }),
+            });
 
-        const script = document.createElement("script");
-        script.src = "https://vk.com/js/api/openapi.js?169";
-        script.async = true;
-        script.onload = () => {
-            if (window.VK) {
-                window.VK.init({ apiId: Number(VK_APP_ID) });
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || "Ошибка при обмене кода на токен");
             }
-        };
-        document.body.appendChild(script);
 
-        return () => {
-            // Очистка при размонтировании не требуется, скрипт может остаться
-        };
-    }, [VK_APP_ID]);
+            const data = await response.json();
+
+            // Теперь используем полученный токен для авторизации
+            const result = await vkidLogin({
+                token: data.access_token,
+                user_type: userType,
+            }).unwrap();
+
+            dispatch(
+                login({
+                    token: result.access_token,
+                    type: result.user_type,
+                    id: result.id,
+                })
+            );
+            message.success("Успешный вход через VK ID");
+
+            // Очищаем URL от параметров
+            window.history.replaceState({}, document.title, window.location.pathname);
+        } catch (error: any) {
+            message.error(error?.message || error?.data?.detail || "Ошибка при входе через VK ID");
+            // Очищаем URL от параметров
+            window.history.replaceState({}, document.title, window.location.pathname);
+        }
+    };
+
+    // Обработка callback от VK ID после редиректа
+    useEffect(() => {
+        const urlParams = new URLSearchParams(window.location.search);
+        const code = urlParams.get("code");
+        const state = urlParams.get("state");
+        const error = urlParams.get("error");
+        const errorDescription = urlParams.get("error_description");
+
+        if (error) {
+            message.error(errorDescription || "Ошибка авторизации через VK ID");
+            // Очищаем URL от параметров
+            window.history.replaceState({}, document.title, window.location.pathname);
+            return;
+        }
+
+        if (code && state) {
+            // Проверяем, что state соответствует ожидаемому формату: "vkid_{user_type}"
+            const stateParts = state.split("_");
+            if (stateParts.length === 2 && stateParts[0] === "vkid") {
+                const userType = stateParts[1] as "volunteer" | "npo";
+
+                // Обмениваем code на access_token через backend
+                handleVKIDCallback(code, userType);
+            }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const onFinish = async (values: FormValues) => {
         try {
@@ -80,39 +109,31 @@ const LoginPage = () => {
     };
 
     const handleVKIDLogin = () => {
-        if (!window.VK) {
-            message.error("VK ID SDK не загружен. Проверьте настройки VK_APP_ID.");
-            return;
-        }
-
         if (!VK_APP_ID) {
             message.error("VK ID не настроен");
             return;
         }
 
-        window.VK.Auth.login(
-            async (response) => {
-                if (response.session) {
-                    try {
-                        const result = await vkidLogin({
-                            token: response.session.access_token,
-                            user_type: vkidUserType,
-                        }).unwrap();
-                        dispatch(
-                            login({
-                                token: result.access_token,
-                                type: result.user_type,
-                                id: result.id,
-                            })
-                        );
-                        message.success("Успешный вход через VK ID");
-                    } catch (error: any) {
-                        message.error(error?.data?.detail || "Ошибка при входе через VK ID");
-                    }
-                }
-            },
-            4194304 // Права доступа: email, friends, offline
+        // Формируем redirect_uri (должен совпадать с настройками в VK приложении)
+        const redirectUri = encodeURIComponent(
+            `${window.location.origin}${window.location.pathname}`
         );
+
+        // Формируем state для передачи типа пользователя
+        const state = `vkid_${vkidUserType}`;
+
+        // Формируем URL для авторизации через VK ID
+        // Используем правильный endpoint для VK ID
+        const vkAuthUrl =
+            `https://id.vk.com/oauth/authorize?` +
+            `client_id=${VK_APP_ID}&` +
+            `redirect_uri=${redirectUri}&` +
+            `response_type=code&` +
+            `scope=email&` +
+            `state=${state}`;
+
+        // Перенаправляем пользователя на страницу авторизации VK
+        window.location.href = vkAuthUrl;
     };
 
     return (

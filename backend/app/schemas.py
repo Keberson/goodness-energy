@@ -18,6 +18,11 @@ class VKIDLogin(BaseModel):
     token: str  # Токен от VK ID
     user_type: str  # "volunteer" или "npo"
 
+class VKIDCallback(BaseModel):
+    code: str  # Код авторизации от VK ID
+    user_type: str  # "volunteer" или "npo"
+    redirect_uri: str  # redirect_uri, использованный при авторизации
+
 # Регистрация НКО
 class NPORegistration(BaseModel):
     login: str
