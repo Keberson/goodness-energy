@@ -12,13 +12,13 @@ type MapLayers = "polygons" | "points";
 
 const MapPage = () => {
     const { currentCity } = useCity();
-    const { data: cityCoordinates, isLoading } = useGetCityCoordinatesQuery();
-    
+    const { data: cityCoordinates } = useGetCityCoordinatesQuery();
+
     const defaultMapState: { center: [number, number]; zoom: number } = {
         center: [55.7558, 37.6173], // Москва по умолчанию
         zoom: 10,
     };
-    
+
     const [mapState, setMapState] = useState<{ center: [number, number]; zoom: number }>(
         defaultMapState
     );
