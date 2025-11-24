@@ -7,7 +7,8 @@ from datetime import datetime
 from app.database import get_db
 from app.models import (
     NPO, NPOGallery, NPOTag, Event, EventTag, EventAttachment, News, NewsTag, NewsAttachment, 
-    EventStatus, User, NPOStatus, NPOCity, NPOView, EventView, EventResponse as EventResponseModel
+    EventStatus, User, NPOStatus, NPOCity, NPOView, EventView, EventResponse as EventResponseModel,
+    Volunteer, UserRole
 )
 from app.schemas import (
     NPOResponse, NPOMapPoint, NPOUpdate, EventCreate, EventUpdate, 
@@ -16,8 +17,10 @@ from app.schemas import (
 )
 from app.auth import get_current_npo_user, get_current_user, get_optional_user
 from app.analytics import generate_csv_analytics, generate_pdf_analytics
+from app.email_service import send_notification_event
 import json
 import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
 
