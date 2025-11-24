@@ -723,7 +723,7 @@ VALUES (
 -- ============================================
 
 -- Волонтёр 1: Андрей Миронов
-INSERT INTO users (login, password_hash, role, created_at) 
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) 
 VALUES ('vol1', '$2b$12$iX4s22IyK/8DXJzJgf/n7Og1MqSXU9Tu4e7K6m/TFCSrcVkkdJS3y', 'VOLUNTEER', false, false, false, NOW())
 ON CONFLICT (login) DO NOTHING;
 
