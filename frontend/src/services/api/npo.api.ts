@@ -157,6 +157,29 @@ export const npoApi = createApi({
                 { type: "Statistics", id: npoId },
             ],
         }),
+        // Analytics export endpoints
+        exportNPOAnalyticsCSV: builder.query<Blob, number>({
+            query: (npoId) => ({
+                url: `/${npoId}/analytics/export/csv`,
+                responseHandler: async (response) => {
+                    if (!response.ok) {
+                        throw new Error("Failed to download CSV");
+                    }
+                    return await response.blob();
+                },
+            }),
+        }),
+        exportNPOAnalyticsPDF: builder.query<Blob, number>({
+            query: (npoId) => ({
+                url: `/${npoId}/analytics/export/pdf`,
+                responseHandler: async (response) => {
+                    if (!response.ok) {
+                        throw new Error("Failed to download PDF");
+                    }
+                    return await response.blob();
+                },
+            }),
+        }),
     }),
 });
 
@@ -172,4 +195,6 @@ export const {
     useRegisterNPOViewMutation,
     useRegisterEventViewMutation,
     useGetNPOStatisticsQuery,
+    useLazyExportNPOAnalyticsCSVQuery,
+    useLazyExportNPOAnalyticsPDFQuery,
 } = npoApi;

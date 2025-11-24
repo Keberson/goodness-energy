@@ -766,36 +766,260 @@ VALUES (
 -- События
 -- ============================================
 
--- Событие 1: Экологическая акция
+-- Событие 1: Экологическая акция (для НКО #1)
 INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
 VALUES (
-  (SELECT id FROM npos LIMIT 1),
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')),
   'Экологическая акция "Чистый город"',
   'Масштабная акция по уборке городских парков и скверов. Приглашаем всех желающих присоединиться к нам!',
-  '2025-12-01 10:00:00',
-  '2025-12-01 16:00:00',
+  '2025-11-20 10:00:00',
+  '2025-11-20 16:00:00',
   52.5444,
   103.8889,
   50,
   'Ангарск',
   'PUBLISHED',
-  NOW()
+  '2025-11-18 10:00:00'
 );
 
--- Событие 2: Помощь пожилым людям
+-- Событие 2: Помощь пожилым людям (для НКО #2)
 INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
 VALUES (
-  (SELECT id FROM npos LIMIT 1 OFFSET 1),
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')),
   'Волонтёрская помощь пожилым людям',
   'Регулярное мероприятие по оказанию помощи пожилым людям: покупка продуктов, помощь по дому, общение.',
-  '2025-12-05 09:00:00',
-  '2025-12-05 13:00:00',
+  '2025-11-22 09:00:00',
+  '2025-11-22 13:00:00',
   47.5136,
   42.1514,
   30,
   'Волгодонск',
   'PUBLISHED',
-  NOW()
+  '2025-11-19 14:00:00'
+);
+
+-- Событие 3: Школа волонтеров (для НКО #3)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')),
+  'Школа волонтеров',
+  'Обучающее мероприятие для новых волонтеров. Расскажем о принципах работы, правах и обязанностях.',
+  '2025-11-23 11:00:00',
+  '2025-11-23 15:00:00',
+  58.1394,
+  52.6583,
+  25,
+  'Глазов',
+  'PUBLISHED',
+  '2025-11-20 09:00:00'
+);
+
+-- Событие 4: Экологический поход (для НКО #5)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo5')),
+  'Экологический поход "Меняй себя, а не климат"',
+  'Познавательный поход с мастер-классами по экологичному образу жизни.',
+  '2025-11-24 08:00:00',
+  '2025-11-24 18:00:00',
+  56.2511,
+  93.5319,
+  40,
+  'Железногорск',
+  'PUBLISHED',
+  '2025-11-21 12:00:00'
+);
+
+-- Событие 5: Турнир по картингу (для НКО #6)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo6')),
+  'Городской турнир по картингу',
+  'Соревнования по картингу для детей и подростков. Регистрация обязательна.',
+  '2025-11-22 14:00:00',
+  '2025-11-22 18:00:00',
+  56.1128,
+  94.5981,
+  20,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-11-19 16:00:00'
+);
+
+-- Событие 6: Физзарядка для пенсионеров (для НКО #1)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')),
+  'Физическая зарядка для пенсионеров',
+  'Еженедельная зарядка для людей старшего возраста. Проводится каждый четверг.',
+  '2025-11-06 09:00:00',
+  '2025-11-06 10:00:00',
+  52.5444,
+  103.8889,
+  30,
+  'Ангарск',
+  'PUBLISHED',
+  '2025-11-01 10:00:00'
+);
+
+-- Событие 7: Скандинавская ходьба (для НКО #1)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')),
+  'Тренировка по скандинавской ходьбе',
+  'Тренировки по скандинавской ходьбе для всех возрастов. Проводятся каждую пятницу.',
+  '2025-11-07 10:00:00',
+  '2025-11-07 11:30:00',
+  52.5444,
+  103.8889,
+  25,
+  'Ангарск',
+  'PUBLISHED',
+  '2025-11-02 09:00:00'
+);
+
+-- Событие 8: Встреча с жителями (для НКО #1)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')),
+  'Встреча с жителями микрорайона',
+  'Ежемесячная встреча для обсуждения проблем на территории и путей их решения.',
+  '2025-11-15 18:00:00',
+  '2025-11-15 20:00:00',
+  52.5444,
+  103.8889,
+  50,
+  'Ангарск',
+  'PUBLISHED',
+  '2025-11-10 12:00:00'
+);
+
+-- Событие 9: Экологический конкурс (для НКО #5)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo5')),
+  'Экологический конкурс "Нескучная инженерия"',
+  'Конкурс экологических проектов для молодежи. При поддержке АНО "Энергия развития" ГК Росатом.',
+  '2025-11-10 12:00:00',
+  '2025-11-10 17:00:00',
+  56.2511,
+  93.5319,
+  40,
+  'Железногорск',
+  'PUBLISHED',
+  '2025-11-05 14:00:00'
+);
+
+-- Событие 10: Проект "Ни грамма скуки" (для НКО #5)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo5')),
+  'Проект "Ни грамма скуки"',
+  'Интерактивные мероприятия для детей и подростков. При поддержке фонда президентских грантов.',
+  '2025-11-14 14:00:00',
+  '2025-11-14 18:00:00',
+  56.2511,
+  93.5319,
+  35,
+  'Железногорск',
+  'PUBLISHED',
+  '2025-11-08 10:00:00'
+);
+
+-- Событие 11: Помощь семьям (для НКО #2)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')),
+  'Помощь молодым людям с инвалидностью',
+  'Волонтерская поддержка молодых людей с инвалидностью старше 18 лет.',
+  '2025-11-12 10:00:00',
+  '2025-11-12 14:00:00',
+  47.5136,
+  42.1514,
+  20,
+  'Волгодонск',
+  'PUBLISHED',
+  '2025-11-05 11:00:00'
+);
+
+-- Событие 12: Киберспортивный турнир (для НКО #8)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo8')),
+  'Киберспортивный турнир для подростков',
+  'Турнир по компьютерным играм для подростков 12-17 лет.',
+  '2025-11-16 15:00:00',
+  '2025-11-16 20:00:00',
+  56.1128,
+  94.5981,
+  16,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-11-10 09:00:00'
+);
+
+-- Событие 13: Помощь семьям с детьми (для НКО #9)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo9')),
+  'Проект "Передышка" для семей',
+  'Психолого-педагогическая помощь семьям с детьми, в том числе с инвалидностью и ОВЗ.',
+  '2025-11-18 11:00:00',
+  '2025-11-18 15:00:00',
+  56.1128,
+  94.5981,
+  15,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-11-12 10:00:00'
+);
+
+-- Событие 14: Помощь бездомным животным (для НКО #15)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo15')),
+  'Акция помощи бездомным животным',
+  'Сбор средств и корма для бездомных животных. Вакцинация и стерилизация.',
+  '2025-11-25 10:00:00',
+  '2025-11-25 16:00:00',
+  56.3269,
+  44.0075,
+  30,
+  'Нижний Новгород',
+  'PUBLISHED',
+  '2025-11-20 12:00:00'
+);
+
+-- Событие 15: Помощь детям с инвалидностью (для НКО #17)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo17')),
+  'Занятия по альтернативной коммуникации',
+  'Индивидуальные и групповые занятия для неговорящих детей.',
+  '2025-11-28 10:00:00',
+  '2025-11-28 13:00:00',
+  54.9885,
+  73.3242,
+  20,
+  'Омск',
+  'PUBLISHED',
+  '2025-11-22 09:00:00'
+);
+
+-- Событие 16: Новогоднее мероприятие (для НКО #17)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo17')),
+  'Новогоднее мероприятие для детей с инвалидностью',
+  'Праздничное мероприятие с подарками и развлечениями. Поддержка Администрации города Омска.',
+  '2025-12-01 14:00:00',
+  '2025-12-01 18:00:00',
+  54.9885,
+  73.3242,
+  50,
+  'Омск',
+  'PUBLISHED',
+  '2025-11-25 11:00:00'
 );
 
 -- ============================================
@@ -804,51 +1028,315 @@ VALUES (
 
 INSERT INTO event_tags (event_id, tag)
 VALUES (
-  (SELECT id FROM events LIMIT 1),
+  (SELECT id FROM events WHERE name = 'Экологическая акция "Чистый город"'),
   'Экология'
 );
 
 INSERT INTO event_tags (event_id, tag)
 VALUES (
-  (SELECT id FROM events LIMIT 1 OFFSET 1),
+  (SELECT id FROM events WHERE name = 'Волонтёрская помощь пожилым людям'),
   'Пожилые люди'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Школа волонтеров'),
+  'Обучение'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Экологический поход "Меняй себя, а не климат"'),
+  'Экология'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Городской турнир по картингу'),
+  'Спорт'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Физическая зарядка для пенсионеров'),
+  'Здоровье'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Тренировка по скандинавской ходьбе'),
+  'Спорт'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Встреча с жителями микрорайона'),
+  'Местное сообщество'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Экологический конкурс "Нескучная инженерия"'),
+  'Экология'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Проект "Ни грамма скуки"'),
+  'Образование'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Помощь молодым людям с инвалидностью'),
+  'Социальная помощь'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Киберспортивный турнир для подростков'),
+  'Спорт'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Проект "Передышка" для семей'),
+  'Социальная помощь'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Акция помощи бездомным животным'),
+  'Защита животных'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Занятия по альтернативной коммуникации'),
+  'Образование'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Новогоднее мероприятие для детей с инвалидностью'),
+  'Социальная помощь'
 );
 
 -- ============================================
 -- Отклики на события
 -- ============================================
 
+-- Отклики на событие 1 (Экологическая акция)
 INSERT INTO event_responses (event_id, volunteer_id, created_at)
 VALUES (
-  (SELECT id FROM events LIMIT 1),
+  (SELECT id FROM events WHERE name = 'Экологическая акция "Чистый город"'),
   (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
-  NOW()
+  '2025-11-18 15:30:00'
 );
 
 INSERT INTO event_responses (event_id, volunteer_id, created_at)
 VALUES (
-  (SELECT id FROM events LIMIT 1 OFFSET 1),
+  (SELECT id FROM events WHERE name = 'Экологическая акция "Чистый город"'),
   (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol2')),
-  NOW()
+  '2025-11-19 10:20:00'
+);
+
+-- Отклик на событие 2 (Помощь пожилым)
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Волонтёрская помощь пожилым людям'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  '2025-11-20 11:45:00'
+);
+
+-- Отклик на событие 3 (Школа волонтеров)
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Школа волонтеров'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol2')),
+  '2025-11-21 09:15:00'
+);
+
+-- Отклик на событие 4 (Экологический поход)
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Экологический поход "Меняй себя, а не климат"'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  '2025-11-22 14:30:00'
+);
+
+-- Отклики на новые события (01.11 - 01.12)
+-- Событие 6: Физзарядка для пенсионеров
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Физическая зарядка для пенсионеров'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  '2025-11-02 10:30:00'
+);
+
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Физическая зарядка для пенсионеров'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol2')),
+  '2025-11-03 14:20:00'
+);
+
+-- Событие 7: Скандинавская ходьба
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Тренировка по скандинавской ходьбе'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  '2025-11-03 11:00:00'
+);
+
+-- Событие 8: Встреча с жителями
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Встреча с жителями микрорайона'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol2')),
+  '2025-11-11 15:45:00'
+);
+
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Встреча с жителями микрорайона'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  '2025-11-12 09:30:00'
+);
+
+-- Событие 9: Экологический конкурс
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Экологический конкурс "Нескучная инженерия"'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol2')),
+  '2025-11-06 13:20:00'
+);
+
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Экологический конкурс "Нескучная инженерия"'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  '2025-11-07 10:15:00'
+);
+
+-- Событие 10: Проект "Ни грамма скуки"
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Проект "Ни грамма скуки"'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  '2025-11-09 16:00:00'
+);
+
+-- Событие 11: Помощь молодым людям с инвалидностью
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Помощь молодым людям с инвалидностью'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol2')),
+  '2025-11-06 12:30:00'
+);
+
+-- Событие 12: Киберспортивный турнир
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Киберспортивный турнир для подростков'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  '2025-11-11 14:45:00'
+);
+
+-- Событие 13: Проект "Передышка"
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Проект "Передышка" для семей'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol2')),
+  '2025-11-13 11:20:00'
+);
+
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Проект "Передышка" для семей'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  '2025-11-14 09:10:00'
+);
+
+-- Событие 14: Помощь бездомным животным
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Акция помощи бездомным животным'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  '2025-11-21 13:00:00'
+);
+
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Акция помощи бездомным животным'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol2')),
+  '2025-11-22 10:30:00'
+);
+
+-- Событие 15: Занятия по альтернативной коммуникации
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Занятия по альтернативной коммуникации'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  '2025-11-23 15:20:00'
+);
+
+-- Событие 16: Новогоднее мероприятие
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Новогоднее мероприятие для детей с инвалидностью'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  '2025-11-26 12:00:00'
+);
+
+INSERT INTO event_responses (event_id, volunteer_id, created_at)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Новогоднее мероприятие для детей с инвалидностью'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol2')),
+  '2025-11-27 14:30:00'
 );
 
 -- ============================================
 -- Новости
 -- ============================================
 
--- Новость 1 от НКО
+-- Новость 1 от НКО #1
 INSERT INTO news (npo_id, volunteer_id, admin_id, name, text, type, created_at)
 VALUES (
-  (SELECT id FROM npos LIMIT 1),
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')),
   NULL,
   NULL,
   'Новая программа поддержки волонтёров',
   'Мы запускаем новую программу поддержки волонтёров. Теперь каждый активный волонтёр может получить сертификат и рекомендации для дальнейшего развития.',
   'BLOG',
-  NOW()
+  '2025-11-18 12:00:00'
 );
 
--- Новость 2 от волонтёра
+-- Новость 2 от НКО #2
+INSERT INTO news (npo_id, volunteer_id, admin_id, name, text, type, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')),
+  NULL,
+  NULL,
+  'Итоги акции помощи пожилым людям',
+  'Благодарим всех волонтёров, принявших участие в акции. Вместе мы помогли более 50 пожилым людям!',
+  'BLOG',
+  '2025-11-22 16:30:00'
+);
+
+-- Новость 3 от НКО #3
+INSERT INTO news (npo_id, volunteer_id, admin_id, name, text, type, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')),
+  NULL,
+  NULL,
+  'Открыта регистрация на Школу волонтеров',
+  'Приглашаем всех желающих присоединиться к нашему обучающему мероприятию. Регистрация открыта до 22 ноября.',
+  'BLOG',
+  '2025-11-20 10:00:00'
+);
+
+-- Новость 4 от волонтёра
 INSERT INTO news (npo_id, volunteer_id, admin_id, name, text, type, created_at)
 VALUES (
   NULL,
@@ -857,7 +1345,7 @@ VALUES (
   'Мой опыт волонтёрства',
   'Хочу поделиться своим опытом участия в экологических акциях. Это было незабываемо! Рекомендую всем попробовать.',
   'BLOG',
-  NOW()
+  '2025-11-19 14:20:00'
 );
 
 -- ============================================
@@ -866,13 +1354,25 @@ VALUES (
 
 INSERT INTO news_tags (news_id, tag)
 VALUES (
-  (SELECT id FROM news LIMIT 1),
+  (SELECT id FROM news WHERE name = 'Новая программа поддержки волонтёров'),
   'Волонтёрство'
 );
 
 INSERT INTO news_tags (news_id, tag)
 VALUES (
-  (SELECT id FROM news LIMIT 1 OFFSET 1),
+  (SELECT id FROM news WHERE name = 'Итоги акции помощи пожилым людям'),
+  'Социальная помощь'
+);
+
+INSERT INTO news_tags (news_id, tag)
+VALUES (
+  (SELECT id FROM news WHERE name = 'Открыта регистрация на Школу волонтеров'),
+  'Обучение'
+);
+
+INSERT INTO news_tags (news_id, tag)
+VALUES (
+  (SELECT id FROM news WHERE name = 'Мой опыт волонтёрства'),
   'Экология'
 );
 
@@ -1006,4 +1506,102 @@ VALUES
   ('Омск', 54.9885, 73.3242, 12, NOW())
 ON CONFLICT (city_name) DO NOTHING;
 
+-- ============================================
+-- Просмотры профилей НКО (для статистики)
+-- ============================================
+
+-- Просмотры профиля НКО #1 (ОО ТОС АГО "12а микрорайон")
+INSERT INTO npo_views (npo_id, viewer_id, viewed_at)
+VALUES 
+  -- 18 ноября
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-18 09:15:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-18 11:30:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), NULL, '2025-11-18 14:20:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-18 16:45:00'),
+  -- 19 ноября
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-19 10:00:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), NULL, '2025-11-19 13:15:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-19 15:30:00'),
+  -- 20 ноября
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-20 09:45:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), NULL, '2025-11-20 12:00:00'),
+  -- 21 ноября
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-21 10:30:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-21 14:20:00'),
+  -- 22 ноября
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), NULL, '2025-11-22 11:00:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-22 16:30:00'),
+  -- 23 ноября
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-23 09:15:00'),
+  -- 24 ноября
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-24 10:45:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')), NULL, '2025-11-24 13:30:00');
+
+-- Просмотры профиля НКО #2
+INSERT INTO npo_views (npo_id, viewer_id, viewed_at)
+VALUES 
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-19 11:20:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')), NULL, '2025-11-20 15:00:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-21 12:45:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-22 10:30:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')), NULL, '2025-11-23 14:15:00');
+
+-- Просмотры профиля НКО #3
+INSERT INTO npo_views (npo_id, viewer_id, viewed_at)
+VALUES 
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-20 09:00:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-21 11:30:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')), NULL, '2025-11-22 13:45:00'),
+  ((SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-23 10:20:00');
+
+-- ============================================
+-- Просмотры событий (для статистики)
+-- ============================================
+
+-- Просмотры события 1 (Экологическая акция)
+INSERT INTO event_views (event_id, viewer_id, viewed_at)
+VALUES 
+  ((SELECT id FROM events WHERE name = 'Экологическая акция "Чистый город"'), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-18 10:30:00'),
+  ((SELECT id FROM events WHERE name = 'Экологическая акция "Чистый город"'), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-18 14:20:00'),
+  ((SELECT id FROM events WHERE name = 'Экологическая акция "Чистый город"'), NULL, '2025-11-19 09:15:00'),
+  ((SELECT id FROM events WHERE name = 'Экологическая акция "Чистый город"'), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-19 16:45:00'),
+  ((SELECT id FROM events WHERE name = 'Экологическая акция "Чистый город"'), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-20 11:00:00'),
+  ((SELECT id FROM events WHERE name = 'Экологическая акция "Чистый город"'), NULL, '2025-11-21 13:30:00'),
+  ((SELECT id FROM events WHERE name = 'Экологическая акция "Чистый город"'), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-22 10:20:00'),
+  ((SELECT id FROM events WHERE name = 'Экологическая акция "Чистый город"'), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-23 15:10:00');
+
+-- Просмотры события 2 (Помощь пожилым)
+INSERT INTO event_views (event_id, viewer_id, viewed_at)
+VALUES 
+  ((SELECT id FROM events WHERE name = 'Волонтёрская помощь пожилым людям'), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-19 12:00:00'),
+  ((SELECT id FROM events WHERE name = 'Волонтёрская помощь пожилым людям'), NULL, '2025-11-20 14:30:00'),
+  ((SELECT id FROM events WHERE name = 'Волонтёрская помощь пожилым людям'), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-21 10:45:00'),
+  ((SELECT id FROM events WHERE name = 'Волонтёрская помощь пожилым людям'), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-22 09:30:00');
+
+-- Просмотры события 3 (Школа волонтеров)
+INSERT INTO event_views (event_id, viewer_id, viewed_at)
+VALUES 
+  ((SELECT id FROM events WHERE name = 'Школа волонтеров'), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-20 11:15:00'),
+  ((SELECT id FROM events WHERE name = 'Школа волонтеров'), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-21 13:00:00'),
+  ((SELECT id FROM events WHERE name = 'Школа волонтеров'), NULL, '2025-11-22 15:20:00'),
+  ((SELECT id FROM events WHERE name = 'Школа волонтеров'), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-23 09:45:00'),
+  ((SELECT id FROM events WHERE name = 'Школа волонтеров'), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-23 16:30:00');
+
+-- Просмотры события 4 (Экологический поход)
+INSERT INTO event_views (event_id, viewer_id, viewed_at)
+VALUES 
+  ((SELECT id FROM events WHERE name = 'Экологический поход "Меняй себя, а не климат"'), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-21 10:00:00'),
+  ((SELECT id FROM events WHERE name = 'Экологический поход "Меняй себя, а не климат"'), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-22 12:30:00'),
+  ((SELECT id FROM events WHERE name = 'Экологический поход "Меняй себя, а не климат"'), NULL, '2025-11-23 14:00:00'),
+  ((SELECT id FROM events WHERE name = 'Экологический поход "Меняй себя, а не климат"'), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-24 09:20:00');
+
+-- Просмотры события 5 (Турнир по картингу)
+INSERT INTO event_views (event_id, viewer_id, viewed_at)
+VALUES 
+  ((SELECT id FROM events WHERE name = 'Городской турнир по картингу'), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-19 15:30:00'),
+  ((SELECT id FROM events WHERE name = 'Городской турнир по картингу'), NULL, '2025-11-20 11:45:00'),
+  ((SELECT id FROM events WHERE name = 'Городской турнир по картингу'), (SELECT id FROM users WHERE login = 'vol1'), '2025-11-21 14:15:00'),
+  ((SELECT id FROM events WHERE name = 'Городской турнир по картингу'), (SELECT id FROM users WHERE login = 'vol2'), '2025-11-22 10:00:00');
+
 COMMIT;
+

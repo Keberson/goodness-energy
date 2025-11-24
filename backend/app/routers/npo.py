@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
+from fastapi.responses import StreamingResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import func, distinct
 from typing import List, Optional
@@ -14,6 +15,7 @@ from app.schemas import (
     NPOStatisticsResponse, ProfileViewerStats, EventStats
 )
 from app.auth import get_current_npo_user, get_current_user, get_optional_user
+from app.analytics import generate_csv_analytics, generate_pdf_analytics
 import json
 import logging
 
@@ -762,4 +764,76 @@ async def get_npo_statistics(
         total_news=total_news,
         total_event_responses=total_event_responses
     )
+
+@router.get("/{npo_id}/analytics/export/csv")
+async def export_npo_analytics_csv(
+    npo_id: int,
+    current_user = Depends(get_current_npo_user),
+    db: Session = Depends(get_db)
+):
+    """Выгрузка аналитики НКО в формате CSV (сырые данные)"""
+    npo = get_npo_by_user_id(current_user.id, db)
+    
+    if npo.id != npo_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Вы можете выгружать аналитику только для своей НКО"
+        )
+    
+    try:
+        csv_buffer = generate_csv_analytics(npo_id, db)
+        filename = f"npo_{npo_id}_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv"
+        
+        return StreamingResponse(
+            csv_buffer,
+            media_type="text/csv",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Ошибка при генерации CSV: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при генерации CSV файла"
+        )
+
+@router.get("/{npo_id}/analytics/export/pdf")
+async def export_npo_analytics_pdf(
+    npo_id: int,
+    current_user = Depends(get_current_npo_user),
+    db: Session = Depends(get_db)
+):
+    """Выгрузка аналитики НКО в формате PDF (красивые графики и статистика)"""
+    npo = get_npo_by_user_id(current_user.id, db)
+    
+    if npo.id != npo_id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Вы можете выгружать аналитику только для своей НКО"
+        )
+    
+    try:
+        pdf_buffer = generate_pdf_analytics(npo_id, db)
+        filename = f"npo_{npo_id}_analytics_{datetime.now().strftime('%Y%m%d_%H%M%S')}.pdf"
+        
+        return StreamingResponse(
+            pdf_buffer,
+            media_type="application/pdf",
+            headers={"Content-Disposition": f"attachment; filename={filename}"}
+        )
+    except ValueError as e:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=str(e)
+        )
+    except Exception as e:
+        logger.error(f"Ошибка при генерации PDF: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при генерации PDF файла"
+        )
 
