@@ -30,9 +30,6 @@ export const authApi = createApi({
         registerNPO: builder.mutation<IAuthResponse, IRegNPORequest>({
             query: (body) => ({ url: `/reg/npo`, method: "POST", body }),
         }),
-        vkidLogin: builder.mutation<IAuthResponse, { token: string; user_type: "volunteer" | "npo" }>({
-            query: (body) => ({ url: `/vkid/login`, method: "POST", body }),
-        }),
         getSelectedCity: builder.query<{ selected_city: string | null }, void>({
             query: () => ({ url: `/selected-city` }),
         }),
@@ -50,7 +47,6 @@ export const {
     useLoginMutation,
     useRegisterVolunteerMutation,
     useRegisterNPOMutation,
-    useVkidLoginMutation,
     useGetSelectedCityQuery,
     useUpdateSelectedCityMutation,
 } = authApi;

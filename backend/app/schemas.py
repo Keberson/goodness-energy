@@ -14,17 +14,8 @@ class Token(BaseModel):
     user_type: str  # "volunteer" | "npo" | "admin"
     id: int  # ID из таблицы volunteers/npos/users (для admin)
 
-class VKIDLogin(BaseModel):
-    token: str  # Токен от VK ID
-    user_type: str  # "volunteer" или "npo"
-
 class SelectedCityUpdate(BaseModel):
     city: str  # Выбранный город пользователя
-
-class VKIDCallback(BaseModel):
-    code: str  # Код авторизации от VK ID
-    user_type: str  # "volunteer" или "npo"
-    redirect_uri: str  # redirect_uri, использованный при авторизации
 
 # Регистрация НКО
 class NPORegistration(BaseModel):
