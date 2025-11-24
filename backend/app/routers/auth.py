@@ -27,7 +27,10 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
     user = User(
         login=npo_data.login,
         password_hash=password_hash,
-        role=UserRole.NPO
+        role=UserRole.NPO,
+        notify_city_news=False,
+        notify_registrations=False,
+        notify_events=False
     )
     db.add(user)
     db.flush()
@@ -117,7 +120,10 @@ async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depe
     user = User(
         login=vol_data.login,
         password_hash=password_hash,
-        role=UserRole.VOLUNTEER
+        role=UserRole.VOLUNTEER,
+        notify_city_news=False,
+        notify_registrations=False,
+        notify_events=False
     )
     db.add(user)
     db.flush()

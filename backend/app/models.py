@@ -71,9 +71,9 @@ class User(Base):
     vk_id = Column(Integer, unique=True, index=True, nullable=True)  # VK ID пользователя
     selected_city = Column(String, nullable=True)  # Выбранный город пользователя
     # Настройки email уведомлений
-    notify_city_news = Column(Boolean, default=False, nullable=False)  # Уведомления о новостях из города
-    notify_registrations = Column(Boolean, default=False, nullable=False)  # Уведомления о регистрациях
-    notify_events = Column(Boolean, default=False, nullable=False)  # Уведомления о событиях
+    notify_city_news = Column(Boolean, default=False, server_default='false', nullable=False)  # Уведомления о новостях из города
+    notify_registrations = Column(Boolean, default=False, server_default='false', nullable=False)  # Уведомления о регистрациях
+    notify_events = Column(Boolean, default=False, server_default='false', nullable=False)  # Уведомления о событиях
     created_at = Column(DateTime(timezone=True), server_default=func.now())
 
 class File(Base):

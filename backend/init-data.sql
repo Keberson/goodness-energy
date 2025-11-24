@@ -5,13 +5,13 @@
 BEGIN;
 
 -- Администратор
-INSERT INTO users (login, password_hash, role, created_at) 
-VALUES ('admin', '$2b$12$TkAtBetIeANABsoQ8d.R7.AVHURJPVSShdYdJGk9YXcdQzzV0mJUC', 'ADMIN', NOW())
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) 
+VALUES ('admin', '$2b$12$TkAtBetIeANABsoQ8d.R7.AVHURJPVSShdYdJGk9YXcdQzzV0mJUC', 'ADMIN', false, false, false, NOW())
 ON CONFLICT (login) DO NOTHING;
 
 -- НКО #1: ОО ТОС АГО "12а микрорайон"
-INSERT INTO users (login, password_hash, role, created_at) 
-VALUES ('npo1', '$2b$12$zCHnZ4WqVz9DtvXII/3VYOKmvTsntAb6ycB1Sod56VeSZzhqmIDVK', 'NPO', NOW())
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) 
+VALUES ('npo1', '$2b$12$zCHnZ4WqVz9DtvXII/3VYOKmvTsntAb6ycB1Sod56VeSZzhqmIDVK', 'NPO', false, false, false, NOW())
 ON CONFLICT (login) DO NOTHING;
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
@@ -46,8 +46,8 @@ VALUES (
 );
 
 -- НКО #2: Благотворительный общественно полезный фонд помощи социально незащищенным слоям населения "Платформа добрых дел"
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo2', '$2b$12$BKXx9fTuiGNSeucFKJKy8.yvpavqKSdEBjwgfHvUIZYORTjcMCY46', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo2', '$2b$12$BKXx9fTuiGNSeucFKJKy8.yvpavqKSdEBjwgfHvUIZYORTjcMCY46', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -79,8 +79,8 @@ VALUES (
 );
 
 -- НКО #3: МБУ "Молодежный центр"
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo3', '$2b$12$0lvHLtufLc.54jOfCSqe4eT/3viOW7S23sy1SjVM6TRClaYCmvdjG', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo3', '$2b$12$0lvHLtufLc.54jOfCSqe4eT/3viOW7S23sy1SjVM6TRClaYCmvdjG', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -114,8 +114,8 @@ VALUES (
 );
 
 -- НКО #4: Культурная база "Короленко 8" (МБУ "ЦМиТО УКСиМП"
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo4', '$2b$12$ZlHp5zqOkgURIeAdHiy9pOeX3xj3YsGw3yHrPyLqFcoFxQJ/j3yg6', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo4', '$2b$12$ZlHp5zqOkgURIeAdHiy9pOeX3xj3YsGw3yHrPyLqFcoFxQJ/j3yg6', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -143,8 +143,8 @@ VALUES (
 );
 
 -- НКО #5: КРОМО "Экологический союз"
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo5', '$2b$12$CbKnHlDXJXnJNOT54Ce/OuGB88fZlF8.L/mTzqiwgs7z6cmFDEHrK', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo5', '$2b$12$CbKnHlDXJXnJNOT54Ce/OuGB88fZlF8.L/mTzqiwgs7z6cmFDEHrK', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -178,8 +178,8 @@ VALUES (
 );
 
 -- НКО #6: Федерация картинга
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo6', '$2b$12$.we.vPAXtqlQA3NcZrSIS.NLka1W83ExUnL5dG6hXI5YMocbm2hw2', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo6', '$2b$12$.we.vPAXtqlQA3NcZrSIS.NLka1W83ExUnL5dG6hXI5YMocbm2hw2', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -203,8 +203,8 @@ VALUES (
 );
 
 -- НКО #7: НКО "Резервный фонд поддержки гражданских инициатив города Зеленогорска"
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo7', '$2b$12$XBqEqK.QN/tvg1D.R48dmuMY7rG7Rx5UoXmni8NVjut.KUezQApyS', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo7', '$2b$12$XBqEqK.QN/tvg1D.R48dmuMY7rG7Rx5UoXmni8NVjut.KUezQApyS', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -234,8 +234,8 @@ VALUES (
 );
 
 -- НКО #8: АНО "Клуб компьютерного спорта и фиджитал-спорта "Кибер-атом"
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo8', '$2b$12$AH1xGcf2jVtXg1wLg6LJzOJg4K/F3wzfhfFBWIsRpRTo8ZdP8aK52', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo8', '$2b$12$AH1xGcf2jVtXg1wLg6LJzOJg4K/F3wzfhfFBWIsRpRTo8ZdP8aK52', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -259,8 +259,8 @@ VALUES (
 );
 
 -- НКО #9: АНО РАЗВИВАЮЩИЙ ЦЕНТР "СОЛНЕЧНЫЙ ГОРОД" "
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo9', '$2b$12$2jMgVmX.YXU6/IeGzeX6lOIFY67g5DybUJFat1YSQSebSPlSD6Afm', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo9', '$2b$12$2jMgVmX.YXU6/IeGzeX6lOIFY67g5DybUJFat1YSQSebSPlSD6Afm', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -291,8 +291,8 @@ VALUES (
 );
 
 -- НКО #10: АНО КРЦРМСИГ ЕЛЕНЫ ЖИВАЕВОЙ
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo10', '$2b$12$hkwfBP2.gUDvAGRTQKem8eBKJvcdXCqggGmQr9J1AyhnuwHUyVbRy', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo10', '$2b$12$hkwfBP2.gUDvAGRTQKem8eBKJvcdXCqggGmQr9J1AyhnuwHUyVbRy', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -316,8 +316,8 @@ VALUES (
 );
 
 -- НКО #11: АНО Ресурсный центр
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo11', '$2b$12$XNelCEZuAy7.AryY0rLMnO/yliOsG/nnh.xabGd5KRprooYyl/Eze', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo11', '$2b$12$XNelCEZuAy7.AryY0rLMnO/yliOsG/nnh.xabGd5KRprooYyl/Eze', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -341,8 +341,8 @@ VALUES (
 );
 
 -- НКО #12: АНО СС "Линия жизни"
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo12', '$2b$12$4UYtsWlPsa91be0WH7svpOo/d2YC4PC.SH9TDcPOoc6TX0bK9LfoS', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo12', '$2b$12$4UYtsWlPsa91be0WH7svpOo/d2YC4PC.SH9TDcPOoc6TX0bK9LfoS', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -379,8 +379,8 @@ VALUES (
 );
 
 -- НКО #13: АНО Центр досуга и развития детей
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo13', '$2b$12$9CsXDUKa9lzB2fbMeQ1pZ.A3yHaKYClyrCTlf4GuISicy/O7G7r6O', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo13', '$2b$12$9CsXDUKa9lzB2fbMeQ1pZ.A3yHaKYClyrCTlf4GuISicy/O7G7r6O', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -404,8 +404,8 @@ VALUES (
 );
 
 -- НКО #14: Автономная некоммерческая организация "Клуб компьютерного спорта и фиджитал-спорта "Кибер-атом"
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo14', '$2b$12$nwrUXC5LxtqGV8WRxzdwvudhwP5a27hmcy/G4CyM8gIKyVKGd.9Oq', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo14', '$2b$12$nwrUXC5LxtqGV8WRxzdwvudhwP5a27hmcy/G4CyM8gIKyVKGd.9Oq', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -435,8 +435,8 @@ VALUES (
 );
 
 -- НКО #15: БФ «Планета кошек»
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo15', '$2b$12$niO.0W3ovQATJ3dtboupneaFB6IrSAbIgtmVxG3l.w/MJKKC9wNUW', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo15', '$2b$12$niO.0W3ovQATJ3dtboupneaFB6IrSAbIgtmVxG3l.w/MJKKC9wNUW', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -462,8 +462,8 @@ VALUES (
 );
 
 -- НКО #16: АНО ДПО "Техническая академия Росатома"
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo16', '$2b$12$drx92/CC.9V8pppYM13HQ.ng1c.SXVdu.NkI1boWLD3TKBsWjLfNS', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo16', '$2b$12$drx92/CC.9V8pppYM13HQ.ng1c.SXVdu.NkI1boWLD3TKBsWjLfNS', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -487,8 +487,8 @@ VALUES (
 );
 
 -- НКО #17: АНО СЦСА НАШИ ДЕТИ
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo17', '$2b$12$v6itO4m42BtiKzl0p12UyO2v.znnDLTDE8XwSXKzUol/pMlhLb7Km', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo17', '$2b$12$v6itO4m42BtiKzl0p12UyO2v.znnDLTDE8XwSXKzUol/pMlhLb7Km', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -527,8 +527,8 @@ VALUES (
 );
 
 -- НКО #18: ТРОО "ВПЦ" МИРНЫЙ ВОИН"
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo18', '$2b$12$L4hL/1Rkp2sFPU7JTUZdWeO/Hlwng9AEhuEg9zrsSzl1aD6YoP6Sq', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo18', '$2b$12$L4hL/1Rkp2sFPU7JTUZdWeO/Hlwng9AEhuEg9zrsSzl1aD6YoP6Sq', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -552,8 +552,8 @@ VALUES (
 );
 
 -- НКО #19: СГОО БУМЕРАНГ ДОБРА
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo19', '$2b$12$IkMIh0vL8ol9LTq4PqpK6uvJmfyaZUwBCAQOEnp7U.2GRFYBn5mBC', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo19', '$2b$12$IkMIh0vL8ol9LTq4PqpK6uvJmfyaZUwBCAQOEnp7U.2GRFYBn5mBC', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -577,8 +577,8 @@ VALUES (
 );
 
 -- НКО #20: ДоброЦентр при СО НКО Бумеранг добра
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo20', '$2b$12$LL1OpHMcDqSAmHa8edhPIO95A6.0ZiVyxeedz0FuvNgEDi3.LsNk.', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo20', '$2b$12$LL1OpHMcDqSAmHa8edhPIO95A6.0ZiVyxeedz0FuvNgEDi3.LsNk.', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -602,8 +602,8 @@ VALUES (
 );
 
 -- НКО #21: Снежинская городская общественная организация "Союз женщин Снежинска"
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo21', '$2b$12$XpxEdysg6aWITMBMZYPvI.MKm0oOJFMFgew22seAOJFlLVA7aIjZ2', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo21', '$2b$12$XpxEdysg6aWITMBMZYPvI.MKm0oOJFMFgew22seAOJFlLVA7aIjZ2', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -636,8 +636,8 @@ VALUES (
 );
 
 -- НКО #22: БФМС Новое Усолье
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo22', '$2b$12$tlyVc4AqOsOwjPityJ3HMOeUEjulEUN3gMpPO0hwr9lnur6iO37Xm', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo22', '$2b$12$tlyVc4AqOsOwjPityJ3HMOeUEjulEUN3gMpPO0hwr9lnur6iO37Xm', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -665,8 +665,8 @@ VALUES (
 );
 
 -- НКО #23: УГМО ИОРОООО ВОИ
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo23', '$2b$12$d6QVsWrbyTGFD1J1GQxaieTLveplUdR.ZgZjP1aGJhcg/RRaMzIru', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo23', '$2b$12$d6QVsWrbyTGFD1J1GQxaieTLveplUdR.ZgZjP1aGJhcg/RRaMzIru', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -694,8 +694,8 @@ VALUES (
 );
 
 -- НКО #24: АНО «Твердыми шагами»
-INSERT INTO users (login, password_hash, role, created_at) VALUES
-  ('npo24', '$2b$12$6NdyhduZv3rl7zxiUgT/Ouuj5tDHiGJjO5IOdj/VAnbt0pgTGTyw6', 'NPO', NOW());
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
+  ('npo24', '$2b$12$6NdyhduZv3rl7zxiUgT/Ouuj5tDHiGJjO5IOdj/VAnbt0pgTGTyw6', 'NPO', false, false, false, NOW());
 
 INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
@@ -724,7 +724,7 @@ VALUES (
 
 -- Волонтёр 1: Андрей Миронов
 INSERT INTO users (login, password_hash, role, created_at) 
-VALUES ('vol1', '$2b$12$iX4s22IyK/8DXJzJgf/n7Og1MqSXU9Tu4e7K6m/TFCSrcVkkdJS3y', 'VOLUNTEER', NOW())
+VALUES ('vol1', '$2b$12$iX4s22IyK/8DXJzJgf/n7Og1MqSXU9Tu4e7K6m/TFCSrcVkkdJS3y', 'VOLUNTEER', false, false, false, NOW())
 ON CONFLICT (login) DO NOTHING;
 
 INSERT INTO volunteers (user_id, first_name, second_name, middle_name, about, birthday, city, sex, email, phone, created_at)
@@ -743,8 +743,8 @@ VALUES (
 );
 
 -- Волонтёр 2: Кузов Максим
-INSERT INTO users (login, password_hash, role, created_at) 
-VALUES ('vol2', '$2b$12$iX4s22IyK/8DXJzJgf/n7Og1MqSXU9Tu4e7K6m/TFCSrcVkkdJS3y', 'VOLUNTEER', NOW())
+INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) 
+VALUES ('vol2', '$2b$12$iX4s22IyK/8DXJzJgf/n7Og1MqSXU9Tu4e7K6m/TFCSrcVkkdJS3y', 'VOLUNTEER', false, false, false, NOW())
 ON CONFLICT (login) DO NOTHING;
 
 INSERT INTO volunteers (user_id, first_name, second_name, middle_name, about, birthday, city, sex, email, phone, created_at)
