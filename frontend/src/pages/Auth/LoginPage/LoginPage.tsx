@@ -123,14 +123,15 @@ const LoginPage = () => {
         const state = `vkid_${vkidUserType}`;
 
         // Формируем URL для авторизации через VK ID
-        // Используем правильный endpoint для VK ID
+        // Используем стандартный OAuth endpoint VK (oauth.vk.com)
         const vkAuthUrl =
-            `https://id.vk.com/oauth/authorize?` +
+            `https://oauth.vk.com/authorize?` +
             `client_id=${VK_APP_ID}&` +
             `redirect_uri=${redirectUri}&` +
             `response_type=code&` +
             `scope=email&` +
-            `state=${state}`;
+            `state=${state}&` +
+            `v=5.131`;
 
         // Перенаправляем пользователя на страницу авторизации VK
         window.location.href = vkAuthUrl;
