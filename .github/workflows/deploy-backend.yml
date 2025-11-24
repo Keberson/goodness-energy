@@ -19,4 +19,4 @@ jobs:
       - name: Restart backend service
         run: |
           cd $HOME/goodness-energy
-          docker compose up -d --build backend
+          docker-compose up -d --build backend

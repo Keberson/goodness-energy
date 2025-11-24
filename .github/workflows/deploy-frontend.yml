@@ -20,9 +20,9 @@ jobs:
       - name: Clean frontend volume
         run: |
           cd $HOME/goodness-energy
-          docker compose down frontend nginx && docker volume rm goodness-energy_frontend-build || true
+          docker-compose down frontend nginx && docker volume rm goodness-energy_frontend-build || true
 
       - name: Deploy frontend and nginx
         run: |
           cd $HOME/goodness-energy
-          docker compose up -d --build frontend nginx
+          docker-compose up -d --build frontend nginx
