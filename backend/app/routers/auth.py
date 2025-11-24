@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, UserRole, NPO, Volunteer, NPOStatus
-from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, VKIDLogin, SelectedCityUpdate
+from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, VKIDLogin, VKIDCallback, VKIDCallback, SelectedCityUpdate
 from app.auth import verify_password, get_password_hash, create_access_token, get_current_user
 import json
 import logging
@@ -353,6 +353,62 @@ async def vkid_login(vkid_data: VKIDLogin, db: Session = Depends(get_db)):
     
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
+
+@router.post("/vkid/callback")
+async def vkid_callback(callback_data: VKIDCallback, db: Session = Depends(get_db)):
+    """Обработка callback от VK ID - обмен code на access_token"""
+    VK_APP_ID = os.getenv("VK_APP_ID", "")
+    VK_CLIENT_SECRET = os.getenv("VK_CLIENT_SECRET", "")
+    
+    if not VK_APP_ID or not VK_CLIENT_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="VK ID не настроен на сервере"
+        )
+    
+    # Обмениваем code на access_token через VK API
+    try:
+        async with httpx.AsyncClient() as client:
+            # Используем redirect_uri из запроса (должен совпадать с тем, что был использован при авторизации)
+            redirect_uri = callback_data.redirect_uri
+            
+            response = await client.get(
+                "https://oauth.vk.com/access_token",
+                params={
+                    "client_id": VK_APP_ID,
+                    "client_secret": VK_CLIENT_SECRET,
+                    "redirect_uri": redirect_uri,
+                    "code": callback_data.code,
+                },
+                timeout=10.0
+            )
+            vk_response = response.json()
+            
+            if "error" in vk_response:
+                error_msg = vk_response.get("error_description", vk_response.get("error", "Ошибка авторизации"))
+                logger.error(f"Ошибка при обмене code на токен: {error_msg}")
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail=f"Ошибка авторизации VK ID: {error_msg}"
+                )
+            
+            if "access_token" not in vk_response:
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Не удалось получить access_token от VK"
+                )
+            
+            access_token = vk_response["access_token"]
+            
+            # Возвращаем токен клиенту для дальнейшей авторизации
+            return {"access_token": access_token}
+            
+    except httpx.RequestError as e:
+        logger.error(f"Ошибка при запросе к VK API: {str(e)}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Ошибка при обмене кода на токен VK ID"
+        )
 
 @router.get("/selected-city")
 async def get_selected_city(
