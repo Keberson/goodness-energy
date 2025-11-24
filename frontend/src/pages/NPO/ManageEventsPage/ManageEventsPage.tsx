@@ -522,16 +522,6 @@ const ManageEventsPage = () => {
                                 </Row>
                             )}
                         </Form.Item>
-                    </Form>
-                </Modal>
-            )}
-        </div>
-    );
-};
-
-export default ManageEventsPage;
-                            <Input placeholder="тег1, тег2, тег3" />
-                        </Form.Item>
 
                         {editingEvent && (
                             <Form.Item
