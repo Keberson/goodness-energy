@@ -8,6 +8,7 @@ import {
 } from "@ant-design/icons";
 
 import { useGetFileInfoQuery } from "@services/api/files.api";
+import { getApiBaseUrl } from "@utils/apiUrl";
 
 const { Text } = Typography;
 
@@ -26,7 +27,7 @@ const FilePreview: React.FC<FilePreviewProps> = ({ fileId }) => {
         return "other";
     };
 
-    const fileUrl = `${import.meta.env.VITE_API_BASE_URL}/files/${fileId}`;
+    const fileUrl = `${getApiBaseUrl()}/files/${fileId}`;
 
     const renderPreview = (fileType: string, fileName: string) => {
         switch (getFileType(fileType)) {

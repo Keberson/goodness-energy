@@ -2,6 +2,7 @@ import type { INPO, INPOEditRequest, INPOStatistics } from "@app-types/npo.types
 import type { IEvent, EventStatus } from "@app-types/events.types";
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { getApiBaseUrl } from "@utils/apiUrl";
 
 export interface IEventCreateRequest {
     name: string;
@@ -35,7 +36,7 @@ export const npoApi = createApi({
     reducerPath: "npoApi",
     tagTypes: ["NPO", "Event", "Statistics"],
     baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_BASE_URL}/npo`,
+        baseUrl: `${getApiBaseUrl()}/npo`,
         prepareHeaders: (headers, { getState }) => {
             const token = (getState() as any).auth?.token;
             if (token) {

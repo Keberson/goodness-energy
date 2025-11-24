@@ -3,12 +3,13 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { IFavorite, IFavoriteCreate, IFavoriteItem, IFavoriteCheck, FavoriteType } from "@app-types/favorites.types";
 
 import { prepareHeaders } from "./utils/prepareHeaders";
+import { getApiBaseUrl } from "@utils/apiUrl";
 
 export const favoritesApi = createApi({
     reducerPath: "favoritesApi",
     tagTypes: ["Favorite"],
     baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_BASE_URL}/favorites`,
+        baseUrl: `${getApiBaseUrl()}/favorites`,
         prepareHeaders,
     }),
     endpoints: (builder) => ({

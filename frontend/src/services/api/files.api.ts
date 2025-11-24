@@ -1,12 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import type { IFileInfo } from "@app-types/files.types";
+import { getApiBaseUrl } from "@utils/apiUrl";
 
 export const filesApi = createApi({
     reducerPath: "filesApi",
     tagTypes: [],
     baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_BASE_URL}/files`,
+        baseUrl: `${getApiBaseUrl()}/files`,
         prepareHeaders: (headers, { getState }) => {
             const token = (getState() as any).auth?.token;
             if (token) {

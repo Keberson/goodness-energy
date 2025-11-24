@@ -6,6 +6,7 @@ import "./styles.scss";
 
 import { useGetKnowledgeByIdQuery, useDeleteKnowledgeMutation } from "@services/api/knowledges.api";
 import useAppSelector from "@hooks/useAppSelector";
+import { getApiBaseUrl } from "@utils/apiUrl";
 
 import FilePreview from "@components/FilePreview/FilePreview";
 import VideoPlayer from "@components/VideoPlayer/VideoPlayer";
@@ -61,7 +62,7 @@ const KnowledgeDetailPage = () => {
             }
 
             const response = await fetch(
-                `${import.meta.env.VITE_API_BASE_URL}/knowledges/${id}/download`,
+                `${getApiBaseUrl()}/knowledges/${id}/download`,
                 {
                     method: "GET",
                     headers,

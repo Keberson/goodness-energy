@@ -8,12 +8,13 @@ import type {
     INotificationSettings,
     INotificationSettingsUpdate,
 } from "@app-types/auth.types";
+import { getApiBaseUrl } from "@utils/apiUrl";
 
 export const authApi = createApi({
     reducerPath: "authApi",
     tagTypes: [],
     baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_BASE_URL}/auth`,
+        baseUrl: `${getApiBaseUrl()}/auth`,
         prepareHeaders: (headers) => {
             const token = localStorage.getItem("jwtToken");
             if (token) {

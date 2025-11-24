@@ -13,6 +13,7 @@ export default defineConfig({
             "@contexts": path.resolve(__dirname, "./src/contexts"),
             "@app-types": path.resolve(__dirname, "./src/types"),
             "@components": path.resolve(__dirname, "./src/common/components"),
+            "@utils": path.resolve(__dirname, "./src/utils"),
         },
     },
 });

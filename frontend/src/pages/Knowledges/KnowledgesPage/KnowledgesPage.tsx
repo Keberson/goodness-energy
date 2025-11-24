@@ -8,6 +8,7 @@ import type { IKnowledge } from "@app-types/knowledges.types";
 
 import { useGetKnowledgesQuery, useDeleteKnowledgeMutation, useUpdateKnowledgeMutation } from "@services/api/knowledges.api";
 import { useUploadFileMutation } from "@services/api/files.api";
+import { getApiBaseUrl } from "@utils/apiUrl";
 import useAppSelector from "@hooks/useAppSelector";
 
 const { Title, Paragraph, Text } = Typography;
@@ -50,7 +51,7 @@ const KnowledgesPage = () => {
             }
 
             const response = await fetch(
-                `${import.meta.env.VITE_API_BASE_URL}/knowledges/${item.id}/download`,
+                `${getApiBaseUrl()}/knowledges/${item.id}/download`,
                 {
                     method: "GET",
                     headers,

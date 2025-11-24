@@ -2,12 +2,13 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import type { INPO, NPOStatus } from "@app-types/npo.types";
 import { prepareHeaders } from "./utils/prepareHeaders";
+import { getApiBaseUrl } from "@utils/apiUrl";
 
 export const adminApi = createApi({
     reducerPath: "adminApi",
     tagTypes: ["UnconfirmedNPO", "Event", "News"],
     baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_BASE_URL}/admin`,
+        baseUrl: `${getApiBaseUrl()}/admin`,
         prepareHeaders,
     }),
     endpoints: (builder) => ({

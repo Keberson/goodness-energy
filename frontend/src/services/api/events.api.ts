@@ -1,12 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import type { IEvent } from "@app-types/events.types";
+import { getApiBaseUrl } from "@utils/apiUrl";
 
 export const eventsApi = createApi({
     reducerPath: "eventsApi",
     tagTypes: ["Event"],
     baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_BASE_URL}/events`,
+        baseUrl: `${getApiBaseUrl()}/events`,
         prepareHeaders: (headers) => {
             const token = localStorage.getItem("jwtToken");
             if (token) {

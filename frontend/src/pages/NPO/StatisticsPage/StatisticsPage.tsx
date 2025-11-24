@@ -9,6 +9,9 @@ import {
     FilePdfOutlined,
     FileExcelOutlined,
 } from "@ant-design/icons";
+
+import { getApiBaseUrl } from "@utils/apiUrl";
+} from "@ant-design/icons";
 import type { ColumnsType } from "antd/es/table";
 import type { MenuProps } from "antd";
 
@@ -46,7 +49,7 @@ const StatisticsPage = () => {
             }
 
             const endpoint = format === "csv" ? "csv" : "pdf";
-            const apiUrl = `${import.meta.env.VITE_API_BASE_URL}/npo/${npoData.id}/analytics/export/${endpoint}`;
+            const apiUrl = `${getApiBaseUrl()}/npo/${npoData.id}/analytics/export/${endpoint}`;
             
             const response = await fetch(apiUrl, {
                 method: "GET",

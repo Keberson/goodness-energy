@@ -1,12 +1,13 @@
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import type { IKnowledge } from "@app-types/knowledges.types";
+import { getApiBaseUrl } from "@utils/apiUrl";
 
 export const knowledgesApi = createApi({
     reducerPath: "knowledgesApi",
     tagTypes: ["Knowledge"],
     baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_BASE_URL}/knowledges`,
+        baseUrl: `${getApiBaseUrl()}/knowledges`,
         prepareHeaders: (headers, { getState }) => {
             const token = (getState() as any).auth?.token;
             if (token) {

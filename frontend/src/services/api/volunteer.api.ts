@@ -4,12 +4,13 @@ import type { IVolunteer, IVolunteerEdit } from "@app-types/volunteer.types";
 import type { IEvent } from "@app-types/events.types";
 
 import { prepareHeaders } from "./utils/prepareHeaders";
+import { getApiBaseUrl } from "@utils/apiUrl";
 
 export const volunteerApi = createApi({
     reducerPath: "volunteerApi",
     tagTypes: ["Volunteer", "Event"],
     baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_BASE_URL}/volunteer`,
+        baseUrl: `${getApiBaseUrl()}/volunteer`,
         prepareHeaders,
     }),
     endpoints: (builder) => ({

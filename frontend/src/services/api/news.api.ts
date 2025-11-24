@@ -1,12 +1,13 @@
 import type { INews, INewsCreate, INewsUpdate } from "@app-types/news.types";
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
+import { getApiBaseUrl } from "@utils/apiUrl";
 
 export const newsApi = createApi({
     reducerPath: "newsApi",
     tagTypes: ["News"],
     baseQuery: fetchBaseQuery({
-        baseUrl: `${import.meta.env.VITE_API_BASE_URL}/news`,
+        baseUrl: `${getApiBaseUrl()}/news`,
         prepareHeaders: (headers) => {
             const token = localStorage.getItem("jwtToken");
             if (token) {
