@@ -45,8 +45,14 @@ export const npoApi = createApi({
         },
     }),
     endpoints: (builder) => ({
-        getNPOs: builder.query<INPO[], void>({
-            query: () => ({ url: `` }),
+        getNPOs: builder.query<INPO[], string | undefined>({
+            query: (city) => {
+                const params = city ? { city } : {};
+                return {
+                    url: ``,
+                    ...(city && { params }),
+                };
+            },
             providesTags: (result) =>
                 result
                     ? [

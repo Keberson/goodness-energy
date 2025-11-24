@@ -33,12 +33,12 @@ const ModerationPage = () => {
     const [updateNPOStatus] = useUpdateNPOStatusMutation();
     const [deleteNPO] = useDeleteNPOMutation();
 
-    // Events queries
-    const { data: events, isLoading: isLoadingEvents } = useGetEventsQuery();
+    // Events queries - для админа показываем все события без фильтрации по городу
+    const { data: events, isLoading: isLoadingEvents } = useGetEventsQuery(undefined);
     const [deleteEvent] = useDeleteEventMutation();
 
-    // News queries
-    const { data: news, isLoading: isLoadingNews } = useGetNewsQuery();
+    // News queries - для админа показываем все новости без фильтрации по городу
+    const { data: news, isLoading: isLoadingNews } = useGetNewsQuery(undefined);
     const [deleteNews] = useDeleteNewsMutation();
 
     // NPO columns

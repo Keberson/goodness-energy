@@ -1,5 +1,7 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, Request, status
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from sqlalchemy import text
 from app.database import engine, Base, SessionLocal
 from app.routers import auth, npo, volunteer, admin, news, files, map, knowledges, events, favorites
@@ -8,10 +10,65 @@ from app.models import User
 from pathlib import Path
 import traceback
 import logging
+import os
 
+# Настройка логирования
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 logger = logging.getLogger(__name__)
 
 app = FastAPI(title="Social Hack 2025 API", version="1.0.0")
+
+# CORS middleware должен быть добавлен ПЕРЕД всеми остальными middleware и роутерами
+# Используем конкретные origins вместо "*" для совместимости с allow_credentials
+# Можно настроить через переменную окружения CORS_ORIGINS (разделенные запятой)
+cors_origins_env = os.getenv("CORS_ORIGINS", "")
+if cors_origins_env:
+    # Если указаны origins через переменную окружения, используем их
+    cors_origins = [origin.strip() for origin in cors_origins_env.split(",") if origin.strip()]
+else:
+    # По умолчанию для локальной разработки
+    cors_origins = [
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "http://127.0.0.1:3000",
+    ]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=cors_origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
+
+# Глобальный обработчик исключений
+@app.exception_handler(Exception)
+async def global_exception_handler(request: Request, exc: Exception):
+    """Обработчик всех необработанных исключений"""
+    logger.error(f"Необработанное исключение: {exc}", exc_info=True)
+    logger.error(f"Путь запроса: {request.url.path}")
+    logger.error(f"Метод: {request.method}")
+    return JSONResponse(
+        status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+        content={
+            "detail": f"Внутренняя ошибка сервера: {str(exc)}",
+            "type": type(exc).__name__
+        }
+    )
+
+@app.exception_handler(RequestValidationError)
+async def validation_exception_handler(request: Request, exc: RequestValidationError):
+    """Обработчик ошибок валидации"""
+    logger.error(f"Ошибка валидации: {exc.errors()}")
+    logger.error(f"Путь запроса: {request.url.path}")
+    return JSONResponse(
+        status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+        content={"detail": exc.errors(), "body": exc.body}
+    )
 
 @app.on_event("startup")
 async def startup_event():
@@ -92,15 +149,6 @@ async def startup_event():
         except Exception as e:
             logger.error(f"Не удалось выполнить init-data.sql: {e}")
             logger.error(traceback.format_exc())
-
-# CORS middleware (промежуточное ПО для CORS)
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=["*"],
-    allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
 
 # Подключение роутеров
 app.include_router(auth.router, prefix="/auth", tags=["auth"])

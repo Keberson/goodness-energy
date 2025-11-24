@@ -5,8 +5,14 @@ interface CityState {
     availableCities: string[];
 }
 
+// Загружаем сохраненный город из localStorage при инициализации
+const getInitialCity = (): string => {
+    const savedCity = localStorage.getItem("selectedCity");
+    return savedCity || "Ангарск";
+};
+
 const initialState: CityState = {
-    currentCity: "Ангарск",
+    currentCity: getInitialCity(),
     availableCities: [
         "Ангарск",
         "Байкальск",
@@ -49,6 +55,8 @@ const citySlice = createSlice({
     reducers: {
         setCurrentCity: (state, action: PayloadAction<string>) => {
             state.currentCity = action.payload;
+            // Сохраняем выбранный город в localStorage
+            localStorage.setItem("selectedCity", action.payload);
         },
         addCity: (state, action: PayloadAction<string>) => {
             if (!state.availableCities.includes(action.payload)) {

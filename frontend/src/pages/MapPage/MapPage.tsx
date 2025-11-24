@@ -5,21 +5,33 @@ import "./styles.scss";
 
 import MapContent from "./MapContent/MapContent";
 
-import { cityCoordinates } from "./props";
-
 import { useCity } from "@hooks/useCity";
+import { useGetCityCoordinatesQuery } from "@services/api/map.api";
 
 type MapLayers = "polygons" | "points";
 
 const MapPage = () => {
     const { currentCity } = useCity();
+    const { data: cityCoordinates, isLoading } = useGetCityCoordinatesQuery();
+    
+    const defaultMapState: { center: [number, number]; zoom: number } = {
+        center: [55.7558, 37.6173], // Москва по умолчанию
+        zoom: 10,
+    };
+    
     const [mapState, setMapState] = useState<{ center: [number, number]; zoom: number }>(
-        cityCoordinates[currentCity]
+        defaultMapState
     );
 
     useEffect(() => {
-        setMapState(cityCoordinates[currentCity]);
-    }, [currentCity]);
+        if (cityCoordinates && currentCity && cityCoordinates[currentCity]) {
+            const cityData = cityCoordinates[currentCity];
+            setMapState({
+                center: cityData.center,
+                zoom: cityData.zoom,
+            });
+        }
+    }, [currentCity, cityCoordinates]);
 
     return (
         <div className="map-wrapper">
@@ -36,7 +48,15 @@ const MapPage = () => {
                     <Button
                         data={{ content: "К городу" }}
                         options={{ selectOnClick: false }}
-                        onClick={() => setMapState(cityCoordinates[currentCity])}
+                        onClick={() => {
+                            if (cityCoordinates && currentCity && cityCoordinates[currentCity]) {
+                                const cityData = cityCoordinates[currentCity];
+                                setMapState({
+                                    center: cityData.center,
+                                    zoom: cityData.zoom,
+                                });
+                            }
+                        }}
                     />
 
                     <MapContent />

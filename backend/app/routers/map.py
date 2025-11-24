@@ -1,17 +1,26 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
 from sqlalchemy.orm import Session
-from typing import List
+from typing import List, Optional, Dict
 from app.database import get_db
-from app.models import NPO, Event, EventStatus, NPOStatus, NPOCity
-from app.schemas import NPOMapPoint, NPOResponse
+from app.models import NPO, Event, EventStatus, NPOStatus, NPOCity, CityCoordinates
+from app.schemas import NPOMapPoint, NPOResponse, CityCoordinatesResponse
 import json
 
 router = APIRouter()
 
 @router.get("/npo", response_model=List[NPOMapPoint])
-async def get_map_npo(db: Session = Depends(get_db)):
-    """Карта с точками НКО"""
-    npos = db.query(NPO).all()
+async def get_map_npo(
+    city: Optional[str] = Query(None, description="Фильтр по городу"),
+    db: Session = Depends(get_db)
+):
+    """Карта с точками НКО с опциональной фильтрацией по городу"""
+    query = db.query(NPO)
+    
+    if city:
+        query = query.filter(NPO.city == city)
+    
+    npos = query.all()
+    
     result = []
     
     for npo in npos:
@@ -45,4 +54,39 @@ async def get_map_npo(db: Session = Depends(get_db)):
             ))
     
     return result
+
+@router.get("/city-coordinates", response_model=Dict[str, CityCoordinatesResponse])
+async def get_city_coordinates(
+    db: Session = Depends(get_db)
+):
+    """Получить координаты всех городов"""
+    cities = db.query(CityCoordinates).all()
+    result = {}
+    
+    for city in cities:
+        result[city.city_name] = CityCoordinatesResponse(
+            city_name=city.city_name,
+            center=[city.center_lat, city.center_lon],
+            zoom=city.zoom
+        )
+    
+    return result
+
+@router.get("/city-coordinates/{city_name}", response_model=CityCoordinatesResponse)
+async def get_city_coordinate(
+    city_name: str,
+    db: Session = Depends(get_db)
+):
+    """Получить координаты конкретного города"""
+    city = db.query(CityCoordinates).filter(CityCoordinates.city_name == city_name).first()
+    
+    if not city:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail=f"Координаты для города '{city_name}' не найдены")
+    
+    return CityCoordinatesResponse(
+        city_name=city.city_name,
+        center=[city.center_lat, city.center_lon],
+        zoom=city.zoom
+    )
 

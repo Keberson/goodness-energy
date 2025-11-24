@@ -18,6 +18,9 @@ class VKIDLogin(BaseModel):
     token: str  # Токен от VK ID
     user_type: str  # "volunteer" или "npo"
 
+class SelectedCityUpdate(BaseModel):
+    city: str  # Выбранный город пользователя
+
 # Регистрация НКО
 class NPORegistration(BaseModel):
     login: str
@@ -276,3 +279,12 @@ class FavoriteItemResponse(BaseModel):
     created_at: datetime
     # Данные элемента (новость, событие или материал)
     item: dict  # Будет содержать NewsResponse, EventResponse или KnowledgeResponse
+
+# Схемы координат городов
+class CityCoordinatesResponse(BaseModel):
+    city_name: str
+    center: List[float]  # [lat, lon]
+    zoom: int
+    
+    class Config:
+        from_attributes = True

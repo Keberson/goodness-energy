@@ -12,6 +12,13 @@ export const authApi = createApi({
     tagTypes: [],
     baseQuery: fetchBaseQuery({
         baseUrl: `${import.meta.env.VITE_API_BASE_URL}/auth`,
+        prepareHeaders: (headers) => {
+            const token = localStorage.getItem("jwtToken");
+            if (token) {
+                headers.set("Authorization", `Bearer ${token}`);
+            }
+            return headers;
+        },
     }),
     endpoints: (builder) => ({
         login: builder.mutation<IAuthResponse, ILoginRequest>({
@@ -26,7 +33,24 @@ export const authApi = createApi({
         vkidLogin: builder.mutation<IAuthResponse, { token: string; user_type: "volunteer" | "npo" }>({
             query: (body) => ({ url: `/vkid/login`, method: "POST", body }),
         }),
+        getSelectedCity: builder.query<{ selected_city: string | null }, void>({
+            query: () => ({ url: `/selected-city` }),
+        }),
+        updateSelectedCity: builder.mutation<{ message: string; selected_city: string }, { city: string }>({
+            query: (body) => ({
+                url: `/selected-city`,
+                method: "PUT",
+                body,
+            }),
+        }),
     }),
 });
 
-export const { useLoginMutation, useRegisterVolunteerMutation, useRegisterNPOMutation, useVkidLoginMutation } = authApi;
+export const {
+    useLoginMutation,
+    useRegisterVolunteerMutation,
+    useRegisterNPOMutation,
+    useVkidLoginMutation,
+    useGetSelectedCityQuery,
+    useUpdateSelectedCityMutation,
+} = authApi;
