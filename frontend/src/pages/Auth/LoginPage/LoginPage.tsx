@@ -24,7 +24,12 @@ declare global {
         VK?: {
             init: (config: { apiId: number }) => void;
             Auth: {
-                login: (callback: (response: { session: { access_token: string; user: { id: number } } }) => void, settings: number) => void;
+                login: (
+                    callback: (response: {
+                        session: { access_token: string; user: { id: number } };
+                    }) => void,
+                    settings: number
+                ) => void;
             };
         };
     }
@@ -68,7 +73,9 @@ const LoginPage = () => {
     const onFinish = async (values: FormValues) => {
         try {
             const response = await loginAPI(values).unwrap();
-            dispatch(login({ token: response.access_token, type: response.user_type, id: response.id }));
+            dispatch(
+                login({ token: response.access_token, type: response.user_type, id: response.id })
+            );
         } catch (error) {}
     };
 
@@ -91,7 +98,13 @@ const LoginPage = () => {
                             token: response.session.access_token,
                             user_type: vkidUserType,
                         }).unwrap();
-                        dispatch(login({ token: result.access_token, type: result.user_type, id: result.id }));
+                        dispatch(
+                            login({
+                                token: result.access_token,
+                                type: result.user_type,
+                                id: result.id,
+                            })
+                        );
                         message.success("Успешный вход через VK ID");
                     } catch (error: any) {
                         message.error(error?.data?.detail || "Ошибка при входе через VK ID");

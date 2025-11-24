@@ -532,6 +532,16 @@ const ManageEventsPage = () => {
                                 </Row>
                             )}
                         </Form.Item>
+
+                        {editingEvent && (
+                            <Form.Item
+                                name="status"
+                                label="Статус"
+                                rules={[{ required: true, message: "Выберите статус" }]}
+                            >
+                                <Select options={statusOptions} />
+                            </Form.Item>
+                        )}
                     </Form>
                 </Modal>
             </Card>
