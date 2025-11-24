@@ -12,7 +12,7 @@ import { getApiBaseUrl } from "@utils/apiUrl";
 
 export const authApi = createApi({
     reducerPath: "authApi",
-    tagTypes: [],
+    tagTypes: ["NotificationSettings"],
     baseQuery: fetchBaseQuery({
         baseUrl: `${getApiBaseUrl()}/auth`,
         prepareHeaders: (headers) => {
@@ -45,6 +45,7 @@ export const authApi = createApi({
         }),
         getNotificationSettings: builder.query<INotificationSettings, void>({
             query: () => ({ url: `/notification-settings` }),
+            providesTags: [{ type: "NotificationSettings", id: "current" }],
         }),
         updateNotificationSettings: builder.mutation<INotificationSettings, INotificationSettingsUpdate>({
             query: (body) => ({
@@ -52,6 +53,29 @@ export const authApi = createApi({
                 method: "PUT",
                 body,
             }),
+            async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+                // Оптимистичное обновление: сразу обновляем кэш
+                const patchResult = dispatch(
+                    authApi.util.updateQueryData("getNotificationSettings", undefined, (draft) => {
+                        if (arg.notify_city_news !== undefined) {
+                            draft.notify_city_news = arg.notify_city_news;
+                        }
+                        if (arg.notify_registrations !== undefined) {
+                            draft.notify_registrations = arg.notify_registrations;
+                        }
+                        if (arg.notify_events !== undefined) {
+                            draft.notify_events = arg.notify_events;
+                        }
+                    })
+                );
+                try {
+                    await queryFulfilled;
+                } catch {
+                    // В случае ошибки откатываем изменения
+                    patchResult.undo();
+                }
+            },
+            invalidatesTags: [{ type: "NotificationSettings", id: "current" }],
         }),
     }),
 });

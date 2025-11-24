@@ -25,7 +25,7 @@ const NotificationSettings: React.FC = () => {
                 [field]: checked,
             };
             await updateSettings(update).unwrap();
-            message.success("Настройки уведомлений обновлены");
+            // Сообщение не показываем, так как обновление происходит автоматически через invalidate
         } catch (error) {
             message.error("Ошибка при обновлении настроек уведомлений");
         }

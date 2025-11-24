@@ -4,10 +4,12 @@ from app.database import get_db
 from app.models import User, UserRole, NPO, Volunteer, NPOStatus
 from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse
 from app.auth import verify_password, get_password_hash, create_access_token, get_current_user
+from app.email_service import send_notification_registration
 import json
 import logging
 import httpx
 import os
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -34,13 +36,6 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
     )
     db.add(user)
     db.flush()
-    
-    # Валидация обязательных полей
-    if len(npo_data.tags) == 0:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Требуется хотя бы один тег"
-        )
     
     # Валидация координат
     if not isinstance(npo_data.coordinates, list):
@@ -102,6 +97,9 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
     
     db.commit()
     
+    # Отправка уведомлений о регистрации (асинхронно, не блокируем ответ)
+    asyncio.create_task(send_registration_notifications("npo", npo.name, db))
+    
     # Создание токена
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": npo.id}
@@ -144,75 +142,38 @@ async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depe
     db.add(volunteer)
     db.commit()
     
+    # Отправка уведомлений о регистрации (асинхронно, не блокируем ответ)
+    volunteer_name = f"{vol_data.firstName} {vol_data.secondName}"
+    asyncio.create_task(send_registration_notifications("volunteer", volunteer_name, db))
+    
     # Создание токена
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": volunteer.id}
 
 @router.post("/login", response_model=Token)
 async def login(user_data: UserLogin, db: Session = Depends(get_db)):
-    try:
-        logger.info(f"Попытка входа пользователя: {user_data.login}")
-        user = db.query(User).filter(User.login == user_data.login).first()
-        if not user:
-            logger.warning(f"Пользователь с логином {user_data.login} не найден")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Неверный логин или пароль",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
-        # Проверка пароля
-        logger.debug(f"Проверка пароля для пользователя {user_data.login}")
-        if not verify_password(user_data.password, user.password_hash):
-            logger.warning(f"Неверный пароль для пользователя {user_data.login}")
-            raise HTTPException(
-                status_code=status.HTTP_401_UNAUTHORIZED,
-                detail="Неверный логин или пароль",
-                headers={"WWW-Authenticate": "Bearer"},
-            )
-        
-        # Получаем id из соответствующей таблицы в зависимости от роли
-        logger.debug(f"Получение ID для пользователя {user_data.login} с ролью {user.role}")
-        user_id = None
-        if user.role == UserRole.NPO:
-            npo = db.query(NPO).filter(NPO.user_id == user.id).first()
-            if npo:
-                user_id = npo.id
-        elif user.role == UserRole.VOLUNTEER:
-            volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
-            if volunteer:
-                user_id = volunteer.id
-        elif user.role == UserRole.ADMIN:
-            # Для админа используем id из таблицы users
-            user_id = user.id
-        
-        if user_id is None:
-            logger.error(f"Не удалось найти связанную запись для пользователя {user_data.login} с ролью {user.role}")
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail="Не удалось найти связанную запись пользователя"
-            )
-        
-        logger.info(f"Успешный вход пользователя {user_data.login} с ролью {user.role}, ID: {user_id}")
-        access_token = create_access_token(data={"sub": str(user.id)})
-        return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
-    except HTTPException:
-        # Пробрасываем HTTPException как есть
-        raise
-    except Exception as e:
-        logger.error(f"Неожиданная ошибка при входе пользователя {user_data.login}: {e}", exc_info=True)
+    user = db.query(User).filter(User.login == user_data.login).first()
+    if not user or not verify_password(user_data.password, user.password_hash):
         raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Внутренняя ошибка сервера: {str(e)}"
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Неверный логин или пароль",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-
-@router.get("/selected-city")
-async def get_selected_city(
-    current_user = Depends(get_current_user),
-    db: Session = Depends(get_db)
-):
-    """Получение выбранного города пользователя"""
-    return {"selected_city": current_user.selected_city}
+    
+    access_token = create_access_token(data={"sub": str(user.id)})
+    
+    # Определяем ID пользователя в зависимости от роли
+    user_id = None
+    if user.role == UserRole.NPO:
+        npo = db.query(NPO).filter(NPO.user_id == user.id).first()
+        if npo:
+            user_id = npo.id
+    elif user.role == UserRole.VOLUNTEER:
+        volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
+        if volunteer:
+            user_id = volunteer.id
+    
+    return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
 
 @router.put("/selected-city")
 async def update_selected_city(
@@ -221,17 +182,17 @@ async def update_selected_city(
     db: Session = Depends(get_db)
 ):
     """Обновление выбранного города пользователя"""
-    current_user.selected_city = city_update.city
+    current_user.selected_city = city_update.selected_city
     db.commit()
     db.refresh(current_user)
-    return {"message": "Выбранный город успешно обновлен", "selected_city": current_user.selected_city}
+    return {"selected_city": current_user.selected_city}
 
 @router.get("/notification-settings", response_model=NotificationSettingsResponse)
 async def get_notification_settings(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Получение настроек уведомлений пользователя"""
+    """Получение настроек уведомлений текущего пользователя"""
     return NotificationSettingsResponse(
         notify_city_news=current_user.notify_city_news,
         notify_registrations=current_user.notify_registrations,
@@ -244,7 +205,7 @@ async def update_notification_settings(
     current_user = Depends(get_current_user),
     db: Session = Depends(get_db)
 ):
-    """Обновление настроек уведомлений пользователя"""
+    """Обновление настроек уведомлений текущего пользователя"""
     if settings_update.notify_city_news is not None:
         current_user.notify_city_news = settings_update.notify_city_news
     if settings_update.notify_registrations is not None:
@@ -261,3 +222,24 @@ async def update_notification_settings(
         notify_events=current_user.notify_events
     )
 
+async def send_registration_notifications(new_user_type: str, new_user_name: str, db: Session):
+    """Отправка уведомлений о регистрации нового пользователя"""
+    try:
+        # Получаем всех пользователей с включенными уведомлениями о регистрациях
+        users_with_notifications = db.query(User).filter(
+            User.notify_registrations == True
+        ).all()
+        
+        for user in users_with_notifications:
+            # Получаем email пользователя (только для волонтеров, так как у НКО нет email)
+            if user.role == UserRole.VOLUNTEER:
+                volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
+                if volunteer and volunteer.email:
+                    send_notification_registration(
+                        to_email=volunteer.email,
+                        new_user_type=new_user_type,
+                        new_user_name=new_user_name
+                    )
+        
+    except Exception as e:
+        logger.error(f"Ошибка при отправке уведомлений о регистрации: {e}")

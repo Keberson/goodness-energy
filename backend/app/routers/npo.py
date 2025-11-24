@@ -468,6 +468,15 @@ async def update_event(
     db.commit()
     db.refresh(event)
     
+    # Отправка уведомлений о событии (асинхронно, не блокируем ответ)
+    asyncio.create_task(send_event_notifications(
+        event_name=event.name,
+        event_description=event.description,
+        event_city=event.city,
+        event_start=str(event.start),
+        db=db
+    ))
+    
     tags = [t.tag for t in event.tags]
     attached_ids = [a.file_id for a in event.attachments]
     return EventResponse(
@@ -584,6 +593,16 @@ async def create_news(
     
     tags = [t.tag for t in news.tags]
     attached_ids = [a.file_id for a in news.attachments]
+    
+    # Отправка уведомлений о новости из города (асинхронно, не блокируем ответ)
+    if npo.city:
+        asyncio.create_task(send_city_news_notifications(
+            news_id=news.id,
+            news_title=news.name,
+            news_text=news.text,
+            city=npo.city,
+            db=db
+        ))
     
     return NewsResponse(
         id=news.id,
@@ -836,4 +855,66 @@ async def export_npo_analytics_pdf(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Ошибка при генерации PDF файла"
         )
+
+async def send_event_notifications(
+    event_name: str,
+    event_description: str,
+    event_city: str,
+    event_start: str,
+    db: Session
+):
+    """Отправка уведомлений о новом событии"""
+    try:
+        # Получаем всех пользователей с включенными уведомлениями о событиях
+        users_with_notifications = db.query(User).filter(
+            User.notify_events == True
+        ).all()
+        
+        # Получаем URL события (можно настроить в зависимости от вашего фронтенда)
+        event_url = None  # TODO: добавить базовый URL фронтенда
+        
+        for user in users_with_notifications:
+            # Получаем email пользователя (только для волонтеров)
+            if user.role == UserRole.VOLUNTEER:
+                volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
+                if volunteer and volunteer.email:
+                    send_notification_event(
+                        to_email=volunteer.email,
+                        event_name=event_name,
+                        event_description=event_description,
+                        event_city=event_city,
+                        event_start=event_start,
+                        event_url=event_url
+                    )
+        
+    except Exception as e:
+        logger.error(f"Ошибка при отправке уведомлений о событии: {e}")
+
+async def send_city_news_notifications(news_id: int, news_title: str, news_text: str, city: str, db: Session):
+    """Отправка уведомлений о новости из города пользователям с включенными уведомлениями"""
+    try:
+        from app.email_service import send_notification_city_news
+        
+        # Получаем всех волонтеров из указанного города с включенными уведомлениями
+        volunteers = db.query(Volunteer).join(User).filter(
+            Volunteer.city == city,
+            User.notify_city_news == True,
+            Volunteer.email.isnot(None)
+        ).all()
+        
+        # Получаем URL новости (можно настроить в зависимости от вашего фронтенда)
+        news_url = None  # TODO: добавить базовый URL фронтенда
+        
+        for volunteer in volunteers:
+            if volunteer.email:
+                send_notification_city_news(
+                    to_email=volunteer.email,
+                    news_title=news_title,
+                    news_text=news_text,
+                    city=city,
+                    news_url=news_url
+                )
+        
+    except Exception as e:
+        logger.error(f"Ошибка при отправке уведомлений о новости: {e}")
 

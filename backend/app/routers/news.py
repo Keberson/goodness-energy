@@ -2,10 +2,12 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
-from app.models import News, NewsTag, NewsAttachment, NPO, Volunteer, UserRole
+from app.models import News, NewsTag, NewsAttachment, NPO, Volunteer, UserRole, User
 from app.schemas import NewsCreate, NewsResponse, NewsUpdate
 from app.auth import get_current_user
+from app.email_service import send_notification_city_news
 import logging
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -139,6 +141,21 @@ async def create_news(
     
     db.commit()
     db.refresh(news)
+    
+    # Определяем город новости для отправки уведомлений
+    news_city = None
+    if npo_id:
+        npo = db.query(NPO).filter(NPO.id == npo_id).first()
+        if npo:
+            news_city = npo.city
+    elif volunteer_id:
+        volunteer = db.query(Volunteer).filter(Volunteer.id == volunteer_id).first()
+        if volunteer:
+            news_city = volunteer.city
+    
+    # Отправка уведомлений о новости из города (асинхронно, не блокируем ответ)
+    if news_city:
+        asyncio.create_task(send_city_news_notifications(news.id, news.name, news.text, news_city, db))
     
     tags = [t.tag for t in news.tags]
     attached_ids = [a.file_id for a in news.attachments]
