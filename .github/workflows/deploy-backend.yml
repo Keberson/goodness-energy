@@ -12,7 +12,7 @@ jobs:
     runs-on: self-hosted
     defaults:
       run:
-        working-directory: /home/ubuntu/goodness-energy
+        working-directory: ~/goodness-energy
     steps:
       - name: Pull latest code
         run: git pull origin main
