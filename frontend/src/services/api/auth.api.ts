@@ -36,7 +36,7 @@ export const authApi = createApi({
         getSelectedCity: builder.query<{ selected_city: string | null }, void>({
             query: () => ({ url: `/selected-city` }),
         }),
-        updateSelectedCity: builder.mutation<{ message: string; selected_city: string }, { city: string }>({
+        updateSelectedCity: builder.mutation<{ selected_city: string }, { city: string }>({
             query: (body) => ({
                 url: `/selected-city`,
                 method: "PUT",

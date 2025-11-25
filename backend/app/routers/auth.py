@@ -175,6 +175,14 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     
     return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
 
+@router.get("/selected-city")
+async def get_selected_city(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Получение выбранного города пользователя"""
+    return {"selected_city": current_user.selected_city}
+
 @router.put("/selected-city")
 async def update_selected_city(
     city_update: SelectedCityUpdate,
@@ -182,7 +190,7 @@ async def update_selected_city(
     db: Session = Depends(get_db)
 ):
     """Обновление выбранного города пользователя"""
-    current_user.selected_city = city_update.selected_city
+    current_user.selected_city = city_update.city
     db.commit()
     db.refresh(current_user)
     return {"selected_city": current_user.selected_city}
