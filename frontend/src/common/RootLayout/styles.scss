@@ -99,9 +99,22 @@
         height: 100vh;
         min-height: 100vh;
         overflow-y: auto;
+        position: relative;
 
         @media (max-width: 767px) {
             margin-left: 0 !important;
+        }
+
+        // Добавляем небольшой отступ снизу через псевдоэлемент для кнопки "Версия для слабовидящих"
+        &::after {
+            content: "";
+            display: block;
+            height: 80px;
+            flex-shrink: 0;
+
+            @media (max-width: 767px) {
+                height: 70px;
+            }
         }
     }
 
@@ -131,6 +144,17 @@
 
 // Исключаем меню из правил версии для слабовидящих
 body.accessibility-mode {
+    .content__wrapper {
+        // Увеличиваем отступ через псевдоэлемент для увеличенной кнопки в режиме для слабовидящих
+        &::after {
+            height: 100px;
+
+            @media (max-width: 767px) {
+                height: 90px;
+            }
+        }
+    }
+
     .menu {
         .menu__logo-container__title {
             color: #ffffff !important;

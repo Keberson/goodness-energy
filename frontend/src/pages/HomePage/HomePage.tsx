@@ -235,7 +235,7 @@ const HomePage = () => {
                         <Title level={1} className="home__header__title">
                             Добрые дела Росатома
                         </Title>
-                        <Title level={3}>Все инициативы вашего города в одном месте</Title>
+                        <Title level={3} className="home__header__subheading">Все инициативы вашего города в одном месте</Title>
                         <Paragraph className="home__header__description">
                             Единый портал для жителей, волонтёров и НКО, где собрана вся информация
                             о социальных, экологических, культурных, образовательных и спортивных
@@ -257,7 +257,7 @@ const HomePage = () => {
                 </Row>
             </Card>
 
-            <Title level={2} style={{ textAlign: "center", marginBottom: 32 }}>
+            <Title level={2} className="home__section-title" style={{ textAlign: "center", marginBottom: 32 }}>
                 Здесь вы сможете:
             </Title>
 
@@ -352,7 +352,7 @@ const HomePage = () => {
 
                                                     {event.description && (
                                                         <Paragraph
-                                                            ellipsis={{ rows: 2, expandable: true }}
+                                                            ellipsis={{ rows: 2, expandable: "collapsible" }}
                                                             style={{ margin: 0 }}
                                                         >
                                                             {event.description}

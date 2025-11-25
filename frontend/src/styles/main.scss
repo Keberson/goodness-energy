@@ -153,35 +153,36 @@ body.accessibility-mode {
     }
 
     // Увеличение размеров заголовков (исключаем меню)
-    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography) h1 {
+    // Исключаем заголовки на главной странице из глобальных правил
+    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography):not(.home__header .ant-typography) h1 {
         font-size: 36px !important;
         font-weight: 700 !important;
         color: #000000 !important;
         line-height: 1.3 !important;
     }
 
-    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography) h2 {
+    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography):not(.home__header .ant-typography):not(.home__section-title) h2 {
         font-size: 30px !important;
         font-weight: 700 !important;
         color: #000000 !important;
         line-height: 1.3 !important;
     }
 
-    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography) h3 {
+    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography):not(.home__header .ant-typography) h3 {
         font-size: 24px !important;
         font-weight: 700 !important;
         color: #000000 !important;
         line-height: 1.4 !important;
     }
 
-    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography) h4 {
+    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography):not(.home__header .ant-typography) h4 {
         font-size: 20px !important;
         font-weight: 700 !important;
         color: #000000 !important;
         line-height: 1.4 !important;
     }
 
-    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography) {
+    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography):not(.home__header .ant-typography) {
         font-size: 20px !important;
         color: #000000 !important;
         line-height: 1.6 !important;
@@ -443,7 +444,20 @@ body.accessibility-mode {
     a.ant-typography-expand,
     .ant-typography-ellipsis-expand-icon,
     span.ant-typography-expand,
-    .ant-typography .ant-typography-expand {
+    .ant-typography .ant-typography-expand,
+    .ant-typography-collapse,
+    .ant-typography-ellipsis-collapse,
+    button.ant-typography-collapse,
+    a.ant-typography-collapse,
+    span.ant-typography-collapse,
+    .ant-typography .ant-typography-collapse,
+    .ant-typography-collapse-icon,
+    .ant-typography-ellipsis-collapse-icon,
+    // Дополнительные селекторы для кнопки свернуть
+    .ant-typography-ellipsis .ant-typography-expand,
+    .ant-typography-ellipsis .ant-typography-collapse,
+    .ant-typography-ellipsis-expand,
+    .ant-typography-ellipsis-collapse {
         font-size: 18px !important;
         padding: 8px 16px !important;
         min-height: 44px !important;
