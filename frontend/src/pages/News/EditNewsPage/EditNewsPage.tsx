@@ -48,13 +48,10 @@ const EditNewsPage = () => {
     const [annotation, setAnnotation] = useState("");
     const [type, setType] = useState<NewsType>("blog");
     const [saving, setSaving] = useState(false);
-<<<<<<< HEAD
+    const [isLoadingNews, setIsLoadingNews] = useState(false);
     const dragOffsetRef = useRef<{ x: number; y: number } | null>(null);
     const initialRectRef = useRef<{ left: number; top: number; width: number; height: number } | null>(null);
     const currentCursorRef = useRef<{ x: number; y: number } | null>(null);
-=======
-    const [isLoadingNews, setIsLoadingNews] = useState(false);
->>>>>>> b48f99f4bf4a690d81544e22a62727bc583364e6
 
     const { data: newsTypes = [], isLoading: isLoadingTypes } = useGetNewsTypesQuery();
     const [createNews] = useCreateNewsMutation();
@@ -86,7 +83,6 @@ const EditNewsPage = () => {
         }
     }, [newsTypes]);
 
-<<<<<<< HEAD
     // Очистка обработчиков при размонтировании компонента
     useEffect(() => {
         return () => {
@@ -96,15 +92,44 @@ const EditNewsPage = () => {
         };
     }, []);
 
+    // Загрузка существующей новости при редактировании
+    useEffect(() => {
+        if (isEditing && existingNews && !isLoadingNews) {
+            setIsLoadingNews(true);
+            setTitle(existingNews.name || "");
+            setAnnotation(existingNews.annotation || "");
+            setType(existingNews.type || "blog");
+
+            // Конвертируем HTML в элементы редактора
+            try {
+                const parsedElements = convertNewsDataToElements(existingNews.text || "");
+                setElements(parsedElements);
+            } catch (error) {
+                console.error("Ошибка при парсинге HTML новости:", error);
+                message.error("Ошибка при загрузке контента новости");
+            } finally {
+                setIsLoadingNews(false);
+            }
+        }
+    }, [isEditing, existingNews, isLoadingNews]);
+
     // Модификатор для корректировки позиции курсора при перетаскивании
     // Сохраняет относительное положение курсора к элементу
     const snapCenterToCursor = ({ transform, draggingNodeRect, activatorEvent }: {
-        transform: { x: number; y: number };
+        transform: { x: number; y: number; scaleX?: number; scaleY?: number };
         draggingNodeRect: { left: number; top: number; width: number; height: number } | null;
         activatorEvent: Event | null;
     }) => {
+        const scaleX = (transform.scaleX ?? 1) as number;
+        const scaleY = (transform.scaleY ?? 1) as number;
+        
         if (!draggingNodeRect || !activatorEvent) {
-            return transform;
+            return {
+                x: transform.x,
+                y: transform.y,
+                scaleX,
+                scaleY,
+            };
         }
 
         // Сохраняем начальный rect элемента при первом вызове
@@ -132,7 +157,12 @@ const EditNewsPage = () => {
             currentX = (activatorEvent as any).clientX;
             currentY = (activatorEvent as any).clientY;
         } else {
-            return transform;
+            return {
+                x: transform.x,
+                y: transform.y,
+                scaleX,
+                scaleY,
+            };
         }
 
         // Если offset еще не сохранен, сохраняем его (относительно начальной позиции элемента)
@@ -153,33 +183,18 @@ const EditNewsPage = () => {
             return {
                 x: newX,
                 y: newY,
+                scaleX,
+                scaleY,
             };
         }
 
-        return transform;
+        return {
+            x: transform.x,
+            y: transform.y,
+            scaleX,
+            scaleY,
+        };
     };
-=======
-    // Загрузка существующей новости при редактировании
-    useEffect(() => {
-        if (isEditing && existingNews && !isLoadingNews) {
-            setIsLoadingNews(true);
-            setTitle(existingNews.name || "");
-            setAnnotation(existingNews.annotation || "");
-            setType(existingNews.type || "blog");
-
-            // Конвертируем HTML в элементы редактора
-            try {
-                const parsedElements = convertNewsDataToElements(existingNews.text || "");
-                setElements(parsedElements);
-            } catch (error) {
-                console.error("Ошибка при парсинге HTML новости:", error);
-                message.error("Ошибка при загрузке контента новости");
-            } finally {
-                setIsLoadingNews(false);
-            }
-        }
-    }, [isEditing, existingNews, isLoadingNews]);
->>>>>>> b48f99f4bf4a690d81544e22a62727bc583364e6
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -392,7 +407,6 @@ const EditNewsPage = () => {
         }
     };
 
-<<<<<<< HEAD
     const renderDragOverlayContent = () => {
         if (!activeId) return null;
 
@@ -442,7 +456,7 @@ const EditNewsPage = () => {
                         </Card>
                     )}
                     {element.type === "heading" && (
-                        <Title level={(element.props?.level as number) || 2}>
+                        <Title level={((element.props?.level as number) || 2) as 1 | 2 | 3 | 4 | 5}>
                             {element.content as string}
                         </Title>
                     )}
@@ -457,7 +471,7 @@ const EditNewsPage = () => {
 
         return null;
     };
-=======
+
     // Показываем загрузку при получении существующей новости
     if (isEditing && (isLoadingExistingNews || isLoadingNews)) {
         return (
@@ -484,7 +498,6 @@ const EditNewsPage = () => {
             </div>
         );
     }
->>>>>>> b48f99f4bf4a690d81544e22a62727bc583364e6
 
     return (
         <DndContext 
