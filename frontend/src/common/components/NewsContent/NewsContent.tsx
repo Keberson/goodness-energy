@@ -131,3 +131,4 @@ const NewsContent = ({ html, className, style }: NewsContentProps) => {
 };
 
 export default NewsContent;
+

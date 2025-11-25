@@ -3,7 +3,7 @@ import { CalendarOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetNewsByIdQuery } from "@services/api/news.api";
 import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
-import NewsContent from "../../../components/NewsContent/NewsContent";
+import NewsContent from "@components/NewsContent/NewsContent";
 import "./styles.scss";
 
 const { Title, Paragraph } = Typography;
