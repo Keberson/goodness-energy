@@ -79,7 +79,7 @@ const ElementRenderer = ({ element, onUpdate, onDelete }: ElementRendererProps) 
                     <ImageElement
                         content={
                             Array.isArray(element.content)
-                                ? element.content
+                                ? element.content.map((item) => (typeof item === "number" ? item : parseInt(String(item)) || 0))
                                 : typeof element.content === "number"
                                 ? element.content
                                 : 0
@@ -95,7 +95,11 @@ const ElementRenderer = ({ element, onUpdate, onDelete }: ElementRendererProps) 
             case "list":
                 return (
                     <ListElement
-                        content={Array.isArray(element.content) ? element.content : [element.content as string]}
+                        content={
+                            Array.isArray(element.content)
+                                ? element.content.map((item) => String(item))
+                                : [String(element.content)]
+                        }
                         isEditing={isEditing}
                         onSave={(content) => handleSave(content)}
                         onCancel={handleCancel}

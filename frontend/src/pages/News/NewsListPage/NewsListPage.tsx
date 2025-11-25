@@ -7,13 +7,6 @@ import { useCity } from "@hooks/useCity";
 
 const { Title } = Typography;
 
-// Функция для извлечения текста из HTML
-const stripHtmlTags = (html: string): string => {
-    const div = document.createElement("div");
-    div.innerHTML = html;
-    return div.textContent || div.innerText || "";
-};
-
 const NewsListPage = () => {
     const navigate = useNavigate();
     const { currentCity } = useCity();
