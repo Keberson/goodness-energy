@@ -155,7 +155,7 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
     access_token = create_access_token(data={"sub": str(user.id)})
     
     # Определяем ID пользователя в зависимости от роли
-    user_id = None
+    user_id = user.id  # По умолчанию используем user.id (для ADMIN и как fallback)
     if user.role == UserRole.NPO:
         npo = db.query(NPO).filter(NPO.user_id == user.id).first()
         if npo:
@@ -164,6 +164,7 @@ async def login(user_data: UserLogin, db: Session = Depends(get_db)):
         volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
         if volunteer:
             user_id = volunteer.id
+    # Для ADMIN используем user.id (уже установлено по умолчанию)
     
     return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
 
