@@ -737,7 +737,7 @@ VALUES (
   '1995-05-15 00:00:00',
   'Глазов',
   'male',
-  'andreymironov02@mail.ru',
+  'andrey_mironov02@mail.ru',
   '+79991234567',
   NOW()
 );
