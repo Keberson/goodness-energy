@@ -20,7 +20,15 @@ const ListElement = ({ content, isEditing, onSave, onCancel, onEdit }: ListEleme
     }, [content]);
 
     const handleSave = () => {
-        onSave(editValue);
+        // Удаляем пустые строки в конце при сохранении, но сохраняем их во время редактирования
+        const trimmedValue = [...editValue];
+        // Удаляем пустые строки в конце
+        while (trimmedValue.length > 0 && !trimmedValue[trimmedValue.length - 1]?.trim()) {
+            trimmedValue.pop();
+        }
+        // Фильтруем пустые строки в середине (оставляем только непустые)
+        const filteredValue = trimmedValue.filter((item) => item.trim());
+        onSave(filteredValue.length > 0 ? filteredValue : [""]);
         onCancel();
     };
 
@@ -34,7 +42,11 @@ const ListElement = ({ content, isEditing, onSave, onCancel, onEdit }: ListEleme
             <Space direction="vertical" style={{ width: "100%" }}>
                 <TextArea
                     value={editValue.join("\n")}
-                    onChange={(e) => setEditValue(e.target.value.split("\n").filter((item) => item.trim()))}
+                    onChange={(e) => {
+                        // Сохраняем все строки, включая пустые, чтобы можно было добавлять новые строки
+                        const lines = e.target.value.split("\n");
+                        setEditValue(lines);
+                    }}
                     rows={4}
                     placeholder="Введите элементы списка (каждый с новой строки)"
                 />
