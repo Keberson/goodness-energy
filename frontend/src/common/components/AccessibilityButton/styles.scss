@@ -1,0 +1,60 @@
+@use "@styles/colors" as *;
+
+.accessibility-button {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 1000;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    font-weight: 600;
+    transition: all 0.3s ease;
+    min-height: 48px;
+    border-width: 2px;
+
+    &:hover,
+    &:focus {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+        outline: 2px solid $rosatom-blue-1;
+        outline-offset: 2px;
+    }
+
+    &.active {
+        background: $rosatom-green-100;
+        border-color: $rosatom-green-100;
+
+        &:hover,
+        &:focus {
+            background: $rosatom-green-0;
+            border-color: $rosatom-green-0;
+        }
+    }
+
+    @media (max-width: 767px) {
+        bottom: 16px;
+        right: 16px;
+        font-size: 14px;
+        padding: 10px 16px;
+        height: auto;
+        min-height: 44px;
+    }
+}
+
+// Стили для версии для слабовидящих
+body.accessibility-mode {
+    .accessibility-button {
+        font-size: 18px !important;
+        padding: 14px 24px !important;
+        min-height: 52px !important;
+        bottom: 32px;
+        right: 32px;
+
+        @media (max-width: 767px) {
+            font-size: 16px !important;
+            padding: 12px 20px !important;
+            min-height: 48px !important;
+            bottom: 20px;
+            right: 20px;
+        }
+    }
+}

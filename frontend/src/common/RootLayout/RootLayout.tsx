@@ -11,6 +11,7 @@ import ModalContext from "@contexts/ModalContext";
 import useAppSelector from "@hooks/useAppSelector";
 import useAppDispatch from "@hooks/useAppDispatch";
 import { logout } from "@services/slices/auth.slice";
+import AccessibilityButton from "@components/AccessibilityButton/AccessibilityButton";
 
 import {
     volunteerMenuItems,
@@ -222,6 +223,7 @@ const RootLayout = () => {
             )}
             <Content className="content__wrapper">
                 <Outlet />
+                <AccessibilityButton />
             </Content>
         </Layout>
     );

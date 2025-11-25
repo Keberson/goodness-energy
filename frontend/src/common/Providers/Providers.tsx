@@ -5,6 +5,7 @@ import { Provider } from "react-redux";
 
 import LoadingProvider from "./LoadingProvider/LoadingProvider";
 import ModalProvider from "./ModalProvider/ModalProvider";
+import { AccessibilityProvider } from "@contexts/AccessibilityContext";
 
 import { store } from "@services/store.service";
 
@@ -34,11 +35,13 @@ const Providers = () => {
                         },
                     }}
                 >
-                    <LoadingProvider>
-                        <ModalProvider>
-                            <Outlet />
-                        </ModalProvider>
-                    </LoadingProvider>
+                    <AccessibilityProvider>
+                        <LoadingProvider>
+                            <ModalProvider>
+                                <Outlet />
+                            </ModalProvider>
+                        </LoadingProvider>
+                    </AccessibilityProvider>
                 </ConfigProvider>
             </Provider>
         </App>

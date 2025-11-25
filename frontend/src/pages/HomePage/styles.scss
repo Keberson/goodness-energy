@@ -201,3 +201,25 @@
         line-height: 1;
     }
 }
+
+// Увеличение точек событий в версии для слабовидящих
+body.accessibility-mode {
+    .events-calendar {
+        &__event-indicator {
+            .ant-badge-status-dot {
+                width: 16px !important;
+                height: 16px !important;
+                border-width: 2px !important;
+            }
+        }
+
+        &__more-indicator {
+            min-width: 32px !important;
+            height: 32px !important;
+            padding: 0 8px !important;
+            font-size: 14px !important;
+            font-weight: 700 !important;
+            border-width: 2px !important;
+        }
+    }
+}

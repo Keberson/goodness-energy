@@ -128,3 +128,64 @@
 
     scroll-behavior: smooth;
 }
+
+// Исключаем меню из правил версии для слабовидящих
+body.accessibility-mode {
+    .menu {
+        .menu__logo-container__title {
+            color: #ffffff !important;
+        }
+
+        .ant-menu-dark {
+            .ant-menu-item {
+                color: rgba(255, 255, 255, 0.85) !important;
+
+                a {
+                    color: rgba(255, 255, 255, 0.85) !important;
+                    text-decoration: none !important;
+                }
+
+                &:hover,
+                &.ant-menu-item-selected,
+                &.ant-menu-item-active {
+                    color: #ffffff !important;
+
+                    a {
+                        color: #ffffff !important;
+                        text-decoration: none !important;
+                    }
+                }
+            }
+        }
+    }
+
+    .mobile-drawer,
+    .ant-drawer {
+        .ant-drawer-title,
+        .ant-drawer-header-title {
+            color: #ffffff !important;
+        }
+
+        .ant-menu-dark {
+            .ant-menu-item {
+                color: rgba(255, 255, 255, 0.85) !important;
+
+                a {
+                    color: rgba(255, 255, 255, 0.85) !important;
+                    text-decoration: none !important;
+                }
+
+                &:hover,
+                &.ant-menu-item-selected,
+                &.ant-menu-item-active {
+                    color: #ffffff !important;
+
+                    a {
+                        color: #ffffff !important;
+                        text-decoration: none !important;
+                    }
+                }
+            }
+        }
+    }
+}
