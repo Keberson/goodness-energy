@@ -136,11 +136,6 @@ export const adminMenuItems: MenuItem[] = [
                 label: "Модерация",
             },
             {
-                key: "create-knowledge",
-                icon: <EditOutlined />,
-                label: "Создать материал",
-            },
-            {
                 key: "logout",
                 icon: <LogoutOutlined />,
                 label: "Выйти",

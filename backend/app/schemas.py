@@ -170,6 +170,7 @@ class EventResponseCreate(BaseModel):
 # Схемы новостей
 class NewsCreate(BaseModel):
     name: str
+    annotation: Optional[str] = None  # Краткое описание для списка новостей
     text: str
     attachedIds: Optional[List[int]] = None
     tags: Optional[List[str]] = None
@@ -177,6 +178,7 @@ class NewsCreate(BaseModel):
 
 class NewsUpdate(BaseModel):
     name: Optional[str] = None
+    annotation: Optional[str] = None
     text: Optional[str] = None
     attachedIds: Optional[List[int]] = None
     tags: Optional[List[str]] = None
@@ -185,6 +187,7 @@ class NewsUpdate(BaseModel):
 class NewsResponse(BaseModel):
     id: int
     name: str
+    annotation: Optional[str] = None
     text: str
     attachedIds: List[int]
     tags: List[str]

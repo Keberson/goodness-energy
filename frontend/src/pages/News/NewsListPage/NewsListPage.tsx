@@ -1,11 +1,11 @@
-import { Card, List, Typography, Tag, Space, Button, Empty } from "antd";
-import { EyeOutlined, CalendarOutlined } from "@ant-design/icons";
+import { Card, List, Typography, Tag, Space, Button, Empty, Flex } from "antd";
+import { EyeOutlined, CalendarOutlined, PlusOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useGetNewsQuery } from "@services/api/news.api";
 import type { INews } from "@app-types/news.types";
 import { useCity } from "@hooks/useCity";
 
-const { Title, Paragraph } = Typography;
+const { Title } = Typography;
 
 const NewsListPage = () => {
     const navigate = useNavigate();
@@ -33,9 +33,18 @@ const NewsListPage = () => {
     return (
         <div style={{ padding: 24, minHeight: "calc(100vh - 48px)" }}>
             <Card style={{ minHeight: "calc(100vh - 96px)" }}>
-                <Title level={3} style={{ marginBottom: 24 }}>
-                    Новости
-                </Title>
+                <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
+                    <Title level={3} style={{ marginBottom: 0 }}>
+                        Новости
+                    </Title>
+                    <Button
+                        type="primary"
+                        icon={<PlusOutlined />}
+                        onClick={() => navigate("/news/edit")}
+                    >
+                        Создать новость
+                    </Button>
+                </Flex>
                 {isLoading ? (
                     <List loading={isLoading} />
                 ) : !data || data.length === 0 ? (
@@ -84,12 +93,28 @@ const NewsListPage = () => {
                                         </Space>
                                     }
                                 />
-                                <Paragraph
-                                    ellipsis={{ rows: 3, expandable: false }}
-                                    style={{ marginTop: 8 }}
-                                >
-                                    {item.text}
-                                </Paragraph>
+                                {item.annotation ? (
+                                    <div
+                                        style={{
+                                            marginTop: 8,
+                                            color: "rgba(0, 0, 0, 0.65)",
+                                            lineHeight: 1.5,
+                                        }}
+                                    >
+                                        {item.annotation}
+                                    </div>
+                                ) : (
+                                    <div
+                                        style={{
+                                            marginTop: 8,
+                                            color: "rgba(0, 0, 0, 0.45)",
+                                            fontStyle: "italic",
+                                            lineHeight: 1.5,
+                                        }}
+                                    >
+                                        Нет описания
+                                    </div>
+                                )}
                                 {item.tags && item.tags.length > 0 && (
                                     <Space wrap style={{ marginTop: 8 }}>
                                         {item.tags.map((tag) => (
@@ -107,4 +132,3 @@ const NewsListPage = () => {
 };
 
 export default NewsListPage;
-

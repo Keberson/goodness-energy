@@ -1,12 +1,39 @@
 import { useState } from "react";
-import { Card, List, Typography, Tag, Space, Button, App, Modal, Form, Input, Upload, message } from "antd";
-import { DownloadOutlined, EyeOutlined, DeleteOutlined, EditOutlined, UploadOutlined, VideoCameraOutlined, MinusCircleOutlined, PlusOutlined } from "@ant-design/icons";
+import {
+    Card,
+    List,
+    Typography,
+    Tag,
+    Space,
+    Button,
+    App,
+    Modal,
+    Form,
+    Input,
+    Upload,
+    message,
+    Flex,
+} from "antd";
+import {
+    DownloadOutlined,
+    EyeOutlined,
+    DeleteOutlined,
+    EditOutlined,
+    UploadOutlined,
+    VideoCameraOutlined,
+    MinusCircleOutlined,
+    PlusOutlined,
+} from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import { useNavigate } from "react-router-dom";
 
 import type { IKnowledge } from "@app-types/knowledges.types";
 
-import { useGetKnowledgesQuery, useDeleteKnowledgeMutation, useUpdateKnowledgeMutation } from "@services/api/knowledges.api";
+import {
+    useGetKnowledgesQuery,
+    useDeleteKnowledgeMutation,
+    useUpdateKnowledgeMutation,
+} from "@services/api/knowledges.api";
 import { useUploadFileMutation } from "@services/api/files.api";
 import { getApiBaseUrl } from "@utils/apiUrl";
 import useAppSelector from "@hooks/useAppSelector";
@@ -23,7 +50,7 @@ const KnowledgesPage = () => {
     const [uploadFile] = useUploadFileMutation();
     const userType = useAppSelector((state) => state.auth.userType);
     const isAdmin = userType === "admin";
-    
+
     const [editModalVisible, setEditModalVisible] = useState(false);
     const [editingKnowledge, setEditingKnowledge] = useState<IKnowledge | null>(null);
     const [editForm] = Form.useForm();
@@ -50,13 +77,10 @@ const KnowledgesPage = () => {
                 headers["authorization"] = `Bearer ${token}`;
             }
 
-            const response = await fetch(
-                `${getApiBaseUrl()}/knowledges/${item.id}/download`,
-                {
-                    method: "GET",
-                    headers,
-                }
-            );
+            const response = await fetch(`${getApiBaseUrl()}/knowledges/${item.id}/download`, {
+                method: "GET",
+                headers,
+            });
 
             if (!response.ok) {
                 throw new Error("Не удалось скачать файлы");
@@ -66,7 +90,9 @@ const KnowledgesPage = () => {
             const contentDisposition = response.headers.get("content-disposition");
             let filename = `knowledge_${item.id}_files.zip`;
             if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                const filenameMatch = contentDisposition.match(
+                    /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+                );
                 if (filenameMatch && filenameMatch[1]) {
                     filename = filenameMatch[1].replace(/['"]/g, "");
                     // Декодируем UTF-8 имя файла если есть
@@ -111,7 +137,7 @@ const KnowledgesPage = () => {
         setEditingKnowledge(item);
         setEditModalVisible(true);
         setNewFiles([]);
-        
+
         // Заполняем форму текущими данными
         editForm.setFieldsValue({
             title: item.name,
@@ -149,14 +175,14 @@ const KnowledgesPage = () => {
             }
 
             // Объединяем существующие файлы с новыми
-            const allFileIds = [
-                ...(editingKnowledge.attachedIds || []),
-                ...newFileIds,
-            ];
+            const allFileIds = [...(editingKnowledge.attachedIds || []), ...newFileIds];
 
             // Обрабатываем теги
             const tags = values.tags
-                ? values.tags.split(",").map((tag: string) => tag.trim()).filter((tag: string) => tag.length > 0)
+                ? values.tags
+                      .split(",")
+                      .map((tag: string) => tag.trim())
+                      .filter((tag: string) => tag.length > 0)
                 : editingKnowledge.tags;
 
             // Обновляем материал
@@ -262,9 +288,20 @@ const KnowledgesPage = () => {
     return (
         <div style={{ padding: 24 }}>
             <Card>
-                <Title level={2} style={{ marginBottom: 24 }}>
-                    База знаний
-                </Title>
+                <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
+                    <Title level={2} style={{ marginBottom: 0 }}>
+                        База знаний
+                    </Title>
+                    {isAdmin && (
+                        <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            onClick={() => navigate("/knowledges/create")}
+                        >
+                            Создать материал
+                        </Button>
+                    )}
+                </Flex>
 
                 <List
                     itemLayout="vertical"
@@ -317,40 +354,37 @@ const KnowledgesPage = () => {
                         }
 
                         return (
-                            <List.Item
-                                key={item.id}
-                                actions={actions}
-                        >
-                            <List.Item.Meta
-                                title={
-                                    <Space direction="vertical" size={4}>
-                                        <Title level={4} style={{ margin: 0 }}>
-                                            {item.name}
-                                        </Title>
-                                        <Space wrap>
-                                            {item.tags.map((tag) => (
-                                                <Tag key={tag}>{tag}</Tag>
-                                            ))}
+                            <List.Item key={item.id} actions={actions}>
+                                <List.Item.Meta
+                                    title={
+                                        <Space direction="vertical" size={4}>
+                                            <Title level={4} style={{ margin: 0 }}>
+                                                {item.name}
+                                            </Title>
+                                            <Space wrap>
+                                                {item.tags.map((tag) => (
+                                                    <Tag key={tag}>{tag}</Tag>
+                                                ))}
+                                            </Space>
                                         </Space>
-                                    </Space>
-                                }
-                                description={
-                                    <Paragraph
-                                        style={{ marginBottom: 0 }}
-                                        ellipsis={{ rows: 2, expandable: "collapsible" }}
-                                    >
-                                        {item.text}
-                                    </Paragraph>
-                                }
-                            />
+                                    }
+                                    description={
+                                        <Paragraph
+                                            style={{ marginBottom: 0 }}
+                                            ellipsis={{ rows: 2, expandable: "collapsible" }}
+                                        >
+                                            {item.text}
+                                        </Paragraph>
+                                    }
+                                />
 
-                            <div style={{ marginTop: 8 }}>
-                                <Text type="secondary">
-                                    Добавлено:{" "}
-                                    {new Date(item.created_at).toLocaleDateString("ru-RU")}
-                                </Text>
-                            </div>
-                        </List.Item>
+                                <div style={{ marginTop: 8 }}>
+                                    <Text type="secondary">
+                                        Добавлено:{" "}
+                                        {new Date(item.created_at).toLocaleDateString("ru-RU")}
+                                    </Text>
+                                </div>
+                            </List.Item>
                         );
                     }}
                 />
@@ -387,10 +421,7 @@ const KnowledgesPage = () => {
                         <TextArea rows={4} placeholder="Подробное описание материала" />
                     </Form.Item>
 
-                    <Form.Item
-                        name="tags"
-                        label="Теги (через запятую)"
-                    >
+                    <Form.Item name="tags" label="Теги (через запятую)">
                         <Input placeholder="Введите теги через запятую" />
                     </Form.Item>
 
@@ -444,13 +475,16 @@ const KnowledgesPage = () => {
                                 </Tag>
                             ))}
                         </div>
-                        {editingKnowledge && editingKnowledge.attachedIds && editingKnowledge.attachedIds.length > 0 && (
-                            <div style={{ marginTop: 8 }}>
-                                <Text type="secondary">
-                                    Текущие файлы: {editingKnowledge.attachedIds.length} шт. (новые файлы будут добавлены к существующим)
-                                </Text>
-                            </div>
-                        )}
+                        {editingKnowledge &&
+                            editingKnowledge.attachedIds &&
+                            editingKnowledge.attachedIds.length > 0 && (
+                                <div style={{ marginTop: 8 }}>
+                                    <Text type="secondary">
+                                        Текущие файлы: {editingKnowledge.attachedIds.length} шт.
+                                        (новые файлы будут добавлены к существующим)
+                                    </Text>
+                                </div>
+                            )}
                     </Form.Item>
                 </Form>
             </Modal>

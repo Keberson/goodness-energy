@@ -1,0 +1,200 @@
+.edit-news-page {
+    .ant-layout-sider {
+        background: #fff;
+        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
+        z-index: 100;
+    }
+
+    .ant-layout-content {
+        position: relative;
+        z-index: 200;
+    }
+
+    .news-toolbar {
+        .ant-card {
+            transition: all 0.2s;
+
+            &:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            }
+        }
+    }
+
+    .news-workspace {
+        .element-card {
+            transition: all 0.2s;
+
+            &:hover {
+                box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            }
+        }
+    }
+}
+
+.ql-container,
+.ql-editor,
+.ql-toolbar,
+.ql-snow {
+    font-family: "Rosatom", sans-serif !important;
+}
+
+.ql-editor {
+    font-family: "Rosatom", sans-serif !important;
+    font-size: 16px;
+    line-height: 1.5;
+}
+
+.ql-editor a {
+    color: #1890ff !important;
+    text-decoration: underline !important;
+    cursor: pointer !important;
+}
+
+.ql-editor a:hover {
+    color: #40a9ff !important;
+    text-decoration: underline !important;
+}
+
+.paragraph-element a[href],
+.paragraph-element a[href]:visited,
+.paragraph-element a[href]:link {
+    color: #1890ff !important;
+    text-decoration: underline !important;
+}
+
+.paragraph-element a[href]:hover {
+    color: #40a9ff !important;
+    text-decoration: underline !important;
+}
+
+.paragraph-element a[style*="color"] {
+    color: #1890ff !important;
+    text-decoration: underline !important;
+}
+
+.paragraph-element a[style*="color"]:hover {
+    color: #40a9ff !important;
+    text-decoration: underline !important;
+}
+
+.ql-container {
+    position: relative;
+    z-index: 1;
+}
+
+.ql-snow {
+    position: relative;
+    z-index: 1;
+}
+
+.ql-tooltip {
+    z-index: 3000 !important;
+    position: absolute !important;
+    font-family: "Rosatom", sans-serif !important;
+}
+
+.ql-picker-label {
+    z-index: 1000 !important;
+    font-family: "Rosatom", sans-serif !important;
+}
+
+.ql-picker-options {
+    z-index: 3000 !important;
+    position: absolute !important;
+    font-family: "Rosatom", sans-serif !important;
+}
+
+.ql-snow .ql-tooltip {
+    z-index: 3000 !important;
+    position: absolute !important;
+    font-family: "Rosatom", sans-serif !important;
+}
+
+.ql-snow .ql-tooltip input[type="text"] {
+    font-family: "Rosatom", sans-serif !important;
+}
+
+.ql-snow .ql-picker-options {
+    z-index: 3000 !important;
+    position: absolute !important;
+    font-family: "Rosatom", sans-serif !important;
+}
+
+.ql-tooltip,
+.ql-snow .ql-tooltip {
+    left: unset !important;
+}
+
+.ql-snow .ql-tooltip.ql-editing {
+    z-index: 3000 !important;
+    position: absolute !important;
+}
+
+.ql-snow .ql-tooltip a.ql-action::after,
+.ql-snow .ql-tooltip a.ql-remove::after {
+    font-family: "Rosatom", sans-serif !important;
+}
+
+// Локализация ReactQuill на русский язык
+.ql-snow .ql-tooltip[data-mode="link"]::before {
+    content: "Введите ссылку:" !important;
+}
+
+.ql-snow .ql-tooltip a.ql-action::after {
+    content: "Сохранить" !important;
+}
+
+.ql-snow .ql-tooltip a.ql-remove::after {
+    content: "Удалить" !important;
+}
+
+.ql-snow .ql-tooltip input[type="text"]::placeholder {
+    content: "URL" !important;
+}
+
+.ql-toolbar {
+    z-index: 1000 !important;
+}
+
+.ql-snow .ql-toolbar button[data-label]::before,
+.ql-snow .ql-toolbar .ql-picker-label[data-label]::before {
+    content: attr(data-label);
+}
+
+// Кастомные подсказки для кнопок через title атрибуты
+.ql-snow .ql-toolbar .ql-bold[title="Bold"] {
+    &::after {
+        content: "Жирный";
+    }
+}
+
+.ql-snow .ql-toolbar .ql-italic[title="Italic"] {
+    &::after {
+        content: "Курсив";
+    }
+}
+
+.ql-snow .ql-toolbar .ql-underline[title="Underline"] {
+    &::after {
+        content: "Подчеркнутый";
+    }
+}
+
+.ql-snow .ql-toolbar .ql-strike[title="Strike"] {
+    &::after {
+        content: "Зачеркнутый";
+    }
+}
+
+.ql-snow .ql-toolbar .ql-link[title="Link"] {
+    &::after {
+        content: "Ссылка";
+    }
+}
+
+.ql-snow .ql-toolbar .ql-clean[title="Remove formatting"] {
+    &::after {
+        content: "Очистить форматирование";
+    }
+}

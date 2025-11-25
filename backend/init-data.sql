@@ -1301,48 +1301,52 @@ VALUES (
 -- ============================================
 
 -- Новость 1 от НКО #1
-INSERT INTO news (npo_id, volunteer_id, admin_id, name, text, type, created_at)
+INSERT INTO news (npo_id, volunteer_id, admin_id, name, annotation, text, type, created_at)
 VALUES (
   (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')),
   NULL,
   NULL,
   'Новая программа поддержки волонтёров',
   'Мы запускаем новую программу поддержки волонтёров. Теперь каждый активный волонтёр может получить сертификат и рекомендации для дальнейшего развития.',
+  'Мы запускаем новую программу поддержки волонтёров. Теперь каждый активный волонтёр может получить сертификат и рекомендации для дальнейшего развития.',
   'BLOG',
   '2025-11-18 12:00:00'
 );
 
 -- Новость 2 от НКО #2
-INSERT INTO news (npo_id, volunteer_id, admin_id, name, text, type, created_at)
+INSERT INTO news (npo_id, volunteer_id, admin_id, name, annotation, text, type, created_at)
 VALUES (
   (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')),
   NULL,
   NULL,
   'Итоги акции помощи пожилым людям',
   'Благодарим всех волонтёров, принявших участие в акции. Вместе мы помогли более 50 пожилым людям!',
+  'Благодарим всех волонтёров, принявших участие в акции. Вместе мы помогли более 50 пожилым людям!',
   'BLOG',
   '2025-11-22 16:30:00'
 );
 
 -- Новость 3 от НКО #3
-INSERT INTO news (npo_id, volunteer_id, admin_id, name, text, type, created_at)
+INSERT INTO news (npo_id, volunteer_id, admin_id, name, annotation, text, type, created_at)
 VALUES (
   (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')),
   NULL,
   NULL,
   'Открыта регистрация на Школу волонтеров',
   'Приглашаем всех желающих присоединиться к нашему обучающему мероприятию. Регистрация открыта до 22 ноября.',
+  'Приглашаем всех желающих присоединиться к нашему обучающему мероприятию. Регистрация открыта до 22 ноября.',
   'BLOG',
   '2025-11-20 10:00:00'
 );
 
 -- Новость 4 от волонтёра
-INSERT INTO news (npo_id, volunteer_id, admin_id, name, text, type, created_at)
+INSERT INTO news (npo_id, volunteer_id, admin_id, name, annotation, text, type, created_at)
 VALUES (
   NULL,
   (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
   NULL,
   'Мой опыт волонтёрства',
+  'Хочу поделиться своим опытом участия в экологических акциях. Это было незабываемо! Рекомендую всем попробовать.',
   'Хочу поделиться своим опытом участия в экологических акциях. Это было незабываемо! Рекомендую всем попробовать.',
   'BLOG',
   '2025-11-19 14:20:00'

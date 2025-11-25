@@ -80,6 +80,7 @@ async def get_all_news(
         result.append(NewsResponse(
             id=news.id,
             name=news.name,
+            annotation=news.annotation,
             text=news.text,
             attachedIds=attached_ids,
             tags=tags,
@@ -105,6 +106,7 @@ async def get_news_by_id(news_id: int, db: Session = Depends(get_db)):
     return NewsResponse(
         id=news.id,
         name=news.name,
+        annotation=news.annotation,
         text=news.text,
         attachedIds=attached_ids,
         tags=tags,
@@ -154,6 +156,7 @@ async def create_news(
         volunteer_id=volunteer_id,
         admin_id=admin_id,
         name=news_data.name,
+        annotation=news_data.annotation,
         text=news_data.text,
         type=news_data.type
     )
@@ -200,6 +203,7 @@ async def create_news(
     return NewsResponse(
         id=news.id,
         name=news.name,
+        annotation=news.annotation,
         text=news.text,
         attachedIds=attached_ids,
         tags=tags,
@@ -246,6 +250,8 @@ async def update_news(
     # Обновление полей
     if news_update.name is not None:
         news.name = news_update.name
+    if news_update.annotation is not None:
+        news.annotation = news_update.annotation
     if news_update.text is not None:
         news.text = news_update.text
     if news_update.type is not None:
@@ -282,6 +288,7 @@ async def update_news(
     return NewsResponse(
         id=news.id,
         name=news.name,
+        annotation=news.annotation,
         text=news.text,
         attachedIds=attached_ids,
         tags=tags,
