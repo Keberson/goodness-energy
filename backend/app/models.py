@@ -208,6 +208,7 @@ class News(Base):
     volunteer_id = Column(Integer, ForeignKey("volunteers.id"), nullable=True)
     admin_id = Column(Integer, ForeignKey("users.id"), nullable=True)
     name = Column(String, nullable=False)
+    annotation = Column(String, nullable=True)  # Краткое описание для списка новостей
     text = Column(Text, nullable=False)
     type = Column(SQLEnum(NewsType), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -1,0 +1,114 @@
+.news-page {
+    .news-content {
+        h1,
+        h2,
+        h3,
+        h4,
+        h5,
+        h6 {
+            margin-top: 1.5em;
+            margin-bottom: 0.5em;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        h1 {
+            font-size: 2em;
+        }
+
+        h2 {
+            font-size: 1.75em;
+        }
+
+        h3 {
+            font-size: 1.5em;
+        }
+
+        h4 {
+            font-size: 1.25em;
+        }
+
+        p {
+            margin-bottom: 1em;
+            line-height: 1.8;
+        }
+
+        ul,
+        ol {
+            margin-bottom: 1em;
+            padding-left: 2em;
+
+            li {
+                margin-bottom: 0.5em;
+                line-height: 1.8;
+            }
+        }
+
+        blockquote {
+            margin: 1.5em 0;
+            padding: 1em 1.5em;
+            border-left: 4px solid #1890ff;
+            background-color: #f0f0f0;
+            font-style: italic;
+            color: #666;
+        }
+
+        a {
+            color: #1890ff;
+            text-decoration: underline;
+
+            &:hover {
+                color: #40a9ff;
+            }
+        }
+
+        hr {
+            margin: 2em 0;
+            border: none;
+            border-top: 1px solid #d9d9d9;
+        }
+
+        .news-image,
+        .news-file {
+            margin: 1.5em auto;
+            text-align: center;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            max-width: 100%;
+            width: 100%;
+
+            > * {
+                max-width: 100%;
+            }
+
+            .image-caption,
+            .image-caption-wrapper {
+                margin-top: 0.5em;
+                font-size: 0.9em;
+                color: #666;
+                font-style: italic;
+                text-align: center;
+                width: 100%;
+            }
+        }
+
+        strong {
+            font-weight: 600;
+        }
+
+        em {
+            font-style: italic;
+        }
+
+        u {
+            text-decoration: underline;
+        }
+
+        s {
+            text-decoration: line-through;
+        }
+    }
+}
+

@@ -17,6 +17,9 @@ export const newsApi = createApi({
         },
     }),
     endpoints: (builder) => ({
+        getNewsTypes: builder.query<string[], void>({
+            query: () => ({ url: `/types` }),
+        }),
         getNews: builder.query<INews[], string | undefined>({
             query: (city) => {
                 const params = city ? { city } : {};
@@ -63,10 +66,10 @@ export const newsApi = createApi({
 });
 
 export const {
+    useGetNewsTypesQuery,
     useGetNewsQuery,
     useGetNewsByIdQuery,
     useCreateNewsMutation,
     useUpdateNewsMutation,
     useDeleteNewsMutation,
 } = newsApi;
-

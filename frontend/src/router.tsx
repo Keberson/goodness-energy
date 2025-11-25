@@ -23,6 +23,7 @@ import NPOListPage from "./pages/NPO/NPOListPage/NPOListPage";
 import NPOPage from "./pages/NPO/NPOPage/NPOPage";
 import NewsListPage from "./pages/News/NewsListPage/NewsListPage";
 import NewsPage from "./pages/News/NewsPage/NewsPage";
+import EditNewsPage from "./pages/News/EditNewsPage/EditNewsPage";
 import KnowledgesPage from "./pages/Knowledges/KnowledgesPage/KnowledgesPage";
 import KnowledgeDetailPage from "./pages/Knowledges/KnowledgesDetailPage/KnowledgesDetailPage";
 import EventsPage from "./pages/Events/EventsPage/EventsPage";
@@ -66,6 +67,14 @@ const router = createBrowserRouter([
                                 element: <NewsListPage />,
                             },
                             {
+                                path: "edit/:id?",
+                                element: (
+                                    <ProtectedRoute>
+                                        <EditNewsPage />
+                                    </ProtectedRoute>
+                                ),
+                            },
+                            {
                                 path: ":id",
                                 element: <NewsPage />,
                             },
@@ -77,6 +86,14 @@ const router = createBrowserRouter([
                             {
                                 index: true,
                                 element: <KnowledgesPage />,
+                            },
+                            {
+                                path: "create",
+                                element: (
+                                    <AdminProtectedRoute>
+                                        <CreateKnowledgePage />
+                                    </AdminProtectedRoute>
+                                ),
                             },
                             {
                                 path: ":id",
@@ -150,14 +167,6 @@ const router = createBrowserRouter([
                             <NPOProtectedRoute>
                                 <StatisticsPage />
                             </NPOProtectedRoute>
-                        ),
-                    },
-                    {
-                        path: "create-knowledge",
-                        element: (
-                            <AdminProtectedRoute>
-                                <CreateKnowledgePage />
-                            </AdminProtectedRoute>
                         ),
                     },
                     {

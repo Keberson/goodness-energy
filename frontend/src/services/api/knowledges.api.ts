@@ -2,23 +2,18 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 
 import type { IKnowledge } from "@app-types/knowledges.types";
 import { getApiBaseUrl } from "@utils/apiUrl";
+import { prepareHeaders } from "./utils/prepareHeaders";
 
 export const knowledgesApi = createApi({
     reducerPath: "knowledgesApi",
     tagTypes: ["Knowledge"],
     baseQuery: fetchBaseQuery({
         baseUrl: `${getApiBaseUrl()}/knowledges`,
-        prepareHeaders: (headers, { getState }) => {
-            const token = (getState() as any).auth?.token;
-            if (token) {
-                headers.set("authorization", `Bearer ${token}`);
-            }
-            return headers;
-        },
+        prepareHeaders,
     }),
     endpoints: (builder) => ({
         getKnowledges: builder.query<IKnowledge[], void>({
-            query: () => ({ url: `/` }),
+            query: () => ({ url: "" }),
             providesTags: (result) =>
                 result
                     ? [

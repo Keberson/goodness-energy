@@ -3,6 +3,7 @@ export type NewsType = "blog" | "edu" | "docs";
 export interface INews {
     id: number;
     name: string;
+    annotation?: string;
     text: string;
     attachedIds: number[];
     tags: string[];
@@ -12,6 +13,7 @@ export interface INews {
 
 export interface INewsCreate {
     name: string;
+    annotation?: string;
     text: string;
     attachedIds?: number[];
     tags?: string[];
@@ -20,6 +22,7 @@ export interface INewsCreate {
 
 export interface INewsUpdate {
     name?: string;
+    annotation?: string;
     text?: string;
     attachedIds?: number[];
     tags?: string[];
