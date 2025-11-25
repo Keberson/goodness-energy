@@ -1301,8 +1301,9 @@ VALUES (
 -- ============================================
 
 -- Новость 1 от НКО #1
-INSERT INTO news (npo_id, volunteer_id, admin_id, name, annotation, text, type, created_at)
+INSERT INTO news (user_id, npo_id, volunteer_id, admin_id, name, annotation, text, type, created_at)
 VALUES (
+  (SELECT id FROM users WHERE login = 'npo1'),
   (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')),
   NULL,
   NULL,
@@ -1314,8 +1315,9 @@ VALUES (
 );
 
 -- Новость 2 от НКО #2
-INSERT INTO news (npo_id, volunteer_id, admin_id, name, annotation, text, type, created_at)
+INSERT INTO news (user_id, npo_id, volunteer_id, admin_id, name, annotation, text, type, created_at)
 VALUES (
+  (SELECT id FROM users WHERE login = 'npo2'),
   (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')),
   NULL,
   NULL,
@@ -1327,8 +1329,9 @@ VALUES (
 );
 
 -- Новость 3 от НКО #3
-INSERT INTO news (npo_id, volunteer_id, admin_id, name, annotation, text, type, created_at)
+INSERT INTO news (user_id, npo_id, volunteer_id, admin_id, name, annotation, text, type, created_at)
 VALUES (
+  (SELECT id FROM users WHERE login = 'npo3'),
   (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')),
   NULL,
   NULL,
@@ -1340,8 +1343,9 @@ VALUES (
 );
 
 -- Новость 4 от волонтёра
-INSERT INTO news (npo_id, volunteer_id, admin_id, name, annotation, text, type, created_at)
+INSERT INTO news (user_id, npo_id, volunteer_id, admin_id, name, annotation, text, type, created_at)
 VALUES (
+  (SELECT id FROM users WHERE login = 'vol1'),
   NULL,
   (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
   NULL,
