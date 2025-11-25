@@ -204,6 +204,7 @@ class News(Base):
     __tablename__ = "news"
     
     id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)  # ID пользователя, создавшего новость
     npo_id = Column(Integer, ForeignKey("npos.id"), nullable=True)
     volunteer_id = Column(Integer, ForeignKey("volunteers.id"), nullable=True)
     admin_id = Column(Integer, ForeignKey("users.id"), nullable=True)
@@ -214,6 +215,7 @@ class News(Base):
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     
+    user = relationship("User", foreign_keys=[user_id])
     npo = relationship("NPO", back_populates="news")
     volunteer = relationship("Volunteer", back_populates="news")
     tags = relationship("NewsTag", back_populates="news", cascade="all, delete-orphan")

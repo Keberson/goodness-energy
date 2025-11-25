@@ -9,6 +9,7 @@ export interface INews {
     tags: string[];
     type: NewsType;
     created_at: string;
+    user_id: number; // ID пользователя, создавшего новость
 }
 
 export interface INewsCreate {

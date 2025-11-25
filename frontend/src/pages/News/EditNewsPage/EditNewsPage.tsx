@@ -10,10 +10,15 @@ import { arrayMove } from "@dnd-kit/sortable";
 
 import type { NewsEditorElement, NewsEditorElementType } from "@app-types/news-editor.types";
 import type { NewsType } from "@app-types/news.types";
-import { useGetNewsTypesQuery, useCreateNewsMutation } from "@services/api/news.api";
+import {
+    useGetNewsTypesQuery,
+    useCreateNewsMutation,
+    useUpdateNewsMutation,
+    useGetNewsByIdQuery,
+} from "@services/api/news.api";
 import NewsToolbar from "./components/NewsToolbar/NewsToolbar";
 import NewsWorkspace from "./components/NewsWorkspace/NewsWorkspace";
-import { convertElementsToNewsData } from "./utils/newsConverter";
+import { convertElementsToNewsData, convertNewsDataToElements } from "./utils/newsConverter";
 import "./styles.scss";
 
 const { Content, Sider } = Layout;
@@ -24,6 +29,7 @@ const EditNewsPage = () => {
     const navigate = useNavigate();
     const { id } = useParams<{ id?: string }>();
     const isEditing = !!id;
+    const newsId = id ? Number(id) : 0;
 
     const [elements, setElements] = useState<NewsEditorElement[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -31,9 +37,18 @@ const EditNewsPage = () => {
     const [annotation, setAnnotation] = useState("");
     const [type, setType] = useState<NewsType>("blog");
     const [saving, setSaving] = useState(false);
+    const [isLoadingNews, setIsLoadingNews] = useState(false);
 
     const { data: newsTypes = [], isLoading: isLoadingTypes } = useGetNewsTypesQuery();
     const [createNews] = useCreateNewsMutation();
+    const [updateNews] = useUpdateNewsMutation();
+    const {
+        data: existingNews,
+        isLoading: isLoadingExistingNews,
+        error: newsError,
+    } = useGetNewsByIdQuery(newsId, {
+        skip: !isEditing || isNaN(newsId),
+    });
 
     const typeMapping: Record<string, NewsType> = {
         Блог: "blog",
@@ -53,6 +68,27 @@ const EditNewsPage = () => {
             setType(firstAvailableType);
         }
     }, [newsTypes]);
+
+    // Загрузка существующей новости при редактировании
+    useEffect(() => {
+        if (isEditing && existingNews && !isLoadingNews) {
+            setIsLoadingNews(true);
+            setTitle(existingNews.name || "");
+            setAnnotation(existingNews.annotation || "");
+            setType(existingNews.type || "blog");
+
+            // Конвертируем HTML в элементы редактора
+            try {
+                const parsedElements = convertNewsDataToElements(existingNews.text || "");
+                setElements(parsedElements);
+            } catch (error) {
+                console.error("Ошибка при парсинге HTML новости:", error);
+                message.error("Ошибка при загрузке контента новости");
+            } finally {
+                setIsLoadingNews(false);
+            }
+        }
+    }, [isEditing, existingNews, isLoadingNews]);
 
     const sensors = useSensors(
         useSensor(PointerSensor, {
@@ -182,22 +218,72 @@ const EditNewsPage = () => {
                 return;
             }
 
-            const result = await createNews({
-                name: title.trim(),
-                annotation: annotation.trim() || undefined,
-                text: html,
-                type,
-                attachedIds: attachedIds.length > 0 ? attachedIds : undefined,
-                tags: [],
-            }).unwrap();
+            if (isEditing) {
+                // Редактирование существующей новости
+                const result = await updateNews({
+                    id: newsId,
+                    body: {
+                        name: title.trim(),
+                        annotation: annotation.trim() || undefined,
+                        text: html,
+                        type,
+                        attachedIds: attachedIds.length > 0 ? attachedIds : undefined,
+                        tags: [],
+                    },
+                }).unwrap();
 
-            message.success("Новость успешно сохранена");
-            navigate(`/news/${result.id}`);
-        } catch (_error) {
+                message.success("Новость успешно обновлена");
+                navigate(`/news/${result.id}`);
+            } else {
+                // Создание новой новости
+                const result = await createNews({
+                    name: title.trim(),
+                    annotation: annotation.trim() || undefined,
+                    text: html,
+                    type,
+                    attachedIds: attachedIds.length > 0 ? attachedIds : undefined,
+                    tags: [],
+                }).unwrap();
+
+                message.success("Новость успешно сохранена");
+                navigate(`/news/${result.id}`);
+            }
+        } catch (error: any) {
+            console.error("Ошибка при сохранении новости:", error);
+            message.error(
+                error?.data?.detail || "Произошла ошибка при сохранении новости"
+            );
         } finally {
             setSaving(false);
         }
     };
+
+    // Показываем загрузку при получении существующей новости
+    if (isEditing && (isLoadingExistingNews || isLoadingNews)) {
+        return (
+            <div style={{ padding: 24 }}>
+                <Card loading={true} />
+            </div>
+        );
+    }
+
+    // Показываем ошибку, если новость не найдена
+    if (isEditing && newsError) {
+        return (
+            <div style={{ padding: 24 }}>
+                <Card>
+                    <Title level={3}>Новость не найдена</Title>
+                    <Button
+                        type="link"
+                        icon={<ArrowLeftOutlined />}
+                        onClick={() => navigate("/news")}
+                    >
+                        Назад к списку новостей
+                    </Button>
+                </Card>
+            </div>
+        );
+    }
 
     return (
         <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
@@ -271,7 +357,7 @@ const EditNewsPage = () => {
                                     loading={saving}
                                     disabled={!title.trim() || elements.length === 0 || saving}
                                 >
-                                    Сохранить новость
+                                    {isEditing ? "Обновить новость" : "Сохранить новость"}
                                 </Button>
                             </Space>
                         </Card>

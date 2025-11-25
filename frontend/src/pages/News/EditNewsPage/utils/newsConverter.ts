@@ -120,3 +120,192 @@ const escapeHtml = (text: string): string => {
     div.textContent = text;
     return div.innerHTML;
 };
+
+/**
+ * Конвертирует HTML обратно в элементы редактора новостей
+ */
+export const convertNewsDataToElements = (html: string): NewsEditorElement[] => {
+    const elements: NewsEditorElement[] = [];
+    const parser = new DOMParser();
+    const doc = parser.parseFromString(html, "text/html");
+    const body = doc.body;
+
+    // Вспомогательная функция для создания уникального ID
+    const generateId = () => `element-${Date.now()}-${Math.random()}`;
+
+    // Вспомогательная функция для извлечения текста из элемента
+    const getTextContent = (element: Element | null): string => {
+        if (!element) return "";
+        return element.textContent || "";
+    };
+
+    // Обрабатываем все дочерние элементы body
+    const processNode = (node: Node): void => {
+        if (node.nodeType === Node.ELEMENT_NODE) {
+            const element = node as Element;
+            const tagName = element.tagName.toLowerCase();
+
+            switch (tagName) {
+                case "h1":
+                case "h2":
+                case "h3":
+                case "h4":
+                case "h5":
+                case "h6": {
+                    const level = parseInt(tagName.substring(1), 10);
+                    const content = getTextContent(element);
+                    if (content.trim()) {
+                        elements.push({
+                            id: generateId(),
+                            type: "heading",
+                            content: content.trim(),
+                            props: { level },
+                        });
+                    }
+                    break;
+                }
+
+                case "div": {
+                    // Проверяем на изображение или файл
+                    const fileId = element.getAttribute("data-file-id");
+                    if (fileId) {
+                        const fileIdNum = parseInt(fileId, 10);
+                        if (!isNaN(fileIdNum) && fileIdNum > 0) {
+                            if (element.classList.contains("news-image")) {
+                                // Извлекаем подпись к изображению
+                                const captionEl = element.querySelector(".image-caption");
+                                const caption = captionEl ? getTextContent(captionEl) : "";
+                                elements.push({
+                                    id: generateId(),
+                                    type: "image",
+                                    content: fileIdNum,
+                                    props: caption ? { caption } : undefined,
+                                });
+                            } else if (element.classList.contains("news-file")) {
+                                elements.push({
+                                    id: generateId(),
+                                    type: "file",
+                                    content: fileIdNum,
+                                });
+                            }
+                        }
+                    } else {
+                        // Обычный div - конвертируем в параграф
+                        const content = getTextContent(element);
+                        if (content.trim()) {
+                            elements.push({
+                                id: generateId(),
+                                type: "paragraph",
+                                content: content.trim(),
+                            });
+                        }
+                    }
+                    break;
+                }
+
+                case "p": {
+                    // Пропускаем подписи к изображениям (они уже обработаны)
+                    if (element.classList.contains("image-caption")) {
+                        break;
+                    }
+                    const content = getTextContent(element);
+                    if (content.trim()) {
+                        elements.push({
+                            id: generateId(),
+                            type: "paragraph",
+                            content: content.trim(),
+                        });
+                    }
+                    break;
+                }
+
+                case "ul":
+                case "ol": {
+                    const items: string[] = [];
+                    const listItems = element.querySelectorAll("li");
+                    listItems.forEach((li) => {
+                        const text = getTextContent(li);
+                        if (text.trim()) {
+                            items.push(text.trim());
+                        }
+                    });
+                    if (items.length > 0) {
+                        elements.push({
+                            id: generateId(),
+                            type: "list",
+                            content: items,
+                        });
+                    }
+                    break;
+                }
+
+                case "blockquote": {
+                    const content = getTextContent(element);
+                    if (content.trim()) {
+                        elements.push({
+                            id: generateId(),
+                            type: "quote",
+                            content: content.trim(),
+                        });
+                    }
+                    break;
+                }
+
+                case "a": {
+                    const url = element.getAttribute("href") || "";
+                    const text = getTextContent(element);
+                    if (url || text.trim()) {
+                        elements.push({
+                            id: generateId(),
+                            type: "link",
+                            content: text.trim() || url,
+                            props: { url },
+                        });
+                    }
+                    break;
+                }
+
+                case "hr": {
+                    elements.push({
+                        id: generateId(),
+                        type: "divider",
+                        content: "",
+                    });
+                    break;
+                }
+
+                default: {
+                    // Для других элементов пытаемся извлечь текст
+                    const content = getTextContent(element);
+                    if (content.trim() && !element.querySelector("h1, h2, h3, h4, h5, h6, ul, ol, blockquote, a, hr")) {
+                        // Если внутри нет других структурных элементов, создаем параграф
+                        elements.push({
+                            id: generateId(),
+                            type: "paragraph",
+                            content: content.trim(),
+                        });
+                    } else {
+                        // Рекурсивно обрабатываем дочерние элементы
+                        Array.from(element.childNodes).forEach(processNode);
+                    }
+                    break;
+                }
+            }
+        } else if (node.nodeType === Node.TEXT_NODE) {
+            // Обрабатываем текстовые узлы, которые не являются частью элементов
+            const text = node.textContent?.trim();
+            if (text) {
+                elements.push({
+                    id: generateId(),
+                    type: "paragraph",
+                    content: text,
+                });
+            }
+        }
+    };
+
+    // Обрабатываем все узлы в body
+    Array.from(body.childNodes).forEach(processNode);
+
+    return elements;
+};
