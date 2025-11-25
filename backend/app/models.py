@@ -174,7 +174,7 @@ class EventTag(Base):
     __tablename__ = "event_tags"
     
     id = Column(Integer, primary_key=True, index=True)
-    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
     tag = Column(String, nullable=False)
     
     event = relationship("Event", back_populates="tags")
@@ -183,7 +183,7 @@ class EventResponse(Base):
     __tablename__ = "event_responses"
     
     id = Column(Integer, primary_key=True, index=True)
-    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
     volunteer_id = Column(Integer, ForeignKey("volunteers.id"), nullable=False)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     
@@ -194,7 +194,7 @@ class EventAttachment(Base):
     __tablename__ = "event_attachments"
     
     id = Column(Integer, primary_key=True, index=True)
-    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
     file_id = Column(Integer, ForeignKey("files.id"), nullable=False)
     
     event = relationship("Event", back_populates="attachments")
@@ -284,7 +284,7 @@ class EventView(Base):
     __tablename__ = "event_views"
     
     id = Column(Integer, primary_key=True, index=True)
-    event_id = Column(Integer, ForeignKey("events.id"), nullable=False)
+    event_id = Column(Integer, ForeignKey("events.id", ondelete="CASCADE"), nullable=False)
     viewer_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # null для неавторизованных пользователей
     viewed_at = Column(DateTime(timezone=True), server_default=func.now())
     

@@ -61,6 +61,8 @@ const authSlice = createSlice({
             localStorage.removeItem("jwtToken");
             localStorage.removeItem("userType");
             localStorage.removeItem("userId");
+            // Сбрасываем флаг загрузки города из бэкенда при выходе
+            localStorage.removeItem("cityLoadedFromBackend");
         },
     },
 });

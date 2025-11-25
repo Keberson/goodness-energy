@@ -15,7 +15,7 @@ const NotificationSettings: React.FC = () => {
     const [updateSettings] = useUpdateNotificationSettingsMutation();
 
     const handleChange = async (
-        field: "notify_city_news" | "notify_registrations" | "notify_events",
+        field: "notify_city_news" | "notify_events",
         checked: boolean
     ) => {
         if (!settings) return;
@@ -55,18 +55,6 @@ const NotificationSettings: React.FC = () => {
                     </Checkbox>
                     <div style={{ marginLeft: 24, marginTop: 4, color: "#8c8c8c" }}>
                         Получать уведомления о новых новостях, опубликованных в вашем городе
-                    </div>
-                </div>
-
-                <div>
-                    <Checkbox
-                        checked={settings.notify_registrations}
-                        onChange={(e) => handleChange("notify_registrations", e.target.checked)}
-                    >
-                        <Text strong>Уведомления о регистрациях</Text>
-                    </Checkbox>
-                    <div style={{ marginLeft: 24, marginTop: 4, color: "#8c8c8c" }}>
-                        Получать уведомления о новых регистрациях пользователей в системе
                     </div>
                 </div>
 

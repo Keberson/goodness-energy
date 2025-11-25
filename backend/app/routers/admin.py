@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
-from app.models import NPO, NPOStatus, User, NPOGallery, NPOTag, Event, EventTag, EventResponse as EventResponseModel, NPOCity
+from app.models import NPO, NPOStatus, User, NPOGallery, NPOTag, Event, EventTag, EventResponse as EventResponseModel, NPOCity, Favorite, FavoriteType
 from app.schemas import NPOStatusUpdate, NPOResponse, EventResponse
 from app.auth import get_current_admin_user
 import logging
@@ -113,6 +113,13 @@ async def delete_event(
             detail="Событие не найдено"
         )
     
+    # Удаляем избранные записи, связанные с этим событием (полиморфная связь без FK)
+    db.query(Favorite).filter(
+        Favorite.item_type == FavoriteType.EVENT,
+        Favorite.item_id == event_id
+    ).delete()
+    
+    # Удаляем само событие (каскадно на уровне БД удалятся EventView, EventTag, EventResponse, EventAttachment)
     db.delete(event)
     db.commit()
     return {"message": "Событие успешно удалено"}

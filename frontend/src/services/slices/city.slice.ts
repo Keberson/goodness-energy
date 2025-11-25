@@ -13,40 +13,7 @@ const getInitialCity = (): string => {
 
 const initialState: CityState = {
     currentCity: getInitialCity(),
-    availableCities: [
-        "Ангарск",
-        "Байкальск",
-        "Балаково",
-        "Билибино",
-        "Волгодонск",
-        "Глазов",
-        "Десногорск",
-        "Димитровград",
-        "Железногорск",
-        "Заречный (Пензенская область)",
-        "Заречный (Свердловская область)",
-        "Зеленогорск",
-        "Краснокаменск",
-        "Курчатов",
-        "Лесной",
-        "Неман",
-        "Нововоронеж",
-        "Новоуральск",
-        "Обнинск",
-        "Озерск",
-        "Певек",
-        "Полярные Зори",
-        "Саров",
-        "Северск",
-        "Снежинск",
-        "Советск",
-        "Сосновый Бор",
-        "Трехгорный",
-        "Удомля",
-        "Усолье-Сибирское",
-        "Электросталь",
-        "Энергодар",
-    ],
+    availableCities: [], // Будет загружено из бэкенда
 };
 
 const citySlice = createSlice({
@@ -58,6 +25,9 @@ const citySlice = createSlice({
             // Сохраняем выбранный город в localStorage
             localStorage.setItem("selectedCity", action.payload);
         },
+        setAvailableCities: (state, action: PayloadAction<string[]>) => {
+            state.availableCities = action.payload;
+        },
         addCity: (state, action: PayloadAction<string>) => {
             if (!state.availableCities.includes(action.payload)) {
                 state.availableCities.push(action.payload);
@@ -66,5 +36,5 @@ const citySlice = createSlice({
     },
 });
 
-export const { setCurrentCity, addCity } = citySlice.actions;
+export const { setCurrentCity, setAvailableCities, addCity } = citySlice.actions;
 export default citySlice.reducer;

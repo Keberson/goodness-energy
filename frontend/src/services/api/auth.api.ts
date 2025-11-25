@@ -35,6 +35,8 @@ export const authApi = createApi({
         }),
         getSelectedCity: builder.query<{ selected_city: string | null }, void>({
             query: () => ({ url: `/selected-city` }),
+            // Игнорируем ошибки 401 (неавторизован), так как запрос не должен выполняться для неавторизованных
+            // Это обрабатывается через skip в useCity
         }),
         updateSelectedCity: builder.mutation<{ selected_city: string }, { city: string }>({
             query: (body) => ({

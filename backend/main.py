@@ -19,6 +19,20 @@ logging.basicConfig(
 )
 logger = logging.getLogger(__name__)
 
+# Включаем DEBUG логирование для email_service для диагностики
+logging.getLogger("app.email_service").setLevel(logging.DEBUG)
+
+# Проверяем SMTP настройки при старте
+logger.info("=" * 50)
+logger.info("Проверка переменных окружения SMTP:")
+logger.info(f"  SMTP_HOST: {os.getenv('SMTP_HOST', 'НЕ УСТАНОВЛЕН')}")
+logger.info(f"  SMTP_PORT: {os.getenv('SMTP_PORT', 'НЕ УСТАНОВЛЕН')}")
+logger.info(f"  SMTP_USER: {os.getenv('SMTP_USER', 'НЕ УСТАНОВЛЕН')}")
+logger.info(f"  SMTP_PASSWORD: {'УСТАНОВЛЕН' if os.getenv('SMTP_PASSWORD') else 'НЕ УСТАНОВЛЕН'}")
+logger.info(f"  SMTP_FROM_EMAIL: {os.getenv('SMTP_FROM_EMAIL', 'НЕ УСТАНОВЛЕН')}")
+logger.info(f"  SMTP_USE_TLS: {os.getenv('SMTP_USE_TLS', 'НЕ УСТАНОВЛЕН')}")
+logger.info("=" * 50)
+
 app = FastAPI(title="Social Hack 2025 API", version="1.0.0")
 
 # CORS middleware должен быть добавлен ПЕРЕД всеми остальными middleware и роутерами
@@ -165,4 +179,27 @@ app.include_router(favorites.router, prefix="/favorites", tags=["favorites"])
 @app.get("/")
 async def root():
     return {"message": "Social Hack 2025 API"}
+
+@app.get("/test-smtp")
+async def test_smtp():
+    """Тестовый эндпоинт для проверки SMTP настроек"""
+    from app.email_service import SMTP_HOST, SMTP_PORT, SMTP_USER, SMTP_PASSWORD, SMTP_FROM_EMAIL, SMTP_USE_TLS
+    
+    return {
+        "smtp_host": SMTP_HOST,
+        "smtp_port": SMTP_PORT,
+        "smtp_user": SMTP_USER,
+        "smtp_password_set": bool(SMTP_PASSWORD),
+        "smtp_from_email": SMTP_FROM_EMAIL,
+        "smtp_use_tls": SMTP_USE_TLS,
+        "smtp_configured": bool(SMTP_USER and SMTP_PASSWORD),
+        "env_vars": {
+            "SMTP_HOST": os.getenv("SMTP_HOST", "НЕ УСТАНОВЛЕН"),
+            "SMTP_PORT": os.getenv("SMTP_PORT", "НЕ УСТАНОВЛЕН"),
+            "SMTP_USER": os.getenv("SMTP_USER", "НЕ УСТАНОВЛЕН"),
+            "SMTP_PASSWORD": "УСТАНОВЛЕН" if os.getenv("SMTP_PASSWORD") else "НЕ УСТАНОВЛЕН",
+            "SMTP_FROM_EMAIL": os.getenv("SMTP_FROM_EMAIL", "НЕ УСТАНОВЛЕН"),
+            "SMTP_USE_TLS": os.getenv("SMTP_USE_TLS", "НЕ УСТАНОВЛЕН"),
+        }
+    }
 

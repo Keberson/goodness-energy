@@ -8,7 +8,7 @@ from app.database import get_db
 from app.models import (
     NPO, NPOGallery, NPOTag, Event, EventTag, EventAttachment, News, NewsTag, NewsAttachment, 
     EventStatus, User, NPOStatus, NPOCity, NPOView, EventView, EventResponse as EventResponseModel,
-    Volunteer, UserRole
+    Volunteer, UserRole, Favorite, FavoriteType
 )
 from app.schemas import (
     NPOResponse, NPOMapPoint, NPOUpdate, EventCreate, EventUpdate, 
@@ -17,7 +17,7 @@ from app.schemas import (
 )
 from app.auth import get_current_npo_user, get_current_user, get_optional_user
 from app.analytics import generate_csv_analytics, generate_pdf_analytics
-from app.email_service import send_notification_event
+from app.email_service import send_notification_event, send_notification_event_cancelled
 import json
 import logging
 import asyncio
@@ -402,6 +402,9 @@ async def update_event(
             detail="Событие не найдено"
         )
     
+    # Сохраняем старый статус для проверки, нужно ли отправлять уведомления
+    old_status = event.status
+    
     if event_update.name is not None:
         event.name = event_update.name
     if event_update.description is not None:
@@ -471,14 +474,36 @@ async def update_event(
     db.commit()
     db.refresh(event)
     
-    # Отправка уведомлений о событии (асинхронно, не блокируем ответ)
-    asyncio.create_task(send_event_notifications(
-        event_name=event.name,
-        event_description=event.description,
-        event_city=event.city,
-        event_start=str(event.start),
-        db=db
-    ))
+    # Отправка уведомлений о событии только если статус изменился на "Опубликовано"
+    # (асинхронно, не блокируем ответ)
+    # Не передаем db сессию, функция создаст свою
+    # Проверяем, что статус изменился на "Опубликовано" и все необходимые поля заполнены
+    if (old_status != EventStatus.PUBLISHED and 
+        event.status == EventStatus.PUBLISHED and 
+        event.start and event.city):
+        task = asyncio.create_task(send_event_notifications(
+            event_name=event.name or "Событие",
+            event_description=event.description or "",
+            event_city=event.city,
+            event_start=str(event.start)
+        ))
+        # Добавляем обработку ошибок для задачи
+        task.add_done_callback(lambda t: logger.error(f"Ошибка в задаче отправки уведомлений о событии: {t.exception()}") if t.exception() else None)
+        logger.info(f"Отправка уведомлений о событии {event.id} после изменения статуса на 'published'")
+    
+    # Отправка уведомлений об отмене, если статус изменился с "Опубликовано" на "Отменено"
+    if (old_status == EventStatus.PUBLISHED and 
+        event.status == EventStatus.CANCELLED and 
+        event.start and event.city):
+        task = asyncio.create_task(send_event_cancelled_notifications(
+            event_name=event.name or "Событие",
+            event_description=event.description or "",
+            event_city=event.city,
+            event_start=str(event.start)
+        ))
+        # Добавляем обработку ошибок для задачи
+        task.add_done_callback(lambda t: logger.error(f"Ошибка в задаче отправки уведомлений об отмене события: {t.exception()}") if t.exception() else None)
+        logger.info(f"Отправка уведомлений об отмене события {event.id} после изменения статуса с 'published' на 'cancelled'")
     
     tags = [t.tag for t in event.tags]
     attached_ids = [a.file_id for a in event.attachments]
@@ -521,6 +546,13 @@ async def delete_event(
             detail="Событие не найдено"
         )
     
+    # Удаляем избранные записи, связанные с этим событием (полиморфная связь без FK)
+    db.query(Favorite).filter(
+        Favorite.item_type == FavoriteType.EVENT,
+        Favorite.item_id == event_id
+    ).delete()
+    
+    # Удаляем само событие (каскадно на уровне БД удалятся EventView, EventTag, EventResponse, EventAttachment)
     db.delete(event)
     db.commit()
     return {"message": "Событие успешно удалено"}
@@ -549,8 +581,41 @@ async def update_event_status(
             detail="Событие не найдено"
         )
     
+    # Сохраняем старый статус для проверки, нужно ли отправлять уведомления
+    old_status = event.status
     event.status = status_update.status
     db.commit()
+    db.refresh(event)
+    
+    # Отправка уведомлений только если статус изменился на "Опубликовано"
+    # и все необходимые поля заполнены
+    if (old_status != EventStatus.PUBLISHED and 
+        event.status == EventStatus.PUBLISHED and 
+        event.start and event.city):
+        task = asyncio.create_task(send_event_notifications(
+            event_name=event.name or "Событие",
+            event_description=event.description or "",
+            event_city=event.city,
+            event_start=str(event.start)
+        ))
+        # Добавляем обработку ошибок для задачи
+        task.add_done_callback(lambda t: logger.error(f"Ошибка в задаче отправки уведомлений о событии: {t.exception()}") if t.exception() else None)
+        logger.info(f"Отправка уведомлений о событии {event.id} после изменения статуса на 'published'")
+    
+    # Отправка уведомлений об отмене, если статус изменился с "Опубликовано" на "Отменено"
+    if (old_status == EventStatus.PUBLISHED and 
+        event.status == EventStatus.CANCELLED and 
+        event.start and event.city):
+        task = asyncio.create_task(send_event_cancelled_notifications(
+            event_name=event.name or "Событие",
+            event_description=event.description or "",
+            event_city=event.city,
+            event_start=str(event.start)
+        ))
+        # Добавляем обработку ошибок для задачи
+        task.add_done_callback(lambda t: logger.error(f"Ошибка в задаче отправки уведомлений об отмене события: {t.exception()}") if t.exception() else None)
+        logger.info(f"Отправка уведомлений об отмене события {event.id} после изменения статуса с 'published' на 'cancelled'")
+    
     return {"message": "Статус события успешно обновлен"}
 
 # Эндпоинты новостей
@@ -598,14 +663,16 @@ async def create_news(
     attached_ids = [a.file_id for a in news.attachments]
     
     # Отправка уведомлений о новости из города (асинхронно, не блокируем ответ)
+    # Не передаем db сессию, функция создаст свою
     if npo.city:
-        asyncio.create_task(send_city_news_notifications(
+        task = asyncio.create_task(send_city_news_notifications(
             news_id=news.id,
             news_title=news.name,
             news_text=news.text,
-            city=npo.city,
-            db=db
+            city=npo.city
         ))
+        # Добавляем обработку ошибок для задачи
+        task.add_done_callback(lambda t: logger.error(f"Ошибка в задаче отправки уведомлений о новости: {t.exception()}") if t.exception() else None)
     
     return NewsResponse(
         id=news.id,
@@ -864,24 +931,38 @@ async def send_event_notifications(
     event_description: str,
     event_city: str,
     event_start: str,
-    db: Session
+    db: Session = None
 ):
-    """Отправка уведомлений о новом событии"""
+    """Отправка уведомлений о новом событии только для волонтеров из города события"""
+    from app.database import SessionLocal
+    
+    # Создаем новую сессию БД, если не передана
+    if db is None:
+        db = SessionLocal()
+        should_close = True
+    else:
+        should_close = False
+    
     try:
-        # Получаем всех пользователей с включенными уведомлениями о событиях
-        users_with_notifications = db.query(User).filter(
-            User.notify_events == True
+        # Получаем всех волонтеров из указанного города с включенными уведомлениями о событиях
+        volunteers = db.query(Volunteer).join(User).filter(
+            Volunteer.city == event_city,
+            User.notify_events == True,
+            Volunteer.email.isnot(None)
         ).all()
+        
+        logger.info(f"Найдено {len(volunteers)} волонтеров для отправки уведомлений о событии '{event_name}' в городе {event_city}")
         
         # Получаем URL события (можно настроить в зависимости от вашего фронтенда)
         event_url = None  # TODO: добавить базовый URL фронтенда
         
-        for user in users_with_notifications:
-            # Получаем email пользователя (только для волонтеров)
-            if user.role == UserRole.VOLUNTEER:
-                volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
-                if volunteer and volunteer.email:
-                    send_notification_event(
+        sent_count = 0
+        failed_count = 0
+        
+        for volunteer in volunteers:
+            if volunteer.email:
+                try:
+                    result = send_notification_event(
                         to_email=volunteer.email,
                         event_name=event_name,
                         event_description=event_description,
@@ -889,15 +970,99 @@ async def send_event_notifications(
                         event_start=event_start,
                         event_url=event_url
                     )
+                    if result:
+                        sent_count += 1
+                        logger.info(f"Уведомление о событии отправлено на {volunteer.email}")
+                    else:
+                        failed_count += 1
+                        logger.warning(f"Не удалось отправить уведомление о событии на {volunteer.email}")
+                except Exception as e:
+                    failed_count += 1
+                    logger.error(f"Ошибка при отправке уведомления о событии на {volunteer.email}: {e}")
+        
+        logger.info(f"Отправка уведомлений о событии завершена: отправлено {sent_count}, ошибок {failed_count}")
         
     except Exception as e:
-        logger.error(f"Ошибка при отправке уведомлений о событии: {e}")
+        logger.error(f"Ошибка при отправке уведомлений о событии: {e}", exc_info=True)
+    finally:
+        if should_close:
+            db.close()
 
-async def send_city_news_notifications(news_id: int, news_title: str, news_text: str, city: str, db: Session):
-    """Отправка уведомлений о новости из города пользователям с включенными уведомлениями"""
+async def send_event_cancelled_notifications(
+    event_name: str,
+    event_description: str,
+    event_city: str,
+    event_start: str,
+    db: Session = None
+):
+    """Отправка уведомлений об отмене события только для волонтеров из города события"""
+    from app.database import SessionLocal
+    
+    # Создаем новую сессию БД, если не передана
+    if db is None:
+        db = SessionLocal()
+        should_close = True
+    else:
+        should_close = False
+    
     try:
-        from app.email_service import send_notification_city_news
+        # Получаем всех волонтеров из указанного города с включенными уведомлениями о событиях
+        volunteers = db.query(Volunteer).join(User).filter(
+            Volunteer.city == event_city,
+            User.notify_events == True,
+            Volunteer.email.isnot(None)
+        ).all()
         
+        logger.info(f"Найдено {len(volunteers)} волонтеров для отправки уведомлений об отмене события '{event_name}' в городе {event_city}")
+        
+        # Получаем URL события (можно настроить в зависимости от вашего фронтенда)
+        event_url = None  # TODO: добавить базовый URL фронтенда
+        
+        sent_count = 0
+        failed_count = 0
+        
+        for volunteer in volunteers:
+            if volunteer.email:
+                try:
+                    result = send_notification_event_cancelled(
+                        to_email=volunteer.email,
+                        event_name=event_name,
+                        event_description=event_description,
+                        event_city=event_city,
+                        event_start=event_start,
+                        event_url=event_url
+                    )
+                    if result:
+                        sent_count += 1
+                        logger.info(f"Уведомление об отмене события отправлено на {volunteer.email}")
+                    else:
+                        failed_count += 1
+                        logger.warning(f"Не удалось отправить уведомление об отмене события на {volunteer.email}")
+                except Exception as e:
+                    failed_count += 1
+                    logger.error(f"Ошибка при отправке уведомления об отмене события на {volunteer.email}: {e}")
+        
+        logger.info(f"Отправка уведомлений об отмене события завершена: отправлено {sent_count}, ошибок {failed_count}")
+        
+    except Exception as e:
+        logger.error(f"Ошибка при отправке уведомлений об отмене события: {e}", exc_info=True)
+    finally:
+        if should_close:
+            db.close()
+
+async def send_city_news_notifications(news_id: int, news_title: str, news_text: str, city: str, db: Session = None):
+    """Отправка уведомлений о новости из города пользователям с включенными уведомлениями"""
+    from app.database import SessionLocal
+    from app.email_service import send_notification_city_news
+    
+    # Создаем новую сессию БД, если не передана
+    if db is None:
+        db = SessionLocal()
+        should_close = True
+    else:
+        should_close = False
+    
+    try:
         # Получаем всех волонтеров из указанного города с включенными уведомлениями
         volunteers = db.query(Volunteer).join(User).filter(
             Volunteer.city == city,
@@ -905,19 +1070,39 @@ async def send_city_news_notifications(news_id: int, news_title: str, news_text:
             Volunteer.email.isnot(None)
         ).all()
         
+        logger.info(f"Найдено {len(volunteers)} волонтеров для отправки уведомлений о новости '{news_title}' в городе {city}")
+        
         # Получаем URL новости (можно настроить в зависимости от вашего фронтенда)
         news_url = None  # TODO: добавить базовый URL фронтенда
         
+        sent_count = 0
+        failed_count = 0
+        
         for volunteer in volunteers:
             if volunteer.email:
-                send_notification_city_news(
-                    to_email=volunteer.email,
-                    news_title=news_title,
-                    news_text=news_text,
-                    city=city,
-                    news_url=news_url
-                )
+                try:
+                    result = send_notification_city_news(
+                        to_email=volunteer.email,
+                        news_title=news_title,
+                        news_text=news_text,
+                        city=city,
+                        news_url=news_url
+                    )
+                    if result:
+                        sent_count += 1
+                        logger.info(f"Уведомление о новости отправлено на {volunteer.email}")
+                    else:
+                        failed_count += 1
+                        logger.warning(f"Не удалось отправить уведомление о новости на {volunteer.email}")
+                except Exception as e:
+                    failed_count += 1
+                    logger.error(f"Ошибка при отправке уведомления о новости на {volunteer.email}: {e}")
+        
+        logger.info(f"Отправка уведомлений о новости завершена: отправлено {sent_count}, ошибок {failed_count}")
         
     except Exception as e:
-        logger.error(f"Ошибка при отправке уведомлений о новости: {e}")
+        logger.error(f"Ошибка при отправке уведомлений о новости: {e}", exc_info=True)
+    finally:
+        if should_close:
+            db.close()
 

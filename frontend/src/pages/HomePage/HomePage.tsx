@@ -1,4 +1,4 @@
-import { Card, Row, Col, Typography, Button, Flex, Calendar, Badge, Tooltip } from "antd";
+import { Card, Row, Col, Typography, Button, Flex, Calendar, Badge, Tooltip, Empty, List, Tag, Space } from "antd";
 import type { BadgeProps } from "antd";
 import {
     EnvironmentOutlined,
@@ -10,6 +10,7 @@ import {
     PlayCircleOutlined,
     LeftOutlined,
     RightOutlined,
+    ClockCircleOutlined,
 } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
@@ -20,8 +21,9 @@ import { useRegisterEventViewMutation } from "@services/api/npo.api";
 import type { IEvent } from "@app-types/events.types";
 import { useMemo, useState, useEffect } from "react";
 import { useCity } from "@hooks/useCity";
+import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
 
-const { Title, Paragraph } = Typography;
+const { Title, Paragraph, Text } = Typography;
 
 import "./styles.scss";
 
@@ -126,6 +128,17 @@ const HomePage = () => {
             completed: "processing",
         };
         return statusMap[status] || "default";
+    };
+
+    // Функция для получения текстового статуса события
+    const getStatusLabel = (status: string): string => {
+        const labels: Record<string, string> = {
+            published: "Опубликовано",
+            draft: "Черновик",
+            cancelled: "Отменено",
+            completed: "Завершено",
+        };
+        return labels[status] || status;
     };
 
     // Кастомный заголовок календаря
@@ -281,20 +294,111 @@ const HomePage = () => {
                 }
                 className="home__events"
             >
-                <Calendar
-                    value={selectedDate}
-                    onChange={setSelectedDate}
-                    mode={mode}
-                    onPanelChange={(date, newMode) => {
-                        if (newMode === "month") {
-                            setMode("month");
-                            setSelectedDate(date);
-                        }
-                    }}
-                    headerRender={headerRender}
-                    dateCellRender={dateCellRender}
-                    className="events-calendar"
-                />
+                <Row gutter={[24, 24]}>
+                    <Col xs={24} md={14} lg={15}>
+                        <Calendar
+                            value={selectedDate}
+                            onChange={setSelectedDate}
+                            mode={mode}
+                            onPanelChange={(date, newMode) => {
+                                if (newMode === "month") {
+                                    setMode("month");
+                                    setSelectedDate(date);
+                                }
+                            }}
+                            headerRender={headerRender}
+                            dateCellRender={dateCellRender}
+                            className="events-calendar"
+                        />
+                    </Col>
+                    <Col xs={24} md={10} lg={9}>
+                        <div className="home__events-panel">
+                            <Title level={4} className="home__events-title">
+                                События на {selectedDate.locale("ru").format("D MMMM YYYY")}
+                            </Title>
+                            {selectedDateEvents.length === 0 ? (
+                                <Empty
+                                    description="На эту дату событий нет"
+                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                                />
+                            ) : (
+                                <List
+                                    dataSource={selectedDateEvents}
+                                    renderItem={(event: IEvent) => (
+                                        <List.Item className="home__event-item">
+                                            <Card size="small" className="home__event-card">
+                                                <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                                                    <Flex justify="space-between" align="flex-start">
+                                                        <div style={{ flex: 1 }}>
+                                                            <Title level={5} style={{ margin: 0 }}>
+                                                                {event.name}
+                                                            </Title>
+                                                            <Tag
+                                                                color={
+                                                                    event.status === "published"
+                                                                        ? "green"
+                                                                        : event.status === "cancelled"
+                                                                        ? "red"
+                                                                        : event.status === "completed"
+                                                                        ? "blue"
+                                                                        : "default"
+                                                                }
+                                                            >
+                                                                {getStatusLabel(event.status)}
+                                                            </Tag>
+                                                        </div>
+                                                        <FavoriteButton itemType="event" itemId={event.id} size="small" />
+                                                    </Flex>
+
+                                                    {event.description && (
+                                                        <Paragraph
+                                                            ellipsis={{ rows: 2, expandable: true }}
+                                                            style={{ margin: 0 }}
+                                                        >
+                                                            {event.description}
+                                                        </Paragraph>
+                                                    )}
+
+                                                    <Space wrap>
+                                                        <Space>
+                                                            <ClockCircleOutlined />
+                                                            <Text type="secondary">
+                                                                {dayjs(event.start).format("DD.MM.YYYY HH:mm")} -{" "}
+                                                                {dayjs(event.end).format("DD.MM.YYYY HH:mm")}
+                                                            </Text>
+                                                        </Space>
+                                                        {event.coordinates && (
+                                                            <Space>
+                                                                <EnvironmentOutlined />
+                                                                <Text type="secondary">
+                                                                    {event.coordinates[0].toFixed(4)},{" "}
+                                                                    {event.coordinates[1].toFixed(4)}
+                                                                </Text>
+                                                            </Space>
+                                                        )}
+                                                        {event.quantity && (
+                                                            <Text type="secondary">
+                                                                Участников: {event.quantity}
+                                                            </Text>
+                                                        )}
+                                                    </Space>
+
+                                                    {event.tags && event.tags.length > 0 && (
+                                                        <Space wrap>
+                                                            {event.tags.map((tag) => (
+                                                                <Tag key={tag}>{tag}</Tag>
+                                                            ))}
+                                                        </Space>
+                                                    )}
+                                                </Space>
+                                            </Card>
+                                        </List.Item>
+                                    )}
+                                />
+                            )}
+                        </div>
+                    </Col>
+                </Row>
                 <NavLink to="/events">
                     <Button type="primary" className="home__events__view-all" block>
                         Смотреть все события

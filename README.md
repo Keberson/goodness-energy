@@ -141,6 +141,24 @@ goodness-energy/
 
    # Nginx
    NGINX_PORT=80
+
+   # SMTP (для отправки email уведомлений)
+   SMTP_HOST=smtp.mail.ru
+   SMTP_PORT=465
+   SMTP_USER=your-email@mail.ru
+   SMTP_PASSWORD=your-app-password
+   SMTP_FROM_EMAIL=your-email@mail.ru
+   SMTP_USE_TLS=false
+
+   # Frontend URL (для ссылок в email уведомлениях)
+   FRONTEND_BASE_URL=http://localhost
+   ```
+   
+   **Примечание по настройке SMTP:**
+   - Для Mail.ru: используйте порт 465 с SSL (SMTP_USE_TLS=false). Создайте пароль приложения: https://id.mail.ru/profile → Безопасность → Пароли приложений
+   - Для Gmail: используйте "Пароль приложения" вместо обычного пароля (настройки аккаунта → Безопасность → Двухэтапная аутентификация → Пароли приложений), порт 587, SMTP_USE_TLS=true
+   - Для Yandex: используйте порт 465 и SMTP_USE_TLS=false (или порт 587 с SMTP_USE_TLS=true)
+   - Если SMTP настройки не указаны, уведомления на email отправляться не будут (в логах будет предупреждение)
    ```
 
 3. **Запустите все сервисы:**

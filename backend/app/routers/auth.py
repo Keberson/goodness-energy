@@ -4,7 +4,6 @@ from app.database import get_db
 from app.models import User, UserRole, NPO, Volunteer, NPOStatus
 from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse
 from app.auth import verify_password, get_password_hash, create_access_token, get_current_user
-from app.email_service import send_notification_registration
 import json
 import logging
 import httpx
@@ -97,9 +96,6 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
     
     db.commit()
     
-    # Отправка уведомлений о регистрации (асинхронно, не блокируем ответ)
-    asyncio.create_task(send_registration_notifications("npo", npo.name, db))
-    
     # Создание токена
     access_token = create_access_token(data={"sub": str(user.id)})
     return {"access_token": access_token, "token_type": "bearer", "user_type": user.role.value, "id": npo.id}
@@ -141,10 +137,6 @@ async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depe
     )
     db.add(volunteer)
     db.commit()
-    
-    # Отправка уведомлений о регистрации (асинхронно, не блокируем ответ)
-    volunteer_name = f"{vol_data.firstName} {vol_data.secondName}"
-    asyncio.create_task(send_registration_notifications("volunteer", volunteer_name, db))
     
     # Создание токена
     access_token = create_access_token(data={"sub": str(user.id)})
@@ -230,24 +222,3 @@ async def update_notification_settings(
         notify_events=current_user.notify_events
     )
 
-async def send_registration_notifications(new_user_type: str, new_user_name: str, db: Session):
-    """Отправка уведомлений о регистрации нового пользователя"""
-    try:
-        # Получаем всех пользователей с включенными уведомлениями о регистрациях
-        users_with_notifications = db.query(User).filter(
-            User.notify_registrations == True
-        ).all()
-        
-        for user in users_with_notifications:
-            # Получаем email пользователя (только для волонтеров, так как у НКО нет email)
-            if user.role == UserRole.VOLUNTEER:
-                volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
-                if volunteer and volunteer.email:
-                    send_notification_registration(
-                        to_email=volunteer.email,
-                        new_user_type=new_user_type,
-                        new_user_name=new_user_name
-                    )
-        
-    except Exception as e:
-        logger.error(f"Ошибка при отправке уведомлений о регистрации: {e}")

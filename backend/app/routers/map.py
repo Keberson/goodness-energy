@@ -8,6 +8,11 @@ import json
 
 router = APIRouter()
 
+@router.get("/cities", response_model=List[str])
+async def get_cities():
+    """Получить список всех доступных городов"""
+    return [city.value for city in NPOCity]
+
 @router.get("/npo", response_model=List[NPOMapPoint])
 async def get_map_npo(
     city: Optional[str] = Query(None, description="Фильтр по городу"),

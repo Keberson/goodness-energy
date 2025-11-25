@@ -35,7 +35,10 @@ export const mapApi = createApi({
         getCityCoordinate: builder.query<ICityCoordinates, string>({
             query: (cityName) => `/city-coordinates/${cityName}`,
         }),
+        getCities: builder.query<string[], void>({
+            query: () => `/cities`,
+        }),
     }),
 });
 
-export const { useGetMapNPOsQuery, useGetCityCoordinatesQuery, useGetCityCoordinateQuery } = mapApi;
+export const { useGetMapNPOsQuery, useGetCityCoordinatesQuery, useGetCityCoordinateQuery, useGetCitiesQuery } = mapApi;

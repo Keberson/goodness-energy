@@ -12,11 +12,45 @@ logger = logging.getLogger(__name__)
 
 # Настройки SMTP из переменных окружения
 SMTP_HOST = os.getenv("SMTP_HOST", "smtp.gmail.com")
-SMTP_PORT = int(os.getenv("SMTP_PORT", "587"))
-SMTP_USER = os.getenv("SMTP_USER", "")
-SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "")
-SMTP_FROM_EMAIL = os.getenv("SMTP_FROM_EMAIL", SMTP_USER)
-SMTP_USE_TLS = os.getenv("SMTP_USE_TLS", "true").lower() == "true"
+SMTP_PORT_STR = os.getenv("SMTP_PORT", "587")
+try:
+    SMTP_PORT = int(SMTP_PORT_STR)
+except (ValueError, TypeError):
+    logger.error(f"Неверное значение SMTP_PORT: {SMTP_PORT_STR}, используем 587")
+    SMTP_PORT = 587
+
+SMTP_USER = os.getenv("SMTP_USER", "").strip()
+SMTP_PASSWORD = os.getenv("SMTP_PASSWORD", "").strip()
+SMTP_FROM_EMAIL_ENV = os.getenv("SMTP_FROM_EMAIL", "").strip()
+SMTP_FROM_EMAIL = SMTP_FROM_EMAIL_ENV if SMTP_FROM_EMAIL_ENV else SMTP_USER
+SMTP_USE_TLS_STR = os.getenv("SMTP_USE_TLS", "true").lower().strip()
+SMTP_USE_TLS = SMTP_USE_TLS_STR == "true"
+
+# Базовый URL фронтенда для ссылок в письмах
+FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost").strip().rstrip("/")
+
+def get_profile_url(user_type: str = "volunteer") -> str:
+    """
+    Получить URL профиля пользователя
+    
+    Args:
+        user_type: Тип пользователя ("volunteer" или "npo")
+    
+    Returns:
+        URL профиля
+    """
+    if user_type == "npo":
+        return f"{FRONTEND_BASE_URL}/org"
+    return f"{FRONTEND_BASE_URL}/profile"
+
+# Логируем настройки SMTP при загрузке модуля (без пароля)
+logger.info(f"Загрузка SMTP настроек: SMTP_HOST={os.getenv('SMTP_HOST', 'не установлен')}, SMTP_PORT={SMTP_PORT_STR}, SMTP_USER установлен={bool(SMTP_USER)}, SMTP_PASSWORD установлен={bool(SMTP_PASSWORD)}, SMTP_USE_TLS={SMTP_USE_TLS_STR}")
+
+if SMTP_USER and SMTP_PASSWORD:
+    logger.info(f"SMTP настроен: host={SMTP_HOST}, port={SMTP_PORT}, user={SMTP_USER}, from_email={SMTP_FROM_EMAIL}, use_tls={SMTP_USE_TLS}")
+else:
+    logger.warning(f"SMTP настройки не настроены! SMTP_USER={repr(SMTP_USER)}, SMTP_PASSWORD установлен={bool(SMTP_PASSWORD)}")
+    logger.warning("Переменные окружения SMTP_USER и SMTP_PASSWORD должны быть установлены.")
 
 def send_email(
     to_email: str,
@@ -37,7 +71,8 @@ def send_email(
         True если отправка успешна, False в противном случае
     """
     if not SMTP_USER or not SMTP_PASSWORD:
-        logger.warning("SMTP настройки не настроены. Email не будет отправлен.")
+        logger.warning(f"SMTP настройки не настроены (SMTP_USER={bool(SMTP_USER)}, SMTP_PASSWORD={bool(SMTP_PASSWORD)}). Email не будет отправлен на {to_email}.")
+        logger.warning("Установите переменные окружения SMTP_USER и SMTP_PASSWORD для отправки email уведомлений.")
         return False
     
     if not to_email:
@@ -45,6 +80,11 @@ def send_email(
         return False
     
     try:
+        # Проверяем, что SMTP_FROM_EMAIL установлен
+        if not SMTP_FROM_EMAIL:
+            logger.error(f"SMTP_FROM_EMAIL не установлен. Email не будет отправлен на {to_email}.")
+            return False
+        
         # Создаем сообщение
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
@@ -61,25 +101,50 @@ def send_email(
         msg.attach(html_part)
         
         # Отправляем письмо
-        # Для порта 465 используем SMTP_SSL, для других портов - SMTP с TLS
+        # Для порта 465 используем SMTP_SSL (для Yandex, Mail.ru и т.д.)
+        # Для других портов используем SMTP с TLS, если SMTP_USE_TLS=true
+        logger.debug(f"Попытка подключения к SMTP: {SMTP_HOST}:{SMTP_PORT}, use_tls={SMTP_USE_TLS}")
+        
         if SMTP_PORT == 465:
             # SSL соединение (для Yandex, Mail.ru и т.д.)
-            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT) as server:
+            logger.debug("Используем SMTP_SSL для порта 465")
+            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=30) as server:
+                logger.debug("Подключение к SMTP серверу установлено")
                 server.login(SMTP_USER, SMTP_PASSWORD)
+                logger.debug("Аутентификация успешна")
                 server.send_message(msg)
+                logger.debug("Сообщение отправлено")
         else:
             # TLS соединение (для Gmail и большинства других сервисов)
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT) as server:
+            logger.debug(f"Используем SMTP с TLS={SMTP_USE_TLS}")
+            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=30) as server:
                 if SMTP_USE_TLS:
+                    logger.debug("Включаем TLS")
                     server.starttls()
+                logger.debug("Подключение к SMTP серверу установлено")
                 server.login(SMTP_USER, SMTP_PASSWORD)
+                logger.debug("Аутентификация успешна")
                 server.send_message(msg)
+                logger.debug("Сообщение отправлено")
         
         logger.info(f"Email успешно отправлен на {to_email}")
         return True
         
+    except smtplib.SMTPAuthenticationError as e:
+        logger.error(f"Ошибка аутентификации SMTP при отправке email на {to_email}: {e}")
+        logger.error("Проверьте правильность SMTP_USER и SMTP_PASSWORD")
+        if "yandex" in SMTP_HOST.lower():
+            logger.error("Для Yandex используйте 'Пароль приложения', а не обычный пароль аккаунта!")
+            logger.error("Создайте пароль приложения: https://id.yandex.ru/security")
+        elif "mail.ru" in SMTP_HOST.lower():
+            logger.error("Для Mail.ru используйте 'Пароль приложения', а не обычный пароль аккаунта!")
+            logger.error("Создайте пароль приложения: https://id.mail.ru/profile/security/app-passwords")
+        return False
+    except smtplib.SMTPException as e:
+        logger.error(f"Ошибка SMTP при отправке email на {to_email}: {e}")
+        return False
     except Exception as e:
-        logger.error(f"Ошибка при отправке email на {to_email}: {e}")
+        logger.error(f"Неожиданная ошибка при отправке email на {to_email}: {e}", exc_info=True)
         return False
 
 def send_notification_city_news(
@@ -111,7 +176,7 @@ def send_notification_city_news(
             <hr>
             <p style="color: #888; font-size: 12px;">
                 Вы получили это письмо, потому что подписаны на уведомления о новостях из вашего города.
-                Вы можете изменить настройки уведомлений в своем профиле.
+                Вы можете изменить настройки уведомлений в <a href="{get_profile_url()}">своем профиле</a>.
             </p>
         </body>
     </html>
@@ -128,7 +193,7 @@ def send_notification_city_news(
 
 ---
 Вы получили это письмо, потому что подписаны на уведомления о новостях из вашего города.
-Вы можете изменить настройки уведомлений в своем профиле.
+Вы можете изменить настройки уведомлений в своем профиле: {get_profile_url()}
     """
     
     return send_email(to_email, subject, html_body, text_body)
@@ -158,7 +223,7 @@ def send_notification_registration(
             <hr>
             <p style="color: #888; font-size: 12px;">
                 Вы получили это письмо, потому что подписаны на уведомления о регистрациях.
-                Вы можете изменить настройки уведомлений в своем профиле.
+                Вы можете изменить настройки уведомлений в <a href="{get_profile_url()}">своем профиле</a>.
             </p>
         </body>
     </html>
@@ -171,7 +236,7 @@ def send_notification_registration(
 
 ---
 Вы получили это письмо, потому что подписаны на уведомления о регистрациях.
-Вы можете изменить настройки уведомлений в своем профиле.
+Вы можете изменить настройки уведомлений в своем профиле: {get_profile_url()}
     """
     
     return send_email(to_email, subject, html_body, text_body)
@@ -195,6 +260,16 @@ def send_notification_event(
         event_start: Дата и время начала события
         event_url: URL события (опционально)
     """
+    # Проверяем, что все обязательные поля заполнены
+    if not event_name:
+        event_name = "Событие"
+    if not event_description:
+        event_description = "Описание отсутствует"
+    if not event_city:
+        event_city = "Город не указан"
+    if not event_start:
+        event_start = "Дата не указана"
+    
     subject = f"Новое событие: {event_name}"
     
     html_body = f"""
@@ -209,7 +284,7 @@ def send_notification_event(
             <hr>
             <p style="color: #888; font-size: 12px;">
                 Вы получили это письмо, потому что подписаны на уведомления о событиях.
-                Вы можете изменить настройки уведомлений в своем профиле.
+                Вы можете изменить настройки уведомлений в <a href="{get_profile_url()}">своем профиле</a>.
             </p>
         </body>
     </html>
@@ -229,7 +304,78 @@ def send_notification_event(
 
 ---
 Вы получили это письмо, потому что подписаны на уведомления о событиях.
-Вы можете изменить настройки уведомлений в своем профиле.
+Вы можете изменить настройки уведомлений в своем профиле: {get_profile_url()}
+    """
+    
+    return send_email(to_email, subject, html_body, text_body)
+
+def send_notification_event_cancelled(
+    to_email: str,
+    event_name: str,
+    event_description: str,
+    event_city: str,
+    event_start: str,
+    event_url: Optional[str] = None
+) -> bool:
+    """
+    Отправка уведомления об отмене события
+    
+    Args:
+        to_email: Email получателя
+        event_name: Название события
+        event_description: Описание события
+        event_city: Город события
+        event_start: Дата и время начала события
+        event_url: URL события (опционально)
+    """
+    # Проверяем, что все обязательные поля заполнены
+    if not event_name:
+        event_name = "Событие"
+    if not event_description:
+        event_description = "Описание отсутствует"
+    if not event_city:
+        event_city = "Город не указан"
+    if not event_start:
+        event_start = "Дата не указана"
+    
+    subject = f"Событие отменено: {event_name}"
+    
+    html_body = f"""
+    <html>
+        <body>
+            <h2 style="color: #d32f2f;">Событие отменено</h2>
+            <h3>{event_name}</h3>
+            <p><strong>Город:</strong> {event_city}</p>
+            <p><strong>Дата начала:</strong> {event_start}</p>
+            <p>{event_description[:200]}{'...' if len(event_description) > 200 else ''}</p>
+            <p style="color: #d32f2f; font-weight: bold;">К сожалению, это событие было отменено организатором.</p>
+            {f'<p><a href="{event_url}">Подробнее о событии</a></p>' if event_url else ''}
+            <hr>
+            <p style="color: #888; font-size: 12px;">
+                Вы получили это письмо, потому что подписаны на уведомления о событиях.
+                Вы можете изменить настройки уведомлений в <a href="{get_profile_url()}">своем профиле</a>.
+            </p>
+        </body>
+    </html>
+    """
+    
+    text_body = f"""
+Событие отменено
+
+{event_name}
+
+Город: {event_city}
+Дата начала: {event_start}
+
+{event_description[:200]}{'...' if len(event_description) > 200 else ''}
+
+К сожалению, это событие было отменено организатором.
+
+{f'Подробнее о событии: {event_url}' if event_url else ''}
+
+---
+Вы получили это письмо, потому что подписаны на уведомления о событиях.
+Вы можете изменить настройки уведомлений в своем профиле: {get_profile_url()}
     """
     
     return send_email(to_email, subject, html_body, text_body)

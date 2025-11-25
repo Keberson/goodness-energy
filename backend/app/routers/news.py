@@ -5,13 +5,46 @@ from app.database import get_db
 from app.models import News, NewsTag, NewsAttachment, NPO, Volunteer, UserRole, User
 from app.schemas import NewsCreate, NewsResponse, NewsUpdate
 from app.auth import get_current_user
-from app.email_service import send_notification_city_news
 import logging
 import asyncio
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+@router.get("/types", response_model=List[str])
+async def get_news_types(
+    current_user: User = Depends(get_current_user)
+):
+    """
+    Получение доступных типов новостей в зависимости от роли пользователя
+    
+    Returns:
+        Список доступных типов новостей на русском языке:
+        - admin: ['Блог', 'Документы']
+        - npo: ['Блог', 'Документы']
+        - volunteer: ['Блог']
+    """
+    # Маппинг типов новостей на русские названия
+    type_mapping = {
+        "blog": "Блог",
+        "edu": "Образование",
+        "docs": "Документы"
+    }
+    
+    # Определяем доступные типы в зависимости от роли
+    if current_user.role == UserRole.ADMIN:
+        # Админы могут создавать Блог и Документы
+        return [type_mapping["blog"], type_mapping["docs"]]
+    elif current_user.role == UserRole.NPO:
+        # НКО могут создавать Блог и Документы
+        return [type_mapping["blog"], type_mapping["docs"]]
+    elif current_user.role == UserRole.VOLUNTEER:
+        # Волонтеры могут создавать только Блог
+        return [type_mapping["blog"]]
+    else:
+        # По умолчанию возвращаем только Блог
+        return [type_mapping["blog"]]
 
 @router.get("", response_model=List[NewsResponse])
 async def get_all_news(
@@ -155,7 +188,11 @@ async def create_news(
     
     # Отправка уведомлений о новости из города (асинхронно, не блокируем ответ)
     if news_city:
-        asyncio.create_task(send_city_news_notifications(news.id, news.name, news.text, news_city, db))
+        # Импортируем функцию из npo.py
+        from app.routers.npo import send_city_news_notifications
+        task = asyncio.create_task(send_city_news_notifications(news.id, news.name, news.text, news_city))
+        # Добавляем обработку ошибок для задачи
+        task.add_done_callback(lambda t: logger.error(f"Ошибка в задаче отправки уведомлений о новости: {t.exception()}") if t.exception() else None)
     
     tags = [t.tag for t in news.tags]
     attached_ids = [a.file_id for a in news.attachments]
