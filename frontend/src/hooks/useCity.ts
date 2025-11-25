@@ -1,4 +1,4 @@
-import { useEffect, useRef } from "react";
+import { useEffect } from "react";
 import { setCurrentCity, setAvailableCities } from "@services/slices/city.slice";
 import { useGetSelectedCityQuery, useUpdateSelectedCityMutation } from "@services/api/auth.api";
 import { useGetCitiesQuery } from "@services/api/map.api";
@@ -19,7 +19,7 @@ export const useCity = () => {
     const CITY_LOADED_KEY = "cityLoadedFromBackend";
     
     // Загружаем город из backend, если пользователь авторизован
-    const { data: selectedCityData, error: selectedCityError } = useGetSelectedCityQuery(undefined, {
+    const { data: selectedCityData } = useGetSelectedCityQuery(undefined, {
         skip: !isAuthenticated, // Пропускаем запрос, если пользователь не авторизован
     });
 
