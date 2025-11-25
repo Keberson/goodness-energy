@@ -193,6 +193,7 @@ class NewsResponse(BaseModel):
     tags: List[str]
     type: NewsType
     created_at: datetime
+    user_id: int  # ID пользователя, создавшего новость
     
     class Config:
         from_attributes = True

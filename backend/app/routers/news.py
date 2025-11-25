@@ -85,7 +85,8 @@ async def get_all_news(
             attachedIds=attached_ids,
             tags=tags,
             type=news.type,
-            created_at=news.created_at
+            created_at=news.created_at,
+            user_id=news.user_id
         ))
     
     return result
@@ -111,7 +112,8 @@ async def get_news_by_id(news_id: int, db: Session = Depends(get_db)):
         attachedIds=attached_ids,
         tags=tags,
         type=news.type,
-        created_at=news.created_at
+        created_at=news.created_at,
+        user_id=news.user_id
     )
 
 @router.post("", response_model=NewsResponse, status_code=status.HTTP_201_CREATED)
@@ -152,6 +154,7 @@ async def create_news(
         admin_id = current_user.id
     
     news = News(
+        user_id=current_user.id,  # Сохраняем ID пользователя, создавшего новость
         npo_id=npo_id,
         volunteer_id=volunteer_id,
         admin_id=admin_id,
@@ -208,7 +211,8 @@ async def create_news(
         attachedIds=attached_ids,
         tags=tags,
         type=news.type,
-        created_at=news.created_at
+        created_at=news.created_at,
+        user_id=news.user_id
     )
 
 @router.put("/{news_id}", response_model=NewsResponse)
@@ -226,22 +230,11 @@ async def update_news(
             detail="Новость не найдена"
         )
     
-    # Проверка прав доступа: только автор новости может редактировать
-    is_author = False
+    # Проверка прав доступа: автор новости или администратор может редактировать
+    is_author = news.user_id == current_user.id
+    is_admin = current_user.role == UserRole.ADMIN
     
-    if news.npo_id:
-        npo = db.query(NPO).filter(NPO.id == news.npo_id).first()
-        if npo and npo.user_id == current_user.id:
-            is_author = True
-    elif news.volunteer_id:
-        volunteer = db.query(Volunteer).filter(Volunteer.id == news.volunteer_id).first()
-        if volunteer and volunteer.user_id == current_user.id:
-            is_author = True
-    elif news.admin_id:
-        if news.admin_id == current_user.id:
-            is_author = True
-    
-    if not is_author:
+    if not is_author and not is_admin:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Вы можете редактировать только свои новости"
@@ -293,7 +286,8 @@ async def update_news(
         attachedIds=attached_ids,
         tags=tags,
         type=news.type,
-        created_at=news.created_at
+        created_at=news.created_at,
+        user_id=news.user_id
     )
 
 @router.delete("/{news_id}")
@@ -310,21 +304,9 @@ async def delete_news(
             detail="Новость не найдена"
         )
     
-    # Проверка прав доступа: только автор новости или админ может удалять
-    is_author = False
+    # Проверка прав доступа: автор новости или администратор может удалять
+    is_author = news.user_id == current_user.id
     is_admin = current_user.role == UserRole.ADMIN
-    
-    if news.npo_id:
-        npo = db.query(NPO).filter(NPO.id == news.npo_id).first()
-        if npo and npo.user_id == current_user.id:
-            is_author = True
-    elif news.volunteer_id:
-        volunteer = db.query(Volunteer).filter(Volunteer.id == news.volunteer_id).first()
-        if volunteer and volunteer.user_id == current_user.id:
-            is_author = True
-    elif news.admin_id:
-        if news.admin_id == current_user.id:
-            is_author = True
     
     if not is_author and not is_admin:
         raise HTTPException(

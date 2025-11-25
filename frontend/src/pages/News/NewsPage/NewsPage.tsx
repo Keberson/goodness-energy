@@ -1,9 +1,10 @@
 import { Card, Typography, Tag, Space, Descriptions, Button, Flex } from "antd";
-import { CalendarOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import { CalendarOutlined, ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetNewsByIdQuery } from "@services/api/news.api";
 import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
 import NewsContent from "@components/NewsContent/NewsContent";
+import useAppSelector from "@hooks/useAppSelector";
 import "./styles.scss";
 
 const { Title, Paragraph } = Typography;
@@ -15,6 +16,12 @@ const NewsPage = () => {
     const { data, isLoading, error } = useGetNewsByIdQuery(newsId, {
         skip: !id || isNaN(newsId),
     });
+    
+    const userType = useAppSelector((state) => state.auth.userType);
+    const userId = useAppSelector((state) => state.auth.userId);
+    
+    // Проверяем, может ли пользователь редактировать новость (администратор или автор)
+    const canEdit = userType === "admin" || (data && userId === data.user_id);
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
@@ -76,7 +83,18 @@ const NewsPage = () => {
                     <Title level={2} style={{ marginBottom: 0 }}>
                         {data.name}
                     </Title>
-                    <FavoriteButton itemType="news" itemId={data.id} />
+                    <Space>
+                        {canEdit && (
+                            <Button
+                                type="primary"
+                                icon={<EditOutlined />}
+                                onClick={() => navigate(`/news/edit/${data.id}`)}
+                            >
+                                Редактировать
+                            </Button>
+                        )}
+                        <FavoriteButton itemType="news" itemId={data.id} />
+                    </Space>
                 </Flex>
                 <Descriptions column={1} bordered style={{ marginBottom: 24 }}>
                     <Descriptions.Item label="Тип">
