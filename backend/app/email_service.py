@@ -27,7 +27,30 @@ SMTP_USE_TLS_STR = os.getenv("SMTP_USE_TLS", "true").lower().strip()
 SMTP_USE_TLS = SMTP_USE_TLS_STR == "true"
 
 # Базовый URL фронтенда для ссылок в письмах
-FRONTEND_BASE_URL = os.getenv("FRONTEND_BASE_URL", "http://localhost").strip().rstrip("/")
+# Приоритет: FRONTEND_BASE_URL > извлечение из VITE_API_PROD_BASE_URL > localhost
+FRONTEND_BASE_URL_ENV = os.getenv("FRONTEND_BASE_URL", "").strip()
+if FRONTEND_BASE_URL_ENV:
+    FRONTEND_BASE_URL = FRONTEND_BASE_URL_ENV.rstrip("/")
+else:
+    # Пытаемся извлечь базовый URL из переменной VITE_API_PROD_BASE_URL (если она установлена)
+    # VITE_API_PROD_BASE_URL обычно имеет формат: https://domain.com/api
+    # Фронтенд URL будет: https://domain.com (без /api)
+    API_PROD_URL = os.getenv("VITE_API_PROD_BASE_URL", "").strip()
+    if API_PROD_URL:
+        # Убираем /api из конца, если есть
+        if API_PROD_URL.endswith("/api"):
+            FRONTEND_BASE_URL = API_PROD_URL[:-4].rstrip("/")
+        elif API_PROD_URL.endswith("/api/"):
+            FRONTEND_BASE_URL = API_PROD_URL[:-5].rstrip("/")
+        else:
+            # Если нет /api, предполагаем что это уже базовый URL
+            FRONTEND_BASE_URL = API_PROD_URL.rstrip("/")
+    else:
+        # По умолчанию используем localhost только для разработки
+        FRONTEND_BASE_URL = "http://localhost"
+
+# Логируем используемый фронтенд URL
+logger.info(f"FRONTEND_BASE_URL для email уведомлений: {FRONTEND_BASE_URL}")
 
 def get_profile_url(user_type: str = "volunteer") -> str:
     """

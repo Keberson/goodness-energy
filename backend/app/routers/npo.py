@@ -487,9 +487,9 @@ async def update_event(
             event_city=event.city,
             event_start=str(event.start)
         ))
-        # Добавляем обработку ошибок для задачи
-        task.add_done_callback(lambda t: logger.error(f"Ошибка в задаче отправки уведомлений о событии: {t.exception()}") if t.exception() else None)
-        logger.info(f"Отправка уведомлений о событии {event.id} после изменения статуса на 'published'")
+    # Добавляем обработку ошибок для задачи
+    task.add_done_callback(lambda t: logger.error(f"Ошибка в задаче отправки уведомлений о событии: {t.exception()}") if t.exception() else None)
+    logger.info(f"Отправка уведомлений о событии {event.id} после изменения статуса на 'published'")
     
     # Отправка уведомлений об отмене, если статус изменился с "Опубликовано" на "Отменено"
     if (old_status == EventStatus.PUBLISHED and 
