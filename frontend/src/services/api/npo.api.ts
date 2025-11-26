@@ -89,7 +89,7 @@ export const npoApi = createApi({
                 method: "POST",
                 body: payload.body,
             }),
-            async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
                 try {
                     const { data } = await queryFulfilled;
                     // Инвалидируем теги в eventsApi для обновления календаря
