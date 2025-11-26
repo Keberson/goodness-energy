@@ -2,7 +2,6 @@ import { Button, Tooltip } from "antd";
 import { StarFilled, StarOutlined } from "@ant-design/icons";
 import { useAddFavoriteMutation, useRemoveFavoriteMutation, useCheckFavoriteQuery } from "@services/api/favorites.api";
 import type { FavoriteType } from "@app-types/favorites.types";
-import { skipToken } from "@reduxjs/toolkit/query";
 import useAppSelector from "@hooks/useAppSelector";
 
 interface FavoriteButtonProps {

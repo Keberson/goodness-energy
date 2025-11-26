@@ -1,6 +1,5 @@
 import { Card, Space, Typography } from "antd";
 import {
-    FontSizeOutlined,
     FileTextOutlined,
     PictureOutlined,
     UnorderedListOutlined,

@@ -5,7 +5,6 @@ const { TextArea } = Input;
 import { 
     SaveOutlined, 
     ArrowLeftOutlined,
-    FontSizeOutlined,
     FileTextOutlined,
     PictureOutlined,
     UnorderedListOutlined,

@@ -43,7 +43,7 @@ const MyNewsPage = () => {
         return colors[type] || "default";
     };
 
-    const handleDelete = async (newsId: number, newsName: string) => {
+    const handleDelete = async (newsId: number) => {
         try {
             await deleteNews(newsId).unwrap();
             message.success("Новость успешно удалена");
@@ -98,7 +98,7 @@ const MyNewsPage = () => {
                                         key="delete"
                                         title="Удалить новость?"
                                         description={`Вы уверены, что хотите удалить новость "${item.name}"?`}
-                                        onConfirm={() => handleDelete(item.id, item.name)}
+                                        onConfirm={() => handleDelete(item.id)}
                                         okText="Да"
                                         cancelText="Нет"
                                     >
