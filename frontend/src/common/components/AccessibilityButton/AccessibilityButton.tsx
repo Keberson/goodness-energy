@@ -14,7 +14,7 @@ const AccessibilityButton = () => {
             className={`accessibility-button ${isAccessibilityMode ? "active" : ""}`}
             title={isAccessibilityMode ? "Отключить версию для слабовидящих" : "Включить версию для слабовидящих"}
         >
-            Версия для слабовидящих
+            {isAccessibilityMode ? "Обычная версия" : "Версия для слабовидящих"}
         </Button>
     );
 };
