@@ -27,13 +27,13 @@ import {
     ReloadOutlined,
 } from "@ant-design/icons";
 import type { Dayjs } from "dayjs";
-import dayjs from "dayjs";
+import type dayjs from "dayjs";
 import type { ColumnsType } from "antd/es/table";
 import { useGetAllNPOStatisticsQuery } from "@services/api/admin.api";
 import { useGetNPOEventsQuery } from "@services/api/npo.api";
 import type { INPOStatisticsItem } from "@app-types/npo.types";
-import React, { useMemo, useState } from "react";
-import { Pie, Column, Line } from "@ant-design/charts";
+import type React, { useMemo, useState } from "react";
+import type { Pie, Column, Line } from "@ant-design/charts";
 import { getApiBaseUrl } from "@utils/apiUrl";
 
 const { Title } = Typography;
