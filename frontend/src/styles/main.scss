@@ -211,7 +211,7 @@ body.accessibility-mode {
     }
 
     // Улучшение контрастности ссылок (исключаем боковое меню и кнопки)
-    a:not(.menu a):not(.ant-menu-dark a):not(.ant-drawer a):not(.mobile-drawer a):not(.ant-btn):not(.ant-typography-expand):not(.ant-typography-ellipsis-expand) {
+    a:not(.menu a):not(.ant-menu-dark a):not(.ant-drawer a):not(.mobile-drawer a):not(.ant-btn):not(.ant-btn-primary):not(.file-preview-download-btn):not(.ant-typography-expand):not(.ant-typography-ellipsis-expand) {
         color: #0066cc !important;
         text-decoration: underline !important;
         font-weight: 600 !important;
@@ -223,12 +223,12 @@ body.accessibility-mode {
     }
 
     // Кнопки с href не должны быть подчёркнуты и должны сохранять стили кнопки
-    .ant-btn[href],
-    .ant-btn a,
-    a.ant-btn,
-    .ant-btn[href]:hover,
-    .ant-btn[href]:focus,
-    .ant-btn[href]:active {
+    .ant-btn[href]:not(.ant-btn-primary),
+    .ant-btn a:not(.ant-btn-primary),
+    a.ant-btn:not(.ant-btn-primary),
+    .ant-btn[href]:not(.ant-btn-primary):hover,
+    .ant-btn[href]:not(.ant-btn-primary):focus,
+    .ant-btn[href]:not(.ant-btn-primary):active {
         text-decoration: none !important;
         color: inherit !important;
 
@@ -242,15 +242,35 @@ body.accessibility-mode {
 
     // Кнопки primary с href должны сохранять стили primary кнопки
     .ant-btn-primary[href],
-    a.ant-btn-primary {
+    a.ant-btn-primary,
+    .file-preview-download-btn,
+    .file-preview-download-btn.ant-btn-primary[href],
+    a.file-preview-download-btn.ant-btn-primary {
         color: #ffffff !important;
         text-decoration: none !important;
 
-        &:hover,
-        &:focus,
-        &:active {
+        &,
+        span,
+        *,
+        .anticon {
             color: #ffffff !important;
             text-decoration: none !important;
+        }
+
+        &:hover,
+        &:focus,
+        &:active,
+        &:visited {
+            color: #ffffff !important;
+            text-decoration: none !important;
+
+            &,
+            span,
+            *,
+            .anticon {
+                color: #ffffff !important;
+                text-decoration: none !important;
+            }
         }
     }
 

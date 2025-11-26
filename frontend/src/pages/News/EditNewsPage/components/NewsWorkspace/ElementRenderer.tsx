@@ -128,8 +128,9 @@ const ElementRenderer = ({ element, onUpdate, onDelete, activeId }: ElementRende
                 return (
                     <QuoteElement
                         content={element.content as string}
+                        author={(element.props?.author as string) || ""}
                         isEditing={isEditing}
-                        onSave={(content) => handleSave(content)}
+                        onSave={(content, props) => handleSave(content, props)}
                         onCancel={handleCancel}
                         onEdit={handleEdit}
                     />

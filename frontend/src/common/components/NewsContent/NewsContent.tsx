@@ -14,23 +14,28 @@ interface NewsContentProps {
 const NewsContent = ({ html, className, style }: NewsContentProps) => {
     const containerRef = useRef<HTMLDivElement>(null);
     const rootsRef = useRef<Root[]>([]);
+    const isMountedRef = useRef(true);
 
     useEffect(() => {
+        isMountedRef.current = true;
         if (!containerRef.current) return;
 
-        // Очищаем предыдущие root'ы
-        rootsRef.current.forEach((root) => {
-            try {
-                root.unmount();
-            } catch (e) {
-                // Игнорируем ошибки при размонтировании
-            }
-        });
+        // Очищаем предыдущие root'ы асинхронно
+        const currentRoots = [...rootsRef.current];
         rootsRef.current = [];
+        setTimeout(() => {
+            currentRoots.forEach((root) => {
+                try {
+                    root.unmount();
+                } catch (e) {
+                    // Игнорируем ошибки при размонтировании
+                }
+            });
+        }, 0);
 
         // Ждем, пока HTML будет установлен в DOM
         const processElements = () => {
-            if (!containerRef.current) return;
+            if (!containerRef.current || !isMountedRef.current) return;
 
             // Удаляем пустые элементы с классом news-image или news-file, но без data-file-id
             const emptyImageElements = containerRef.current.querySelectorAll(
@@ -84,7 +89,7 @@ const NewsContent = ({ html, className, style }: NewsContentProps) => {
                     const root = createRoot(reactContainer);
                     root.render(
                         <Provider store={store}>
-                            <FilePreview fileId={fileIdNum} />
+                            <FilePreview fileId={fileIdNum} hideFileName={true} />
                             {existingContent && existingContent.trim() && (
                                 <div
                                     className="image-caption-wrapper"
@@ -108,15 +113,20 @@ const NewsContent = ({ html, className, style }: NewsContentProps) => {
 
         // Cleanup функция
         return () => {
+            isMountedRef.current = false;
             cancelAnimationFrame(rafId);
-            rootsRef.current.forEach((root) => {
-                try {
-                    root.unmount();
-                } catch (e) {
-                    // Игнорируем ошибки
-                }
-            });
+            // Асинхронно размонтируем roots, чтобы избежать конфликта с рендерингом
+            const rootsToUnmount = [...rootsRef.current];
             rootsRef.current = [];
+            setTimeout(() => {
+                rootsToUnmount.forEach((root) => {
+                    try {
+                        root.unmount();
+                    } catch (e) {
+                        // Игнорируем ошибки
+                    }
+                });
+            }, 0);
         };
     }, [html]);
 

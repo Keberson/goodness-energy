@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Layout, Button, Card, Typography, message } from "antd";
+import { Layout, Button, Card, Typography, App } from "antd";
 import { SaveOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
@@ -33,6 +33,7 @@ const NPOPageContentEditor: React.FC<NPOPageContentEditorProps> = ({
     const [activeId, setActiveId] = useState<string | null>(null);
     const [saving, setSaving] = useState(false);
     const [isLoadingContent, setIsLoadingContent] = useState(false);
+    const { message } = App.useApp();
 
     // Загрузка существующего контента
     useEffect(() => {

@@ -1,4 +1,4 @@
-import { Card, Typography, Tag, Space, List, Empty, Button, Popconfirm, message } from "antd";
+import { Card, Typography, Tag, Space, List, Empty, Button, Popconfirm, App } from "antd";
 import { ClockCircleOutlined, EnvironmentOutlined, CloseOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
@@ -17,6 +17,7 @@ const MyEventsPage = () => {
     const userId = useAppSelector((state) => state.auth.userId);
     const { data: events, isLoading } = useGetVolunteerEventsQuery(userId ?? skipToken);
     const [deleteEventResponse] = useDeleteEventResponseMutation();
+    const { message } = App.useApp();
 
     // Сортируем события: сначала предстоящие, потом прошедшие
     const sortedEvents = useMemo(() => {

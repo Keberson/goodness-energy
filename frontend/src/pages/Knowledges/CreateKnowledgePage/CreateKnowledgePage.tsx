@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Card, Typography, Form, Input, Button, Upload, message, Tag, Space } from "antd";
+import { Card, Typography, Form, Input, Button, Upload, App, Tag, Space } from "antd";
 import { UploadOutlined, VideoCameraOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import { useUploadFileMutation } from "@services/api/files.api";
@@ -14,6 +14,7 @@ const CreateKnowledgePage = () => {
     const [form] = Form.useForm();
     const [uploadFile] = useUploadFileMutation();
     const [createKnowledge] = useCreateKnowledgeMutation();
+    const { message } = App.useApp();
     const [files, setFiles] = useState<File[]>([]);
     const [uploading, setUploading] = useState(false);
 

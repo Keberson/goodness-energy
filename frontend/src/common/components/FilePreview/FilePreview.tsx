@@ -14,13 +14,15 @@ const { Text } = Typography;
 
 interface FilePreviewProps {
     fileId: number;
+    hideFileName?: boolean;
 }
 
 // Компонент для отображения изображений с авторизацией
-const ImagePreview: React.FC<{ fileId: number; fileUrl: string; fileName: string }> = ({
+const ImagePreview: React.FC<{ fileId: number; fileUrl: string; fileName: string; hideFileName?: boolean }> = ({
     fileId,
     fileUrl,
     fileName,
+    hideFileName,
 }) => {
     const [imageUrl, setImageUrl] = useState<string | null>(null);
     const [loading, setLoading] = useState(true);
@@ -103,14 +105,16 @@ const ImagePreview: React.FC<{ fileId: number; fileUrl: string; fileName: string
                     mask: <div>Просмотр</div>,
                 }}
             />
-            <div style={{ marginTop: 8 }}>
-                <Text type="secondary">{fileName}</Text>
-            </div>
+            {!hideFileName && (
+                <div style={{ marginTop: 8 }}>
+                    <Text type="secondary">{fileName}</Text>
+                </div>
+            )}
         </div>
     );
 };
 
-const FilePreview: React.FC<FilePreviewProps> = ({ fileId }) => {
+const FilePreview: React.FC<FilePreviewProps> = ({ fileId, hideFileName = false }) => {
     const { data, isLoading, error } = useGetFileInfoQuery(fileId);
 
     const getFileType = (ext: string): "pdf" | "image" | "doc" | "xls" | "other" => {
@@ -151,31 +155,40 @@ const FilePreview: React.FC<FilePreviewProps> = ({ fileId }) => {
                                 </Text>
                             </div>
                         </object>
-                        <div style={{ marginTop: 8 }}>
-                            <Text strong>{fileName}</Text>
-                        </div>
+                        {!hideFileName && (
+                            <div style={{ marginTop: 8 }}>
+                                <Text strong>{fileName}</Text>
+                            </div>
+                        )}
                         <Button
                             type="primary"
                             icon={<DownloadOutlined />}
                             href={fileUrl}
                             download
-                            style={{ marginTop: 8 }}
+                            style={{ 
+                                marginTop: 8,
+                                color: "#ffffff",
+                                textDecoration: "none",
+                            }}
+                            className="file-preview-download-btn"
                         >
-                            Скачать PDF
+                            <span style={{ color: "#ffffff", textDecoration: "none" }}>Скачать PDF</span>
                         </Button>
                     </div>
                 );
 
             case "image":
-                return <ImagePreview fileId={fileId} fileUrl={fileUrl} fileName={fileName} />;
+                return <ImagePreview fileId={fileId} fileUrl={fileUrl} fileName={fileName} hideFileName={hideFileName} />;
 
             case "doc":
                 return (
                     <div style={{ textAlign: "center", padding: 20 }}>
                         <FileWordOutlined style={{ fontSize: 48, color: "#1890ff" }} />
-                        <div style={{ marginTop: 8 }}>
-                            <Text strong>{fileName}</Text>
-                        </div>
+                        {!hideFileName && (
+                            <div style={{ marginTop: 8 }}>
+                                <Text strong>{fileName}</Text>
+                            </div>
+                        )}
                         <Button
                             type="primary"
                             icon={<DownloadOutlined />}
@@ -191,9 +204,11 @@ const FilePreview: React.FC<FilePreviewProps> = ({ fileId }) => {
                 return (
                     <div style={{ textAlign: "center", padding: 20 }}>
                         <FileExcelOutlined style={{ fontSize: 48, color: "#0fb317ff" }} />
-                        <div style={{ marginTop: 8 }}>
-                            <Text strong>{fileName}</Text>
-                        </div>
+                        {!hideFileName && (
+                            <div style={{ marginTop: 8 }}>
+                                <Text strong>{fileName}</Text>
+                            </div>
+                        )}
                         <Button
                             type="primary"
                             icon={<DownloadOutlined />}
@@ -209,9 +224,11 @@ const FilePreview: React.FC<FilePreviewProps> = ({ fileId }) => {
                 return (
                     <div style={{ textAlign: "center", padding: 20 }}>
                         <FileImageOutlined style={{ fontSize: 48, color: "#52c41a" }} />
-                        <div style={{ marginTop: 8 }}>
-                            <Text strong>{fileName || `Файл ${fileId}`}</Text>
-                        </div>
+                        {!hideFileName && (
+                            <div style={{ marginTop: 8 }}>
+                                <Text strong>{fileName || `Файл ${fileId}`}</Text>
+                            </div>
+                        )}
                         <Button
                             type="primary"
                             icon={<DownloadOutlined />}

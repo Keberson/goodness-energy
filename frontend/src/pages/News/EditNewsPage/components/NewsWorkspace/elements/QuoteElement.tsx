@@ -7,26 +7,30 @@ const { Text } = Typography;
 
 interface QuoteElementProps {
     content: string;
+    author?: string;
     isEditing: boolean;
-    onSave: (content: string) => void;
+    onSave: (content: string, props?: Record<string, any>) => void;
     onCancel: () => void;
     onEdit: () => void;
 }
 
-const QuoteElement = ({ content, isEditing, onSave, onCancel, onEdit }: QuoteElementProps) => {
+const QuoteElement = ({ content, author = "", isEditing, onSave, onCancel, onEdit }: QuoteElementProps) => {
     const [editValue, setEditValue] = useState(content);
+    const [authorValue, setAuthorValue] = useState(author);
 
     useEffect(() => {
         setEditValue(content);
-    }, [content]);
+        setAuthorValue(author);
+    }, [content, author]);
 
     const handleSave = () => {
-        onSave(editValue);
+        onSave(editValue, { author: authorValue });
         onCancel();
     };
 
     const handleCancel = () => {
         setEditValue(content);
+        setAuthorValue(author);
         onCancel();
     };
 
@@ -38,6 +42,11 @@ const QuoteElement = ({ content, isEditing, onSave, onCancel, onEdit }: QuoteEle
                     onChange={(e) => setEditValue(e.target.value)}
                     rows={3}
                     placeholder="Введите цитату"
+                />
+                <Input
+                    value={authorValue}
+                    onChange={(e) => setAuthorValue(e.target.value)}
+                    placeholder="Автор цитаты (необязательно)"
                 />
                 <Space>
                     <Button type="primary" icon={<CheckOutlined />} onClick={handleSave} size="small">
@@ -57,6 +66,11 @@ const QuoteElement = ({ content, isEditing, onSave, onCancel, onEdit }: QuoteEle
             onClick={onEdit}
         >
             <Text italic>"{content}"</Text>
+            {author && (
+                <div style={{ marginTop: 8, textAlign: "left" }}>
+                    <Text type="secondary">— {author}</Text>
+                </div>
+            )}
         </Card>
     );
 };

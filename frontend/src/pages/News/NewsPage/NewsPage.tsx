@@ -1,5 +1,5 @@
-import { Card, Typography, Tag, Space, Descriptions, Button, Flex } from "antd";
-import { CalendarOutlined, ArrowLeftOutlined, EditOutlined } from "@ant-design/icons";
+import { Card, Typography, Tag, Space, Button, Flex } from "antd";
+import { CalendarOutlined, ArrowLeftOutlined, EditOutlined, UserOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetNewsByIdQuery } from "@services/api/news.api";
 import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
@@ -76,7 +76,7 @@ const NewsPage = () => {
                 <Flex
                     justify="space-between"
                     align="center"
-                    style={{ marginBottom: 24 }}
+                    style={{ marginBottom: 8 }}
                     wrap="wrap"
                     gap={8}
                 >
@@ -96,37 +96,40 @@ const NewsPage = () => {
                         <FavoriteButton itemType="news" itemId={data.id} />
                     </Space>
                 </Flex>
-                <Descriptions column={1} bordered style={{ marginBottom: 24 }}>
-                    <Descriptions.Item label="Автор">
-                        {data.author}
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Тип">
-                        <Tag color={getTypeColor(data.type)}>{getTypeLabel(data.type)}</Tag>
-                    </Descriptions.Item>
-                    <Descriptions.Item label="Дата создания">
-                        <Space>
-                            <CalendarOutlined />
-                            <span>
-                                {new Date(data.created_at).toLocaleDateString("ru-RU", {
-                                    year: "numeric",
-                                    month: "long",
-                                    day: "numeric",
-                                    hour: "2-digit",
-                                    minute: "2-digit",
-                                })}
-                            </span>
-                        </Space>
-                    </Descriptions.Item>
+                <Space 
+                    wrap 
+                    size="large" 
+                    style={{ 
+                        marginBottom: 24,
+                        padding: "8px 0",
+                        borderBottom: "1px solid #f0f0f0"
+                    }}
+                >
+                    <Space>
+                        <UserOutlined />
+                        <span>{data.author}</span>
+                    </Space>
+                    <Tag color={getTypeColor(data.type)}>{getTypeLabel(data.type)}</Tag>
+                    <Space>
+                        <CalendarOutlined />
+                        <span>
+                            {new Date(data.created_at).toLocaleDateString("ru-RU", {
+                                year: "numeric",
+                                month: "long",
+                                day: "numeric",
+                                hour: "2-digit",
+                                minute: "2-digit",
+                            })}
+                        </span>
+                    </Space>
                     {data.tags && data.tags.length > 0 && (
-                        <Descriptions.Item label="Теги">
-                            <Space wrap>
-                                {data.tags.map((tag) => (
-                                    <Tag key={tag}>{tag}</Tag>
-                                ))}
-                            </Space>
-                        </Descriptions.Item>
+                        <Space wrap>
+                            {data.tags.map((tag) => (
+                                <Tag key={tag}>{tag}</Tag>
+                            ))}
+                        </Space>
                     )}
-                </Descriptions>
+                </Space>
                 <Title level={4}>Содержание</Title>
                 <NewsContent
                     html={data.text}

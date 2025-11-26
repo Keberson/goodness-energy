@@ -1,4 +1,4 @@
-import { Card, Typography, Tag, Space, List, Badge, Empty, Tooltip, Button, message, Flex } from "antd";
+import { Card, Typography, Tag, Space, List, Badge, Empty, Tooltip, Button, App, Flex } from "antd";
 import type { BadgeProps } from "antd";
 import { Calendar } from "antd";
 import { ClockCircleOutlined, EnvironmentOutlined, LeftOutlined, RightOutlined, CheckCircleOutlined, PlusOutlined } from "@ant-design/icons";
@@ -22,6 +22,7 @@ const { Title, Paragraph, Text } = Typography;
 const EventsPage = () => {
     const { currentCity } = useCity();
     const { data: events, isLoading } = useGetEventsQuery(currentCity);
+    const { message } = App.useApp();
     const [searchParams, setSearchParams] = useSearchParams();
     const dateParam = searchParams.get("date");
     

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button, Space, Input, Typography, Card, Upload, message, Carousel } from "antd";
+import { Button, Space, Input, Typography, Card, Upload, App, Carousel } from "antd";
 import { CheckOutlined, CloseOutlined, DeleteOutlined, UploadOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import FilePreview from "@components/FilePreview/FilePreview";
@@ -18,6 +18,7 @@ const ImageElement = ({ content, caption = "", isEditing, onSave, onCancel, onEd
     const [captionValue, setCaptionValue] = useState(caption);
     const [uploading, setUploading] = useState(false);
     const [uploadFile] = useUploadFileMutation();
+    const { message } = App.useApp();
 
     useEffect(() => {
         setCaptionValue(caption);

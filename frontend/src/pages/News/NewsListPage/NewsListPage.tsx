@@ -5,6 +5,7 @@ import { useGetNewsQuery } from "@services/api/news.api";
 import type { INews } from "@app-types/news.types";
 import { useCity } from "@hooks/useCity";
 import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
+import useAppSelector from "@hooks/useAppSelector";
 
 const { Title } = Typography;
 
@@ -12,6 +13,7 @@ const NewsListPage = () => {
     const navigate = useNavigate();
     const { currentCity } = useCity();
     const { data, isLoading } = useGetNewsQuery(currentCity);
+    const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
@@ -38,13 +40,15 @@ const NewsListPage = () => {
                     <Title level={3} style={{ marginBottom: 0 }}>
                         Новости
                     </Title>
-                    <Button
-                        type="primary"
-                        icon={<PlusOutlined />}
-                        onClick={() => navigate("/news/edit")}
-                    >
-                        Создать новость
-                    </Button>
+                    {isAuthenticated && (
+                        <Button
+                            type="primary"
+                            icon={<PlusOutlined />}
+                            onClick={() => navigate("/news/edit")}
+                        >
+                            Создать новость
+                        </Button>
+                    )}
                 </Flex>
                 {isLoading ? (
                     <List loading={isLoading} />

@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button, Flex, Form, Upload, message, Row, Col, Tabs } from "antd";
+import { Button, Flex, Form, Upload, App, Row, Col, Tabs } from "antd";
 import { UploadOutlined, DeleteOutlined, FileTextOutlined } from "@ant-design/icons";
 
 import type { INPO, INPOEdit } from "@app-types/npo.types";
@@ -22,6 +22,7 @@ interface NPOProfileEditProps {
 const NPOProfileEdit: React.FC<NPOProfileEditProps> = ({ profileData, onCancel }) => {
     const [editNPO] = useEditNPOMutation();
     const [uploadFile] = useUploadFileMutation();
+    const { message } = App.useApp();
     const [galleryIds, setGalleryIds] = useState<number[]>(profileData.galleryIds || []);
     const [uploading, setUploading] = useState(false);
     const [activeTab, setActiveTab] = useState("profile");

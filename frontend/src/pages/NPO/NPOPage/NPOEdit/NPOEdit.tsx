@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Button, Flex, Form, Upload, message, Row, Col } from "antd";
+import { Button, Flex, Form, Upload, App, Row, Col } from "antd";
 import { UploadOutlined, DeleteOutlined } from "@ant-design/icons";
 
 import type { INPO, INPOEdit } from "@app-types/npo.types";
@@ -20,6 +20,7 @@ interface NPOEditProps {
 const NPOEdit: React.FC<NPOEditProps> = ({ data, onCancel }) => {
     const [editNPO] = useEditNPOMutation();
     const [uploadFile] = useUploadFileMutation();
+    const { message } = App.useApp();
     const [galleryIds, setGalleryIds] = useState<number[]>(data.galleryIds || []);
     const [uploading, setUploading] = useState(false);
 

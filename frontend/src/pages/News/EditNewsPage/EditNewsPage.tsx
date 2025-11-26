@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef } from "react";
-import { Layout, Button, Input, Select, Space, Typography, Card, message } from "antd";
+import { Layout, Button, Input, Select, Space, Typography, Card, App } from "antd";
 
 const { TextArea } = Input;
 import { 
@@ -41,6 +41,7 @@ const EditNewsPage = () => {
     const { id } = useParams<{ id?: string }>();
     const isEditing = !!id;
     const newsId = id ? Number(id) : 0;
+    const { message } = App.useApp();
 
     const [elements, setElements] = useState<NewsEditorElement[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -222,13 +223,13 @@ const EditNewsPage = () => {
             case "heading":
                 return { id, type: "heading", content: "Новый заголовок", props: { level: 2 } };
             case "paragraph":
-                return { id, type: "paragraph", content: "Введите текст..." };
+                return { id, type: "paragraph", content: "" };
             case "image":
                 return { id, type: "image", content: 0 };
             case "list":
                 return { id, type: "list", content: ["Элемент списка 1", "Элемент списка 2"] };
             case "quote":
-                return { id, type: "quote", content: "Введите цитату..." };
+                return { id, type: "quote", content: "" };
             case "link":
                 return { id, type: "link", content: "Текст ссылки", props: { url: "" } };
             case "file":
@@ -453,6 +454,11 @@ const EditNewsPage = () => {
                             styles={{ body: { padding: "12px" } }}
                         >
                             <Text italic>"{element.content as string}"</Text>
+                            {element.props?.author && (
+                                <div style={{ marginTop: 8, textAlign: "left" }}>
+                                    <Text type="secondary">— {element.props.author as string}</Text>
+                                </div>
+                            )}
                         </Card>
                     )}
                     {element.type === "heading" && (

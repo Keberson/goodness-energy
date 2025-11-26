@@ -1,5 +1,5 @@
 import React from "react";
-import { Card, Checkbox, Space, Typography, message } from "antd";
+import { Card, Checkbox, Space, Typography, App } from "antd";
 import { MailOutlined } from "@ant-design/icons";
 
 import {
@@ -13,6 +13,7 @@ const { Text } = Typography;
 const NotificationSettings: React.FC = () => {
     const { data: settings } = useGetNotificationSettingsQuery();
     const [updateSettings] = useUpdateNotificationSettingsMutation();
+    const { message } = App.useApp();
 
     const handleChange = async (
         field: "notify_city_news" | "notify_events",

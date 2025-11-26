@@ -69,7 +69,14 @@ export const convertElementsToNewsData = (elements: NewsEditorElement[]) => {
 
             case "quote": {
                 const content = (element.content as string) || "";
-                htmlParts.push(`<blockquote>${escapeHtml(content)}</blockquote>`);
+                const author = (element.props?.author as string) || "";
+                if (author) {
+                    htmlParts.push(
+                        `<blockquote data-author="${escapeHtml(author)}">${escapeHtml(content)}<cite>— ${escapeHtml(author)}</cite></blockquote>`
+                    );
+                } else {
+                    htmlParts.push(`<blockquote>${escapeHtml(content)}</blockquote>`);
+                }
                 break;
             }
 
@@ -241,11 +248,28 @@ export const convertNewsDataToElements = (html: string): NewsEditorElement[] => 
 
                 case "blockquote": {
                     const content = getTextContent(element);
-                    if (content.trim()) {
+                    // Удаляем автора из текста, если он есть в cite
+                    const citeElement = element.querySelector("cite");
+                    let quoteContent = content.trim();
+                    let author = "";
+                    
+                    if (citeElement) {
+                        const citeText = getTextContent(citeElement);
+                        // Удаляем "— " из начала, если есть
+                        author = citeText.replace(/^—\s*/, "").trim();
+                        // Удаляем текст автора из основного контента
+                        quoteContent = quoteContent.replace(citeText, "").trim();
+                    } else {
+                        // Проверяем data-author атрибут
+                        author = element.getAttribute("data-author") || "";
+                    }
+                    
+                    if (quoteContent) {
                         elements.push({
                             id: generateId(),
                             type: "quote",
-                            content: content.trim(),
+                            content: quoteContent,
+                            props: author ? { author } : undefined,
                         });
                     }
                     break;

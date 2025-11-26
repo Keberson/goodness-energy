@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Button, Space, Upload, message } from "antd";
+import { Button, Space, Upload, App } from "antd";
 import { UploadOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd";
 import FilePreview from "@components/FilePreview/FilePreview";
@@ -16,6 +16,7 @@ interface FileElementProps {
 const FileElement = ({ content, isEditing, onSave, onCancel, onEdit }: FileElementProps) => {
     const [uploading, setUploading] = useState(false);
     const [uploadFile] = useUploadFileMutation();
+    const { message } = App.useApp();
 
     const handleFileUpload: UploadProps["beforeUpload"] = async (file) => {
         try {
