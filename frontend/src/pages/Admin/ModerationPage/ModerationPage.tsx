@@ -34,7 +34,7 @@ const ModerationPage = () => {
     const [deleteNPO] = useDeleteNPOMutation();
 
     // Events queries - для админа показываем все события без фильтрации по городу
-    const { data: events, isLoading: isLoadingEvents } = useGetEventsQuery(undefined);
+    const { data: events, isLoading: isLoadingEvents, refetch: refetchEvents } = useGetEventsQuery(undefined);
     const [deleteEvent] = useDeleteEventMutation();
 
     // News queries - для админа показываем все новости без фильтрации по городу
@@ -149,6 +149,15 @@ const ModerationPage = () => {
             key: "name",
             width: 200,
             render: (name: string) => <Text strong>{name}</Text>,
+        },
+        {
+            title: "НКО",
+            dataIndex: "npo_name",
+            key: "npo_name",
+            width: 200,
+            render: (npoName: string | null | undefined) => (
+                <Text>{npoName || "Не указано"}</Text>
+            ),
         },
         {
             title: "Описание",
@@ -342,6 +351,8 @@ const ModerationPage = () => {
                         message: "Событие удалено",
                         description: "Событие успешно удалено",
                     });
+                    // Обновляем список событий после удаления
+                    refetchEvents();
                 } catch (error) {
                     notification.error({
                         message: "Ошибка",
@@ -417,7 +428,7 @@ const ModerationPage = () => {
                             columns={eventsColumns}
                             dataSource={(events || []).map((item) => ({ ...item, key: item.id }))}
                             loading={isLoadingEvents}
-                            scroll={{ x: 1200 }}
+                            scroll={{ x: 1400 }}
                             pagination={{ pageSize: 10 }}
                         />
                     </TabPane>

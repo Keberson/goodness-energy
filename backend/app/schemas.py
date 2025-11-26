@@ -123,6 +123,7 @@ class EventStatusUpdate(BaseModel):
 class EventResponse(BaseModel):
     id: int
     npo_id: int
+    npo_name: Optional[str] = None  # Название НКО, проводящего событие
     name: str
     description: Optional[str]
     start: datetime

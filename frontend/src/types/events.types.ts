@@ -3,6 +3,7 @@ export type EventStatus = "draft" | "published" | "cancelled" | "completed";
 export interface IEvent {
     id: number;
     npo_id: number;
+    npo_name?: string | null; // Название НКО, проводящего событие
     name: string;
     description: string | null;
     start: string;

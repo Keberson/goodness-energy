@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List
 from app.database import get_db
 from app.models import Favorite, FavoriteType, News, Event, Knowledge, User, NewsTag, NewsAttachment, EventTag, KnowledgeTag, KnowledgeAttachment
@@ -126,12 +126,13 @@ async def get_favorites(
                 ).model_dump()
         
         elif favorite.item_type == FavoriteType.EVENT:
-            event = db.query(Event).filter(Event.id == favorite.item_id).first()
+            event = db.query(Event).options(joinedload(Event.npo)).filter(Event.id == favorite.item_id).first()
             if event:
                 tags = [t.tag for t in event.tags]
                 item_data = EventResponse(
                     id=event.id,
                     npo_id=event.npo_id,
+                    npo_name=event.npo.name if event.npo else None,
                     name=event.name,
                     description=event.description,
                     start=event.start,

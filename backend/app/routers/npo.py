@@ -1,6 +1,6 @@
 from fastapi import APIRouter, Depends, HTTPException, status, Query
 from fastapi.responses import StreamingResponse
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from sqlalchemy import func, distinct
 from typing import List, Optional
 from datetime import datetime
@@ -269,8 +269,8 @@ async def get_npo_events(
             detail="НКО не найдено"
         )
     
-    # Получаем все события НКО
-    events = db.query(Event).filter(Event.npo_id == npo_id).all()
+    # Получаем все события НКО с загрузкой НКО для избежания N+1 запросов
+    events = db.query(Event).options(joinedload(Event.npo)).filter(Event.npo_id == npo_id).all()
     
     result = []
     for event in events:
@@ -279,6 +279,7 @@ async def get_npo_events(
         result.append(EventResponse(
             id=event.id,
             npo_id=event.npo_id,
+            npo_name=event.npo.name if event.npo else None,
             name=event.name,
             description=event.description,
             start=event.start,
@@ -383,6 +384,7 @@ async def create_event(
     return EventResponse(
         id=event.id,
         npo_id=event.npo_id,
+        npo_name=event.npo.name if event.npo else None,
         name=event.name,
         description=event.description,
         start=event.start,
@@ -528,6 +530,7 @@ async def update_event(
     return EventResponse(
         id=event.id,
         npo_id=event.npo_id,
+        npo_name=event.npo.name if event.npo else None,
         name=event.name,
         description=event.description,
         start=event.start,

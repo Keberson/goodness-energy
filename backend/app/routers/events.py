@@ -1,5 +1,5 @@
 from fastapi import APIRouter, Depends, Query
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, joinedload
 from typing import List, Optional
 from app.database import get_db
 from app.models import Event, EventTag, EventAttachment
@@ -17,7 +17,7 @@ async def get_all_events(
 ):
     """Получение всех событий с опциональной фильтрацией по городу"""
     logger.info(f"Получен запрос на события с параметром city: {city}")
-    query = db.query(Event)
+    query = db.query(Event).options(joinedload(Event.npo))
     
     if city:
         logger.info(f"Фильтрация событий по городу: {city}")
@@ -33,6 +33,7 @@ async def get_all_events(
         result.append(EventResponse(
             id=event.id,
             npo_id=event.npo_id,
+            npo_name=event.npo.name if event.npo else None,
             name=event.name,
             description=event.description,
             start=event.start,
