@@ -1,5 +1,6 @@
 import type { INPO, INPOEditRequest, INPOStatistics } from "@app-types/npo.types";
 import type { IEvent, EventStatus } from "@app-types/events.types";
+import type { INews, INewsCreate } from "@app-types/news.types";
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getApiBaseUrl } from "@utils/apiUrl";
@@ -12,8 +13,8 @@ export interface IEventCreateRequest {
     coordinates?: [number, number] | null;
     quantity?: number | null;
     tags?: string[] | null;
-    city: string; // Обязательное поле - город проведения события
-    attachedIds?: number[] | null; // ID файлов (изображений)
+    city: string;
+    attachedIds?: number[] | null;
 }
 
 export interface IEventUpdateRequest {
@@ -25,7 +26,7 @@ export interface IEventUpdateRequest {
     quantity?: number | null;
     tags?: string[] | null;
     city?: string;
-    attachedIds?: number[] | null; // ID файлов (изображений)
+    attachedIds?: number[] | null;
 }
 
 export interface IEventStatusUpdateRequest {
@@ -34,7 +35,7 @@ export interface IEventStatusUpdateRequest {
 
 export const npoApi = createApi({
     reducerPath: "npoApi",
-    tagTypes: ["NPO", "Event", "Statistics"],
+    tagTypes: ["NPO", "Event", "Statistics", "News"],
     baseQuery: fetchBaseQuery({
         baseUrl: `${getApiBaseUrl()}/npo`,
         prepareHeaders: (headers, { getState }) => {
@@ -139,24 +140,18 @@ export const npoApi = createApi({
                 url: `/${npoId}/view`,
                 method: "POST",
             }),
-            invalidatesTags: (_, __, npoId) => [
-                { type: "Statistics", id: npoId },
-            ],
+            invalidatesTags: (_, __, npoId) => [{ type: "Statistics", id: npoId }],
         }),
         registerEventView: builder.mutation<void, { npoId: number; eventId: number }>({
             query: (payload) => ({
                 url: `/${payload.npoId}/event/${payload.eventId}/view`,
                 method: "POST",
             }),
-            invalidatesTags: (_, __, payload) => [
-                { type: "Statistics", id: payload.npoId },
-            ],
+            invalidatesTags: (_, __, payload) => [{ type: "Statistics", id: payload.npoId }],
         }),
         getNPOStatistics: builder.query<INPOStatistics, number>({
             query: (npoId) => ({ url: `/${npoId}/statistics` }),
-            providesTags: (_, __, npoId) => [
-                { type: "Statistics", id: npoId },
-            ],
+            providesTags: (_, __, npoId) => [{ type: "Statistics", id: npoId }],
         }),
         // Analytics export endpoints
         exportNPOAnalyticsCSV: builder.query<Blob, number>({
@@ -181,6 +176,29 @@ export const npoApi = createApi({
                 },
             }),
         }),
+        // News endpoints
+        getNPONews: builder.query<INews[], number>({
+            query: (npoId) => ({ url: `/${npoId}/news` }),
+            providesTags: (result, _error, npoId) =>
+                result
+                    ? [
+                          ...result.map(({ id }) => ({ type: "News" as const, id })),
+                          { type: "News", id: `NPO-${npoId}` },
+                      ]
+                    : [{ type: "News", id: `NPO-${npoId}` }],
+        }),
+        createNPONews: builder.mutation<INews, { npoId: number; body: INewsCreate }>({
+            query: (payload) => ({
+                url: `/${payload.npoId}/news`,
+                method: "POST",
+                body: payload.body,
+            }),
+            invalidatesTags: (_, __, payload) => [
+                { type: "News", id: "LIST" },
+                { type: "News", id: `NPO-${payload.npoId}` },
+                { type: "Statistics", id: payload.npoId },
+            ],
+        }),
     }),
 });
 
@@ -198,4 +216,6 @@ export const {
     useGetNPOStatisticsQuery,
     useLazyExportNPOAnalyticsCSVQuery,
     useLazyExportNPOAnalyticsPDFQuery,
+    useGetNPONewsQuery,
+    useCreateNPONewsMutation,
 } = npoApi;

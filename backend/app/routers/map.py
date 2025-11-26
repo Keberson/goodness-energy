@@ -41,6 +41,7 @@ async def get_map_npo(
                 id=npo.id,
                 name=npo.name,
                 description=npo.description,
+                page_content=npo.page_content,
                 coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)],
                 address=npo.address,
                 city=NPOCity(npo.city) if npo.city else NPOCity.ANGARSK,

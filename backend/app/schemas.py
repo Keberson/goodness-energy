@@ -62,6 +62,7 @@ class VolunteerRegistration(BaseModel):
 class NPOUpdate(BaseModel):
     name: Optional[str] = None
     description: Optional[str] = None
+    page_content: Optional[str] = None  # HTML-контент страницы профиля
     galleryIds: Optional[List[int]] = None
     tags: Optional[List[str]] = None
     links: Optional[dict] = None
@@ -74,6 +75,7 @@ class NPOResponse(BaseModel):
     id: int
     name: str
     description: Optional[str]
+    page_content: Optional[str]  # HTML-контент страницы профиля
     coordinates: Optional[List[float]]  # [lat, lon]
     address: Optional[str]
     city: NPOCity

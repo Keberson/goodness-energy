@@ -45,23 +45,45 @@ const NPODetails: React.FC<NPODetailsProps> = ({ npo, showGallery = false }) => 
                 <Text strong>{npo.name}</Text>
             </Descriptions.Item>
             <Descriptions.Item label="Описание">
-                <Paragraph>{npo.description}</Paragraph>
+                {npo.description && npo.description.trim() ? (
+                    <Paragraph>{npo.description}</Paragraph>
+                ) : (
+                    <Text type="secondary" italic>Данных нет</Text>
+                )}
             </Descriptions.Item>
-            <Descriptions.Item label="Адрес">{npo.address}</Descriptions.Item>
-            <Descriptions.Item label="Город">{npo.city}</Descriptions.Item>
-            {npo.timetable && npo.timetable.trim() && (
-                <Descriptions.Item label="Расписание">
+            <Descriptions.Item label="Адрес">
+                {npo.address && npo.address.trim() ? (
+                    npo.address
+                ) : (
+                    <Text type="secondary" italic>Данных нет</Text>
+                )}
+            </Descriptions.Item>
+            <Descriptions.Item label="Город">
+                {npo.city && npo.city.trim() ? (
+                    npo.city
+                ) : (
+                    <Text type="secondary" italic>Данных нет</Text>
+                )}
+            </Descriptions.Item>
+            <Descriptions.Item label="Расписание">
+                {npo.timetable && npo.timetable.trim() ? (
                     <Paragraph>{npo.timetable}</Paragraph>
-                </Descriptions.Item>
-            )}
+                ) : (
+                    <Text type="secondary" italic>Данных нет</Text>
+                )}
+            </Descriptions.Item>
             <Descriptions.Item label="Теги">
-                <Space wrap>
-                    {npo.tags.map((tag) => (
-                        <Tag key={tag} color={tagColors[tag as keyof typeof tagColors] || "default"}>
-                            {tag}
-                        </Tag>
-                    ))}
-                </Space>
+                {npo.tags && npo.tags.length > 0 ? (
+                    <Space wrap>
+                        {npo.tags.map((tag) => (
+                            <Tag key={tag} color={tagColors[tag as keyof typeof tagColors] || "default"}>
+                                {tag}
+                            </Tag>
+                        ))}
+                    </Space>
+                ) : (
+                    <Text type="secondary" italic>Данных нет</Text>
+                )}
             </Descriptions.Item>
             <Descriptions.Item label="Вакансии">
                 <Tag color={npo.vacancies > 0 ? "green" : "default"}>
@@ -71,17 +93,19 @@ const NPODetails: React.FC<NPODetailsProps> = ({ npo, showGallery = false }) => 
             <Descriptions.Item label="Дата создания">
                 {new Date(npo.created_at).toLocaleDateString("ru-RU")}
             </Descriptions.Item>
-            {npo.links && Object.keys(npo.links).length > 0 && (
-                <Descriptions.Item label="Ссылки">
-                    {Object.entries(npo.links).map(([key, url]) => (
+            <Descriptions.Item label="Ссылки">
+                {npo.links && Object.keys(npo.links).length > 0 ? (
+                    Object.entries(npo.links).map(([key, url]) => (
                         <div key={key}>
                             <a href={url} target="_blank" rel="noopener noreferrer">
                                 {url}
                             </a>
                         </div>
-                    ))}
-                </Descriptions.Item>
-            )}
+                    ))
+                ) : (
+                    <Text type="secondary" italic>Данных нет</Text>
+                )}
+            </Descriptions.Item>
         </Descriptions>
     );
 };

@@ -35,6 +35,7 @@ async def get_unconfirmed_npos(
             id=npo.id,
             name=npo.name,
             description=npo.description,
+            page_content=npo.page_content,
             coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)] if npo.coordinates_lat is not None and npo.coordinates_lon is not None else None,
             address=npo.address,
             city=NPOCity(npo.city) if npo.city else NPOCity.ANGARSK,

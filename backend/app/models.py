@@ -92,6 +92,7 @@ class NPO(Base):
     user_id = Column(Integer, ForeignKey("users.id"), unique=True, nullable=False)
     name = Column(String, nullable=False)
     description = Column(Text)
+    page_content = Column(Text)  # HTML-контент страницы профиля, созданный через редактор
     coordinates_lat = Column(Float)
     coordinates_lon = Column(Float)
     address = Column(String)

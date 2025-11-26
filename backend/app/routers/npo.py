@@ -61,6 +61,7 @@ async def get_all_npos(
             id=npo.id,
             name=npo.name,
             description=npo.description,
+            page_content=npo.page_content,
             coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)] if npo.coordinates_lat is not None and npo.coordinates_lon is not None else None,
             address=npo.address,
             city=NPOCity(npo.city) if npo.city else NPOCity.ANGARSK,
@@ -105,6 +106,7 @@ async def get_npo_by_id(
         id=npo.id,
         name=npo.name,
         description=npo.description,
+        page_content=npo.page_content,
         coordinates=[float(npo.coordinates_lat), float(npo.coordinates_lon)] if npo.coordinates_lat is not None and npo.coordinates_lon is not None else None,
         address=npo.address,
         city=NPOCity(npo.city) if npo.city else NPOCity.ANGARSK,
@@ -137,6 +139,8 @@ async def update_npo(
         npo.name = npo_update.name
     if npo_update.description is not None:
         npo.description = npo_update.description
+    if npo_update.page_content is not None:
+        npo.page_content = npo_update.page_content
     if npo_update.timetable is not None:
         # Сохраняем только если это не пустая строка после удаления пробелов
         timetable_str = str(npo_update.timetable).strip()

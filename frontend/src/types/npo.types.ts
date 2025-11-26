@@ -4,6 +4,7 @@ export interface INPO {
     id: number;
     name: string;
     description: string | null;
+    page_content: string | null; // HTML-контент страницы профиля
     coordinates: [number, number] | null;
     address: string;
     city: string;
@@ -44,6 +45,7 @@ export interface INPOEdit {
 export interface INPOEditRequest {
     name: string;
     description: string;
+    page_content?: string; // HTML-контент страницы профиля
     galleryIds: number[];
     tags: string[];
     links: Record<string, string>;

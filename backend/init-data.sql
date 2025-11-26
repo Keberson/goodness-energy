@@ -14,7 +14,7 @@ INSERT INTO users (login, password_hash, role, notify_city_news, notify_registra
 VALUES ('npo1', '$2b$12$zCHnZ4WqVz9DtvXII/3VYOKmvTsntAb6ycB1Sod56VeSZzhqmIDVK', 'NPO', false, false, false, NOW())
 ON CONFLICT (login) DO NOTHING;
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo1'),
   'ОО ТОС АГО "12а микрорайон"',
@@ -28,7 +28,8 @@ VALUES (
 1) Физическая зарядка для пенсионеров каждый четверг
 2) Каждую пятницу тренировки по скандинавской ходьбе для всех возрастов. 
 3) До 30.10.2025 установка детской эко-площадки и открытие площадки.
-4) Раз в месяц встречи с жителями по обсуждению проблем на территории и пути решения.',
+  4) Раз в месяц встречи с жителями по обсуждению проблем на территории и пути решения.',
+  NULL,
   52.512272,
   103.861361,
   NULL,
@@ -49,7 +50,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo2', '$2b$12$BKXx9fTuiGNSeucFKJKy8.yvpavqKSdEBjwgfHvUIZYORTjcMCY46', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo2'),
   'Благотворительный общественно полезный фонд помощи социально незащищенным слоям населения "Платформа добрых дел"',
@@ -62,6 +63,7 @@ VALUES (
 
 План мероприятий на год
 Плана мероприятий пока нет, так как такового обозначенного плана нашим фондом не имеется.',
+  NULL,
   47.5136,
   42.1514,
   NULL,
@@ -82,7 +84,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo3', '$2b$12$0lvHLtufLc.54jOfCSqe4eT/3viOW7S23sy1SjVM6TRClaYCmvdjG', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo3'),
   'МБУ "Молодежный центр"',
@@ -97,6 +99,7 @@ VALUES (
 
 План мероприятий:
 файл',
+  NULL,
   58.137855,
   52.647851,
   NULL,
@@ -117,7 +120,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo4', '$2b$12$ZlHp5zqOkgURIeAdHiy9pOeX3xj3YsGw3yHrPyLqFcoFxQJ/j3yg6', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo4'),
   'Культурная база "Короленко 8" (МБУ "ЦМиТО УКСиМП"',
@@ -126,6 +129,7 @@ VALUES (
 
 ЦА: 
 Инициативные жители, сообщества, НКО, учреждения города',
+  NULL,
   58.138558,
   52.666123,
   NULL,
@@ -146,7 +150,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo5', '$2b$12$CbKnHlDXJXnJNOT54Ce/OuGB88fZlF8.L/mTzqiwgs7z6cmFDEHrK', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo5'),
   'КРОМО "Экологический союз"',
@@ -161,6 +165,7 @@ VALUES (
 2) «Ни грамма скуки» - при поддержке фонда президентских грантов.
 3) «Меняй себя, а не климат» поддержанный фондом «Соработничество» (с 1 августа).
 4) Проект «Система ЗАТО Железногорск» (с 1 декабря).',
+  NULL,
   56.243963,
   93.542269,
   NULL,
@@ -181,10 +186,11 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo6', '$2b$12$.we.vPAXtqlQA3NcZrSIS.NLka1W83ExUnL5dG6hXI5YMocbm2hw2', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo6'),
   'Федерация картинга',
+  NULL,
   NULL,
   56.102057,
   94.604122,
@@ -206,7 +212,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo7', '$2b$12$XBqEqK.QN/tvg1D.R48dmuMY7rG7Rx5UoXmni8NVjut.KUezQApyS', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo7'),
   'НКО "Резервный фонд поддержки гражданских инициатив города Зеленогорска"',
@@ -217,6 +223,7 @@ VALUES (
 
 ЦА:  
 люди в сложной жизненой ситуации',
+  NULL,
   56.1128,
   94.5981,
   NULL,
@@ -237,10 +244,11 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo8', '$2b$12$AH1xGcf2jVtXg1wLg6LJzOJg4K/F3wzfhfFBWIsRpRTo8ZdP8aK52', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo8'),
   'АНО "Клуб компьютерного спорта и фиджитал-спорта "Кибер-атом"',
+  NULL,
   NULL,
   56.1128,
   94.5981,
@@ -262,7 +270,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo9', '$2b$12$2jMgVmX.YXU6/IeGzeX6lOIFY67g5DybUJFat1YSQSebSPlSD6Afm', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo9'),
   'АНО РАЗВИВАЮЩИЙ ЦЕНТР "СОЛНЕЧНЫЙ ГОРОД" "',
@@ -274,6 +282,7 @@ VALUES (
 
 План мероприятий на год: 
 Проект "Передышка" (поддержан КЦПРОИ)',
+  NULL,
   56.111057,
   94.591656,
   NULL,
@@ -294,11 +303,12 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo10', '$2b$12$hkwfBP2.gUDvAGRTQKem8eBKJvcdXCqggGmQr9J1AyhnuwHUyVbRy', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo10'),
   'АНО КРЦРМСИГ ЕЛЕНЫ ЖИВАЕВОЙ',
   'Информация об организации АНО КРЦРМСИГ Елены Живаевой',
+  NULL,
   56.1128,
   94.5981,
   NULL,
@@ -319,10 +329,11 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo11', '$2b$12$XNelCEZuAy7.AryY0rLMnO/yliOsG/nnh.xabGd5KRprooYyl/Eze', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo11'),
   'АНО Ресурсный центр',
+  NULL,
   NULL,
   56.1128,
   94.5981,
@@ -344,7 +355,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo12', '$2b$12$4UYtsWlPsa91be0WH7svpOo/d2YC4PC.SH9TDcPOoc6TX0bK9LfoS', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo12'),
   'АНО СС "Линия жизни"',
@@ -362,6 +373,7 @@ VALUES (
 5) День матери - поздравление многодетных матерей 
 6) Декабрь - Новогодний экспресс (поздравление получателей социальных услуг)
 Во всех мероприятиях нам помогают партнёры, садики, школы и техникум.',
+  NULL,
   56.1128,
   94.5981,
   NULL,
@@ -382,10 +394,11 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo13', '$2b$12$9CsXDUKa9lzB2fbMeQ1pZ.A3yHaKYClyrCTlf4GuISicy/O7G7r6O', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo13'),
   'АНО Центр досуга и развития детей',
+  NULL,
   NULL,
   60.199473,
   29.706081,
@@ -407,7 +420,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo14', '$2b$12$nwrUXC5LxtqGV8WRxzdwvudhwP5a27hmcy/G4CyM8gIKyVKGd.9Oq', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo14'),
   'Автономная некоммерческая организация "Клуб компьютерного спорта и фиджитал-спорта "Кибер-атом"',
@@ -418,6 +431,7 @@ VALUES (
 
 План мероприятий до конца года 
 В планах до конца года открыть детский клуб, уже подготовительные работы ведутся, смета на оборудование подготовлена, но основная проблема в его дороговизне. Открыть клуб на 10 компьютеров, две приставки и 1 VR-шлем даже не на топовом оборудовании, но на более-менее актуальном, стоит по моим подсчетам порядка полутора миллионов. Это без затрат на ремонт и остальные расходы',
+  NULL,
   56.1128,
   94.5981,
   NULL,
@@ -438,13 +452,14 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo15', '$2b$12$niO.0W3ovQATJ3dtboupneaFB6IrSAbIgtmVxG3l.w/MJKKC9wNUW', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo15'),
   'БФ «Планета кошек»',
   'Благотворительный Фонд "Планета Кошек" — это проект помощи бездомным животным в Нижнем Новгороде!
 
 Благотворительный Фонд "Планета Кошек" входит в состав многофункционального Центра помощи и реабилитации животных. Деятельность Фонда направлена на спасение животных, оказавшихся в сложных жизненных ситуация, брошенных на улице, нуждающихся в ветеринарной помощи!',
+  NULL,
   56.313605,
   43.975423,
   NULL,
@@ -465,11 +480,12 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo16', '$2b$12$drx92/CC.9V8pppYM13HQ.ng1c.SXVdu.NkI1boWLD3TKBsWjLfNS', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo16'),
   'АНО ДПО "Техническая академия Росатома"',
   'На данный момент НКО нет. Находится на стадии формирования концепции и формализации идеи.',
+  NULL,
   55.0969,
   36.6103,
   NULL,
@@ -490,7 +506,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo17', '$2b$12$v6itO4m42BtiKzl0p12UyO2v.znnDLTDE8XwSXKzUol/pMlhLb7Km', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo17'),
   'АНО СЦСА НАШИ ДЕТИ',
@@ -510,6 +526,7 @@ VALUES (
 5) В рамках субсидии Министерства труда и социального развития проводим занятия на безвозмездной основе для 30 ребят, учим общаться при помощи альтернативной коммуникации. (индивидуальные и групповые занятия".
 Занятия проводятся регулярно и постоянно.
 6) С 15 сентября стартуют занятия в рамках ранней помощи для детей с трудностями в развитии до 3х лет. Ведем набор детей.',
+  NULL,
   55.030959,
   73.299893,
   NULL,
@@ -530,10 +547,11 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo18', '$2b$12$L4hL/1Rkp2sFPU7JTUZdWeO/Hlwng9AEhuEg9zrsSzl1aD6YoP6Sq', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo18'),
   'ТРОО "ВПЦ" МИРНЫЙ ВОИН"',
+  NULL,
   NULL,
   56.6006,
   84.8864,
@@ -555,10 +573,11 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo19', '$2b$12$IkMIh0vL8ol9LTq4PqpK6uvJmfyaZUwBCAQOEnp7U.2GRFYBn5mBC', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo19'),
   'СГОО БУМЕРАНГ ДОБРА',
+  NULL,
   NULL,
   56.080152,
   60.748289,
@@ -580,10 +599,11 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo20', '$2b$12$LL1OpHMcDqSAmHa8edhPIO95A6.0ZiVyxeedz0FuvNgEDi3.LsNk.', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo20'),
   'ДоброЦентр при СО НКО Бумеранг добра',
+  NULL,
   NULL,
   56.080152,
   60.748289,
@@ -605,7 +625,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo21', '$2b$12$XpxEdysg6aWITMBMZYPvI.MKm0oOJFMFgew22seAOJFlLVA7aIjZ2', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo21'),
   'Снежинская городская общественная организация "Союз женщин Снежинска"',
@@ -619,6 +639,7 @@ VALUES (
 
 План мероприятий на год: 
 1) Открыть Семейный клуб и Центр долголетия',
+  NULL,
   56.0850,
   60.7325,
   NULL,
@@ -639,7 +660,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo22', '$2b$12$tlyVc4AqOsOwjPityJ3HMOeUEjulEUN3gMpPO0hwr9lnur6iO37Xm', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo22'),
   'БФМС Новое Усолье',
@@ -648,6 +669,7 @@ VALUES (
 
 ЦА:
 Неравнодушные жители, женщины 40+, семьи с детьми',
+  NULL,
   52.7506,
   103.6447,
   NULL,
@@ -668,7 +690,7 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo23', '$2b$12$d6QVsWrbyTGFD1J1GQxaieTLveplUdR.ZgZjP1aGJhcg/RRaMzIru', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo23'),
   'УГМО ИОРОООО ВОИ',
@@ -677,6 +699,7 @@ VALUES (
 
 ЦА: 
 Люди с инвалидностью всех возрастов',
+  NULL,
   52.7506,
   103.6447,
   NULL,
@@ -697,11 +720,12 @@ VALUES (
 INSERT INTO users (login, password_hash, role, notify_city_news, notify_registrations, notify_events, created_at) VALUES
   ('npo24', '$2b$12$6NdyhduZv3rl7zxiUgT/Ouuj5tDHiGJjO5IOdj/VAnbt0pgTGTyw6', 'NPO', false, false, false, NOW());
 
-INSERT INTO npos (user_id, name, description, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
+INSERT INTO npos (user_id, name, description, page_content, coordinates_lat, coordinates_lon, address, city, timetable, links, status, created_at)
 VALUES (
   (SELECT id FROM users WHERE login = 'npo24'),
   'АНО «Твердыми шагами»',
   'Автономная некоммерческая организация помощи детям с ограниченными возможностями здоровья, инвалидностью и их семьям.',
+  NULL,
   55.7556,
   60.7028,
   NULL,
