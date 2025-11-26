@@ -26,6 +26,20 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+def get_news_author(news: News, db: Session) -> str:
+    """Определяет автора новости на основе типа создателя"""
+    if news.volunteer_id:
+        volunteer = db.query(Volunteer).filter(Volunteer.id == news.volunteer_id).first()
+        if volunteer:
+            return f"{volunteer.first_name} {volunteer.second_name}"
+    elif news.npo_id:
+        npo = db.query(NPO).filter(NPO.id == news.npo_id).first()
+        if npo:
+            return npo.name
+    elif news.admin_id:
+        return "Администратор"
+    return "Неизвестный автор"
+
 def get_npo_by_user_id(user_id: int, db: Session) -> NPO:
     npo = db.query(NPO).filter(NPO.user_id == user_id).first()
     if not npo:
@@ -640,8 +654,10 @@ async def create_news(
         )
     
     news = News(
+        user_id=current_user.id,  # Сохраняем ID пользователя, создавшего новость
         npo_id=npo.id,
         name=news_data.name,
+        annotation=news_data.annotation,
         text=news_data.text,
         type=news_data.type
     )
@@ -665,6 +681,7 @@ async def create_news(
     
     tags = [t.tag for t in news.tags]
     attached_ids = [a.file_id for a in news.attachments]
+    author = get_news_author(news, db)
     
     # Отправка уведомлений о новости из города (асинхронно, не блокируем ответ)
     # Не передаем db сессию, функция создаст свою
@@ -681,11 +698,14 @@ async def create_news(
     return NewsResponse(
         id=news.id,
         name=news.name,
+        annotation=news.annotation,
         text=news.text,
         attachedIds=attached_ids,
         tags=tags,
         type=news.type,
-        created_at=news.created_at
+        created_at=news.created_at,
+        user_id=news.user_id,
+        author=author
     )
 
 @router.get("/{npo_id}/news", response_model=List[NewsResponse])
@@ -708,15 +728,19 @@ async def get_npo_news(
     for news in news_list:
         tags = [t.tag for t in news.tags]
         attached_ids = [a.file_id for a in news.attachments]
+        author = get_news_author(news, db)
         
         result.append(NewsResponse(
             id=news.id,
             name=news.name,
+            annotation=news.annotation,
             text=news.text,
             attachedIds=attached_ids,
             tags=tags,
             type=news.type,
-            created_at=news.created_at
+            created_at=news.created_at,
+            user_id=news.user_id,
+            author=author
         ))
     
     return result

@@ -10,6 +10,7 @@ export interface INews {
     type: NewsType;
     created_at: string;
     user_id: number; // ID пользователя, создавшего новость
+    author: string; // Имя автора: для волонтёра - имя и фамилия, для НКО - название НКО, для админа - "Администратор"
 }
 
 export interface INewsCreate {

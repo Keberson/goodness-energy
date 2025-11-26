@@ -97,6 +97,9 @@ const NewsPage = () => {
                     </Space>
                 </Flex>
                 <Descriptions column={1} bordered style={{ marginBottom: 24 }}>
+                    <Descriptions.Item label="Автор">
+                        {data.author}
+                    </Descriptions.Item>
                     <Descriptions.Item label="Тип">
                         <Tag color={getTypeColor(data.type)}>{getTypeLabel(data.type)}</Tag>
                     </Descriptions.Item>

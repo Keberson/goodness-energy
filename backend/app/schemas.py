@@ -196,6 +196,7 @@ class NewsResponse(BaseModel):
     type: NewsType
     created_at: datetime
     user_id: int  # ID пользователя, создавшего новость
+    author: str  # Имя автора: для волонтёра - имя и фамилия, для НКО - название НКО, для админа - "Администратор"
     
     class Config:
         from_attributes = True

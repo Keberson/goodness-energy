@@ -1046,6 +1046,566 @@ VALUES (
   '2025-11-25 11:00:00'
 );
 
+-- Событие 17: Мастер-класс по рукоделию (для НКО #1)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')),
+  'Мастер-класс по рукоделию для пенсионеров',
+  'Творческий мастер-класс по изготовлению новогодних поделок. Все материалы предоставляются.',
+  '2025-11-25 14:00:00',
+  '2025-11-25 17:00:00',
+  52.5444,
+  103.8889,
+  20,
+  'Ангарск',
+  'PUBLISHED',
+  '2025-11-22 10:00:00'
+);
+
+-- Событие 18: Благотворительная ярмарка (для НКО #2)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')),
+  'Благотворительная ярмарка "Доброе сердце"',
+  'Ярмарка поделок и сувениров ручной работы. Все средства пойдут на помощь социально незащищенным слоям населения.',
+  '2025-11-26 11:00:00',
+  '2025-11-26 16:00:00',
+  47.5136,
+  42.1514,
+  100,
+  'Волгодонск',
+  'PUBLISHED',
+  '2025-11-23 09:00:00'
+);
+
+-- Событие 19: Лекция по здоровому образу жизни (для НКО #3)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')),
+  'Лекция "Здоровый образ жизни в зрелом возрасте"',
+  'Встреча с врачом-геронтологом о правильном питании, физической активности и профилактике заболеваний.',
+  '2025-11-27 15:00:00',
+  '2025-11-27 17:00:00',
+  58.1394,
+  52.6583,
+  40,
+  'Глазов',
+  'PUBLISHED',
+  '2025-11-24 11:00:00'
+);
+
+-- Событие 20: Экологический субботник (для НКО #5)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo5')),
+  'Экологический субботник "Чистый парк"',
+  'Уборка территории городского парка от мусора и листвы. Приглашаем всех желающих внести вклад в чистоту города.',
+  '2025-11-29 09:00:00',
+  '2025-11-29 13:00:00',
+  56.2511,
+  93.5319,
+  50,
+  'Железногорск',
+  'PUBLISHED',
+  '2025-11-26 08:00:00'
+);
+
+-- Событие 21: Спортивный турнир (для НКО #6)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo6')),
+  'Городской турнир по настольному теннису',
+  'Соревнования по настольному теннису для всех возрастов. Регистрация участников обязательна.',
+  '2025-11-30 10:00:00',
+  '2025-11-30 18:00:00',
+  56.1128,
+  94.5981,
+  32,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-11-27 12:00:00'
+);
+
+-- Событие 22: Концерт для ветеранов (для НКО #7)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo7')),
+  'Концерт "Песни нашей молодости"',
+  'Музыкальный вечер для ветеранов с исполнением любимых песен. Теплая атмосфера и чаепитие.',
+  '2025-12-02 16:00:00',
+  '2025-12-02 19:00:00',
+  56.1128,
+  94.5981,
+  60,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-11-28 10:00:00'
+);
+
+-- Событие 23: Встреча с психологом (для НКО #9)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo9')),
+  'Групповая встреча с психологом "Семейные отношения"',
+  'Бесплатная консультация для семей по вопросам детско-родительских отношений и семейной гармонии.',
+  '2025-12-03 18:00:00',
+  '2025-12-03 20:00:00',
+  56.1128,
+  94.5981,
+  15,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-11-29 14:00:00'
+);
+
+-- Событие 24: Мастер-класс по программированию (для НКО #8)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo8')),
+  'Мастер-класс "Основы программирования для детей"',
+  'Обучающее занятие для детей 10-14 лет по основам программирования на языке Python.',
+  '2025-12-04 15:00:00',
+  '2025-12-04 17:00:00',
+  56.1128,
+  94.5981,
+  20,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-11-30 09:00:00'
+);
+
+-- Событие 25: Акция помощи бездомным (для НКО #15)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo15')),
+  'Акция "Теплая зима" для бездомных',
+  'Сбор теплой одежды, обуви и продуктов питания для людей без определенного места жительства.',
+  '2025-12-05 10:00:00',
+  '2025-12-05 15:00:00',
+  56.3269,
+  44.0075,
+  25,
+  'Нижний Новгород',
+  'PUBLISHED',
+  '2025-12-01 08:00:00'
+);
+
+-- Событие 26: Занятия для детей с ОВЗ (для НКО #17)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo17')),
+  'Развивающие занятия для детей с ОВЗ',
+  'Индивидуальные и групповые занятия по развитию речи, моторики и коммуникативных навыков.',
+  '2025-12-06 10:00:00',
+  '2025-12-06 13:00:00',
+  54.9885,
+  73.3242,
+  12,
+  'Омск',
+  'PUBLISHED',
+  '2025-12-02 10:00:00'
+);
+
+-- Событие 27: Экскурсия для пенсионеров (для НКО #1)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')),
+  'Экскурсия в музей для пенсионеров',
+  'Бесплатная экскурсия в краеведческий музей для людей старшего возраста. Транспорт предоставляется.',
+  '2025-12-07 11:00:00',
+  '2025-12-07 14:00:00',
+  52.5444,
+  103.8889,
+  30,
+  'Ангарск',
+  'PUBLISHED',
+  '2025-12-03 09:00:00'
+);
+
+-- Событие 28: Волонтерская помощь (для НКО #2)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')),
+  'Волонтерская помощь многодетным семьям',
+  'Помощь в уборке квартир, покупке продуктов и присмотре за детьми для многодетных семей.',
+  '2025-12-08 09:00:00',
+  '2025-12-08 15:00:00',
+  47.5136,
+  42.1514,
+  20,
+  'Волгодонск',
+  'PUBLISHED',
+  '2025-12-04 10:00:00'
+);
+
+-- Событие 29: Творческая мастерская (для НКО #4)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo4')),
+  'Творческая мастерская "Новогодние игрушки"',
+  'Мастер-класс по изготовлению елочных игрушек своими руками. Подходит для всей семьи.',
+  '2025-12-09 14:00:00',
+  '2025-12-09 17:00:00',
+  58.1394,
+  52.6583,
+  25,
+  'Глазов',
+  'PUBLISHED',
+  '2025-12-05 11:00:00'
+);
+
+-- Событие 30: Экологическая лекция (для НКО #5)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo5')),
+  'Лекция "Экология в быту"',
+  'Познавательная лекция о том, как сделать свой дом более экологичным и снизить вредное воздействие на природу.',
+  '2025-12-10 18:00:00',
+  '2025-12-10 20:00:00',
+  56.2511,
+  93.5319,
+  35,
+  'Железногорск',
+  'PUBLISHED',
+  '2025-12-06 12:00:00'
+);
+
+-- Событие 31: Спортивное мероприятие (для НКО #6)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo6')),
+  'Спортивный праздник "Здоровье - это сила"',
+  'Соревнования по различным видам спорта для детей и взрослых. Награждение победителей.',
+  '2025-12-11 10:00:00',
+  '2025-12-11 16:00:00',
+  56.1128,
+  94.5981,
+  60,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-12-07 09:00:00'
+);
+
+-- Событие 32: Концерт для детей (для НКО #10)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo10')),
+  'Детский новогодний концерт',
+  'Праздничный концерт с участием детских творческих коллективов. Вход свободный.',
+  '2025-12-12 15:00:00',
+  '2025-12-12 17:00:00',
+  56.1128,
+  94.5981,
+  80,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-12-08 10:00:00'
+);
+
+-- Событие 33: Помощь пожилым (для НКО #11)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo11')),
+  'Акция "Забота о старших"',
+  'Волонтерская помощь пожилым людям: уборка квартир, покупка продуктов, сопровождение в поликлинику.',
+  '2025-12-13 09:00:00',
+  '2025-12-13 14:00:00',
+  56.1128,
+  94.5981,
+  15,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-12-09 08:00:00'
+);
+
+-- Событие 34: Образовательный семинар (для НКО #12)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo12')),
+  'Семинар "Финансовая грамотность для пенсионеров"',
+  'Полезный семинар о том, как правильно распоряжаться пенсией, защищаться от мошенников и планировать бюджет.',
+  '2025-12-14 14:00:00',
+  '2025-12-14 16:00:00',
+  56.1128,
+  94.5981,
+  40,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-12-10 10:00:00'
+);
+
+-- Событие 35: Новогодняя елка (для НКО #24)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo24')),
+  'Новогодняя елка для детей с ОВЗ',
+  'Праздничное мероприятие с Дедом Морозом, Снегурочкой, подарками и развлечениями для детей с ограниченными возможностями здоровья.',
+  '2025-12-15 12:00:00',
+  '2025-12-15 16:00:00',
+  55.7556,
+  60.7028,
+  30,
+  'Озёрск',
+  'PUBLISHED',
+  '2025-12-11 09:00:00'
+);
+
+-- Событие 36: Благотворительный концерт (для НКО #1)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')),
+  'Благотворительный концерт "Музыка добра"',
+  'Концерт местных артистов в поддержку социальных программ. Все собранные средства пойдут на помощь нуждающимся.',
+  '2025-12-16 18:00:00',
+  '2025-12-16 21:00:00',
+  52.5444,
+  103.8889,
+  100,
+  'Ангарск',
+  'PUBLISHED',
+  '2025-12-12 10:00:00'
+);
+
+-- Событие 37: Мастер-класс по кулинарии (для НКО #2)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')),
+  'Кулинарный мастер-класс "Новогодние блюда"',
+  'Обучение приготовлению праздничных блюд для новогоднего стола. Все участники получат рецепты.',
+  '2025-12-17 16:00:00',
+  '2025-12-17 19:00:00',
+  47.5136,
+  42.1514,
+  20,
+  'Волгодонск',
+  'PUBLISHED',
+  '2025-12-13 11:00:00'
+);
+
+-- Событие 38: Экологическая акция (для НКО #5)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo5')),
+  'Акция "Раздельный сбор мусора"',
+  'Информационная акция о важности раздельного сбора отходов. Практический мастер-класс по сортировке.',
+  '2025-12-18 11:00:00',
+  '2025-12-18 14:00:00',
+  56.2511,
+  93.5319,
+  45,
+  'Железногорск',
+  'PUBLISHED',
+  '2025-12-14 09:00:00'
+);
+
+-- Событие 39: Встреча с ветеранами (для НКО #3)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')),
+  'Встреча "Истории наших дедов"',
+  'Теплая встреча с ветеранами, где они поделятся воспоминаниями о военных годах и послевоенном времени.',
+  '2025-12-19 15:00:00',
+  '2025-12-19 18:00:00',
+  58.1394,
+  52.6583,
+  35,
+  'Глазов',
+  'PUBLISHED',
+  '2025-12-15 10:00:00'
+);
+
+-- Событие 40: Помощь животным (для НКО #15)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo15')),
+  'Акция "Подари дом бездомному другу"',
+  'Сбор средств и корма для приюта бездомных животных. Возможность взять питомца домой.',
+  '2025-12-20 10:00:00',
+  '2025-12-20 16:00:00',
+  56.3269,
+  44.0075,
+  40,
+  'Нижний Новгород',
+  'PUBLISHED',
+  '2025-12-16 08:00:00'
+);
+
+-- Событие 41: Новогодний утренник (для НКО #17)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo17')),
+  'Новогодний утренник для детей',
+  'Праздничное представление с играми, конкурсами и подарками для детей всех возрастов.',
+  '2025-12-21 11:00:00',
+  '2025-12-21 14:00:00',
+  54.9885,
+  73.3242,
+  60,
+  'Омск',
+  'PUBLISHED',
+  '2025-12-17 09:00:00'
+);
+
+-- Событие 42: Спортивный забег (для НКО #6)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo6')),
+  'Благотворительный забег "Новогодняя миля"',
+  'Спортивное мероприятие для всех желающих. Регистрационный взнос идет на благотворительность.',
+  '2025-12-22 09:00:00',
+  '2025-12-22 12:00:00',
+  56.1128,
+  94.5981,
+  80,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-12-18 08:00:00'
+);
+
+-- Событие 43: Творческий вечер (для НКО #7)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo7')),
+  'Творческий вечер "Поэзия и музыка"',
+  'Вечер поэзии и живой музыки. Выступление местных поэтов и музыкантов.',
+  '2025-12-23 18:00:00',
+  '2025-12-23 21:00:00',
+  56.1128,
+  94.5981,
+  50,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-12-19 10:00:00'
+);
+
+-- Событие 44: Помощь семьям (для НКО #9)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo9')),
+  'Акция "Новогодний подарок для семьи"',
+  'Сбор подарков и продуктовых наборов для малоимущих семей с детьми.',
+  '2025-12-24 10:00:00',
+  '2025-12-24 15:00:00',
+  56.1128,
+  94.5981,
+  30,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-12-20 09:00:00'
+);
+
+-- Событие 45: Новогодний бал (для НКО #10)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo10')),
+  'Новогодний бал для молодежи',
+  'Торжественный бал с танцами, конкурсами и развлечениями для молодых людей 16-25 лет.',
+  '2025-12-25 19:00:00',
+  '2025-12-25 23:00:00',
+  56.1128,
+  94.5981,
+  100,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-12-21 11:00:00'
+);
+
+-- Событие 46: Мастер-класс по рисованию (для НКО #11)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo11')),
+  'Мастер-класс "Рисуем зиму"',
+  'Творческое занятие по рисованию зимних пейзажей для детей и взрослых. Все материалы предоставляются.',
+  '2025-12-26 14:00:00',
+  '2025-12-26 17:00:00',
+  56.1128,
+  94.5981,
+  25,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-12-22 10:00:00'
+);
+
+-- Событие 47: Лекция о здоровье (для НКО #12)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo12')),
+  'Лекция "Зимнее здоровье"',
+  'Встреча с врачом о профилактике простудных заболеваний и поддержании иммунитета в зимний период.',
+  '2025-12-27 16:00:00',
+  '2025-12-27 18:00:00',
+  56.1128,
+  94.5981,
+  45,
+  'Зеленогорск',
+  'PUBLISHED',
+  '2025-12-23 11:00:00'
+);
+
+-- Событие 48: Помощь детям (для НКО #24)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo24')),
+  'Акция "Подари ребенку праздник"',
+  'Сбор игрушек, книг и сладостей для детей из малоимущих семей и детских домов.',
+  '2025-12-28 11:00:00',
+  '2025-12-28 16:00:00',
+  55.7556,
+  60.7028,
+  35,
+  'Озёрск',
+  'PUBLISHED',
+  '2025-12-24 09:00:00'
+);
+
+-- Событие 49: Новогодний концерт (для НКО #1)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')),
+  'Новогодний концерт "Встречаем 2026"',
+  'Большой праздничный концерт с участием творческих коллективов города. Встреча Нового года.',
+  '2025-12-29 18:00:00',
+  '2025-12-30 01:00:00',
+  52.5444,
+  103.8889,
+  150,
+  'Ангарск',
+  'PUBLISHED',
+  '2025-12-25 10:00:00'
+);
+
+-- Событие 50: Благотворительная акция (для НКО #2)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo2')),
+  'Акция "Новогоднее чудо"',
+  'Масштабная благотворительная акция по сбору подарков и средств для нуждающихся семей.',
+  '2025-12-30 10:00:00',
+  '2025-12-30 17:00:00',
+  47.5136,
+  42.1514,
+  50,
+  'Волгодонск',
+  'PUBLISHED',
+  '2025-12-26 08:00:00'
+);
+
+-- Событие 51: Новогодняя елка (для НКО #17)
+INSERT INTO events (npo_id, name, description, start, "end", coordinates_lat, coordinates_lon, quantity, city, status, created_at)
+VALUES (
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo17')),
+  'Главная новогодняя елка для детей с инвалидностью',
+  'Торжественное новогоднее представление с Дедом Морозом, подарками и праздничной программой.',
+  '2025-12-31 15:00:00',
+  '2025-12-31 19:00:00',
+  54.9885,
+  73.3242,
+  80,
+  'Омск',
+  'PUBLISHED',
+  '2025-12-27 10:00:00'
+);
+
 -- ============================================
 -- Теги событий
 -- ============================================
@@ -1143,6 +1703,217 @@ VALUES (
 INSERT INTO event_tags (event_id, tag)
 VALUES (
   (SELECT id FROM events WHERE name = 'Новогоднее мероприятие для детей с инвалидностью'),
+  'Социальная помощь'
+);
+
+-- Теги для новых событий (25.11.2025 - 31.12.2025)
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Мастер-класс по рукоделию для пенсионеров'),
+  'Творчество'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Благотворительная ярмарка "Доброе сердце"'),
+  'Благотворительность'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Лекция "Здоровый образ жизни в зрелом возрасте"'),
+  'Здоровье'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Экологический субботник "Чистый парк"'),
+  'Экология'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Городской турнир по настольному теннису'),
+  'Спорт'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Концерт "Песни нашей молодости"'),
+  'Культура'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Групповая встреча с психологом "Семейные отношения"'),
+  'Психология'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Мастер-класс "Основы программирования для детей"'),
+  'Образование'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Акция "Теплая зима" для бездомных'),
+  'Социальная помощь'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Развивающие занятия для детей с ОВЗ'),
+  'Образование'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Экскурсия в музей для пенсионеров'),
+  'Культура'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Волонтерская помощь многодетным семьям'),
+  'Социальная помощь'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Творческая мастерская "Новогодние игрушки"'),
+  'Творчество'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Лекция "Экология в быту"'),
+  'Экология'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Спортивный праздник "Здоровье - это сила"'),
+  'Спорт'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Детский новогодний концерт'),
+  'Культура'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Акция "Забота о старших"'),
+  'Пожилые люди'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Семинар "Финансовая грамотность для пенсионеров"'),
+  'Обучение'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Новогодняя елка для детей с ОВЗ'),
+  'Социальная помощь'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Благотворительный концерт "Музыка добра"'),
+  'Благотворительность'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Кулинарный мастер-класс "Новогодние блюда"'),
+  'Творчество'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Акция "Раздельный сбор мусора"'),
+  'Экология'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Встреча "Истории наших дедов"'),
+  'Культура'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Акция "Подари дом бездомному другу"'),
+  'Защита животных'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Новогодний утренник для детей'),
+  'Культура'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Благотворительный забег "Новогодняя миля"'),
+  'Спорт'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Творческий вечер "Поэзия и музыка"'),
+  'Культура'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Акция "Новогодний подарок для семьи"'),
+  'Социальная помощь'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Новогодний бал для молодежи'),
+  'Культура'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Мастер-класс "Рисуем зиму"'),
+  'Творчество'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Лекция "Зимнее здоровье"'),
+  'Здоровье'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Акция "Подари ребенку праздник"'),
+  'Социальная помощь'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Новогодний концерт "Встречаем 2026"'),
+  'Культура'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Акция "Новогоднее чудо"'),
+  'Благотворительность'
+);
+
+INSERT INTO event_tags (event_id, tag)
+VALUES (
+  (SELECT id FROM events WHERE name = 'Главная новогодняя елка для детей с инвалидностью'),
   'Социальная помощь'
 );
 

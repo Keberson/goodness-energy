@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
-from app.models import Volunteer, EventResponse as EventResponseModel, News, NewsTag, NewsAttachment, NewsType, Event, EventTag, User
+from app.models import Volunteer, EventResponse as EventResponseModel, News, NewsTag, NewsAttachment, NewsType, Event, EventTag, User, NPO
 from app.schemas import VolunteerUpdate, VolunteerResponse, NewsCreate, NewsResponse, EventResponse
 from app.auth import get_current_volunteer_user, get_current_user
 import logging
@@ -10,6 +10,20 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+def get_news_author(news: News, db: Session) -> str:
+    """Определяет автора новости на основе типа создателя"""
+    if news.volunteer_id:
+        volunteer = db.query(Volunteer).filter(Volunteer.id == news.volunteer_id).first()
+        if volunteer:
+            return f"{volunteer.first_name} {volunteer.second_name}"
+    elif news.npo_id:
+        npo = db.query(NPO).filter(NPO.id == news.npo_id).first()
+        if npo:
+            return npo.name
+    elif news.admin_id:
+        return "Администратор"
+    return "Неизвестный автор"
 
 def get_volunteer_by_user_id(user_id: int, db: Session) -> Volunteer:
     volunteer = db.query(Volunteer).filter(Volunteer.user_id == user_id).first()
@@ -229,8 +243,10 @@ async def create_volunteer_news(
         )
     
     news = News(
+        user_id=current_user.id,  # Сохраняем ID пользователя, создавшего новость
         volunteer_id=volunteer.id,
         name=news_data.name,
+        annotation=news_data.annotation,
         text=news_data.text,
         type=news_data.type
     )
@@ -254,15 +270,19 @@ async def create_volunteer_news(
     
     tags = [t.tag for t in news.tags]
     attached_ids = [a.file_id for a in news.attachments]
+    author = get_news_author(news, db)
     
     return NewsResponse(
         id=news.id,
         name=news.name,
+        annotation=news.annotation,
         text=news.text,
         attachedIds=attached_ids,
         tags=tags,
         type=news.type,
-        created_at=news.created_at
+        created_at=news.created_at,
+        user_id=news.user_id,
+        author=author
     )
 
 @router.get("/{volunteer_id}/news", response_model=List[NewsResponse])
@@ -285,15 +305,19 @@ async def get_volunteer_news(
     for news in news_list:
         tags = [t.tag for t in news.tags]
         attached_ids = [a.file_id for a in news.attachments]
+        author = get_news_author(news, db)
         
         result.append(NewsResponse(
             id=news.id,
             name=news.name,
+            annotation=news.annotation,
             text=news.text,
             attachedIds=attached_ids,
             tags=tags,
             type=news.type,
-            created_at=news.created_at
+            created_at=news.created_at,
+            user_id=news.user_id,
+            author=author
         ))
     
     return result

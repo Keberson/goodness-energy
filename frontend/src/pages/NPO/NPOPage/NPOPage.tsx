@@ -98,6 +98,9 @@ const NPOPage = () => {
                                     {newsList.map((news) => (
                                         <Card key={news.id} style={{ marginBottom: 16 }}>
                                             <Title level={4}>{news.name}</Title>
+                                            <Text type="secondary" style={{ display: "block", marginBottom: 8 }}>
+                                                Автор: {news.author}
+                                            </Text>
                                             {news.annotation && (
                                                 <Text type="secondary" style={{ display: "block", marginBottom: 16 }}>
                                                     {news.annotation}

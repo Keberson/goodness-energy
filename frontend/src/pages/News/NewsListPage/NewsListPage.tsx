@@ -1,5 +1,5 @@
 import { Card, List, Typography, Tag, Space, Button, Empty, Flex } from "antd";
-import { EyeOutlined, CalendarOutlined, PlusOutlined } from "@ant-design/icons";
+import { EyeOutlined, CalendarOutlined, PlusOutlined, UserOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useGetNewsQuery } from "@services/api/news.api";
 import type { INews } from "@app-types/news.types";
@@ -78,18 +78,24 @@ const NewsListPage = () => {
                                         </Space>
                                     }
                                     description={
-                                        <Space>
-                                            <CalendarOutlined />
-                                            <span>
-                                                {new Date(item.created_at).toLocaleDateString(
-                                                    "ru-RU",
-                                                    {
-                                                        year: "numeric",
-                                                        month: "long",
-                                                        day: "numeric",
-                                                    }
-                                                )}
-                                            </span>
+                                        <Space wrap>
+                                            <Space>
+                                                <UserOutlined />
+                                                <span>{item.author}</span>
+                                            </Space>
+                                            <Space>
+                                                <CalendarOutlined />
+                                                <span>
+                                                    {new Date(item.created_at).toLocaleDateString(
+                                                        "ru-RU",
+                                                        {
+                                                            year: "numeric",
+                                                            month: "long",
+                                                            day: "numeric",
+                                                        }
+                                                    )}
+                                                </span>
+                                            </Space>
                                         </Space>
                                     }
                                 />
