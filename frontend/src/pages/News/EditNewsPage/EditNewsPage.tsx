@@ -426,7 +426,7 @@ const EditNewsPage = () => {
                             border: "2px dashed #1890ff",
                             transform: "rotate(2deg)",
                         }}
-                        bodyStyle={{ padding: "12px" }}
+                        styles={{ body: { padding: "12px" } }}
                     >
                         <Space>
                             {toolbarItem.icon}
@@ -450,7 +450,7 @@ const EditNewsPage = () => {
                     {element.type === "quote" && (
                         <Card
                             style={{ borderLeft: "4px solid #1890ff", backgroundColor: "#f0f0f0" }}
-                            bodyStyle={{ padding: "12px" }}
+                            styles={{ body: { padding: "12px" } }}
                         >
                             <Text italic>"{element.content as string}"</Text>
                         </Card>

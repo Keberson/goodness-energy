@@ -210,7 +210,12 @@ const EventsPage = () => {
     };
 
     // Функция для рендеринга ячеек календаря
-    const dateCellRender = (value: Dayjs) => {
+    const cellRender = (value: Dayjs, info: any) => {
+        // Рендерим только для ячеек дат, не для месяцев
+        if (info?.type !== 'date') {
+            return null;
+        }
+
         const dateKey = value.format("YYYY-MM-DD");
         const dayEvents = eventsByDate.get(dateKey) || [];
 
@@ -296,7 +301,7 @@ const EventsPage = () => {
                                     }
                                 }}
                                 headerRender={headerRender}
-                                dateCellRender={dateCellRender}
+                                cellRender={cellRender}
                                 className="events-calendar"
                             />
                         </div>
@@ -320,6 +325,7 @@ const EventsPage = () => {
                                             <Card
                                                 size="small"
                                                 className="events-page__event-card"
+                                                styles={{ body: { padding: 12 } }}
                                             >
                                                 <Space direction="vertical" size="small" style={{ width: "100%" }}>
                                                     <Flex justify="space-between" align="flex-start">

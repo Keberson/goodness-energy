@@ -81,3 +81,34 @@ export interface INPOStatistics {
     total_news: number;
     total_event_responses: number;
 }
+
+export interface IDateStatisticsItem {
+    date: string; // Дата в формате YYYY-MM-DD
+    profile_views: number;
+    event_views: number;
+    responses: number;
+}
+
+export interface INPOStatisticsItem {
+    npo_id: number;
+    npo_name: string;
+    total_profile_views: number;
+    unique_viewers: number;
+    total_events: number;
+    events_by_status: Record<string, number>;
+    total_news: number;
+    total_event_responses: number;
+    date_statistics?: IDateStatisticsItem[] | null; // Данные по датам для графиков
+}
+
+export interface IAllNPOStatistics {
+    total_npos: number;
+    total_profile_views: number;
+    total_unique_viewers: number;
+    total_events: number;
+    total_events_by_status: Record<string, number>;
+    total_news: number;
+    total_event_responses: number;
+    total_date_statistics?: IDateStatisticsItem[] | null; // Суммарные данные по датам для графиков
+    npo_statistics: INPOStatisticsItem[];
+}

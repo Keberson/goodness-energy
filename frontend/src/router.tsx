@@ -29,6 +29,7 @@ import KnowledgeDetailPage from "./pages/Knowledges/KnowledgesDetailPage/Knowled
 import EventsPage from "./pages/Events/EventsPage/EventsPage";
 import CreateKnowledgePage from "./pages/Admin/CreateKnowledgePage/CreateKnowledgePage";
 import ModerationPage from "./pages/Admin/ModerationPage/ModerationPage";
+import AdminStatisticsPage from "./pages/Admin/AdminStatisticsPage/AdminStatisticsPage";
 
 const router = createBrowserRouter([
     {
@@ -174,6 +175,14 @@ const router = createBrowserRouter([
                         element: (
                             <AdminProtectedRoute>
                                 <ModerationPage />
+                            </AdminProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "admin-statistics",
+                        element: (
+                            <AdminProtectedRoute>
+                                <AdminStatisticsPage />
                             </AdminProtectedRoute>
                         ),
                     },

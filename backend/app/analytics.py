@@ -3,14 +3,16 @@
 """
 import csv
 import io
-from datetime import datetime, timedelta
-from typing import List, Dict, Any
+import textwrap
+from datetime import datetime, timedelta, date
+from typing import List, Dict, Any, Optional
 from sqlalchemy.orm import Session
 from sqlalchemy import func, extract
 from app.models import (
     NPO, NPOView, EventView, Event, EventResponse as EventResponseModel,
     News, User
 )
+from app.schemas import AllNPOStatisticsResponse
 import matplotlib
 matplotlib.use('Agg')  # Используем backend без GUI
 import matplotlib.pyplot as plt
@@ -133,7 +135,7 @@ def generate_csv_analytics(npo_id: int, db: Session) -> io.BytesIO:
     return bytes_output
 
 
-def generate_pdf_analytics(npo_id: int, db: Session) -> io.BytesIO:
+def generate_pdf_analytics(npo_id: int, db: Session, start_date: Optional[date] = None, end_date: Optional[date] = None) -> io.BytesIO:
     """
     Генерирует PDF файл с красивой аналитикой и графиками
     
@@ -143,6 +145,12 @@ def generate_pdf_analytics(npo_id: int, db: Session) -> io.BytesIO:
     - График просмотров событий по времени
     - График откликов на события по времени
     - Статистику по событиям
+    
+    Args:
+        npo_id: ID НКО
+        db: Сессия базы данных
+        start_date: Начальная дата фильтрации (опционально)
+        end_date: Конечная дата фильтрации (опционально)
     """
     npo = db.query(NPO).filter(NPO.id == npo_id).first()
     if not npo:
@@ -152,14 +160,19 @@ def generate_pdf_analytics(npo_id: int, db: Session) -> io.BytesIO:
     buffer = io.BytesIO()
     pdf = PdfPages(buffer)
     
-    # Получаем данные для графиков
+    # Получаем данные для графиков с фильтрацией по датам
     # Просмотры профиля по дням
-    npo_views = db.query(
+    npo_views_query = db.query(
         func.date(NPOView.viewed_at).label('date'),
         func.count(NPOView.id).label('count')
     ).filter(
         NPOView.npo_id == npo_id
-    ).group_by(
+    )
+    if start_date:
+        npo_views_query = npo_views_query.filter(func.date(NPOView.viewed_at) >= start_date)
+    if end_date:
+        npo_views_query = npo_views_query.filter(func.date(NPOView.viewed_at) <= end_date)
+    npo_views = npo_views_query.group_by(
         func.date(NPOView.viewed_at)
     ).order_by('date').all()
     
@@ -168,12 +181,18 @@ def generate_pdf_analytics(npo_id: int, db: Session) -> io.BytesIO:
     event_ids = [e.id for e in events]
     event_views_by_date = {}
     if event_ids:
-        event_views = db.query(
+        event_views_query = db.query(
             func.date(EventView.viewed_at).label('date'),
             func.count(EventView.id).label('count')
         ).filter(
             EventView.event_id.in_(event_ids)
-        ).group_by(
+        )
+        if start_date:
+            event_views_query = event_views_query.filter(func.date(EventView.viewed_at) >= start_date)
+        if end_date:
+            event_views_query = event_views_query.filter(func.date(EventView.viewed_at) <= end_date)
+        
+        event_views = event_views_query.group_by(
             func.date(EventView.viewed_at)
         ).order_by('date').all()
         
@@ -186,12 +205,18 @@ def generate_pdf_analytics(npo_id: int, db: Session) -> io.BytesIO:
     # Отклики на события по дням
     responses_by_date = {}
     if event_ids:
-        responses = db.query(
+        responses_query = db.query(
             func.date(EventResponseModel.created_at).label('date'),
             func.count(EventResponseModel.id).label('count')
         ).filter(
             EventResponseModel.event_id.in_(event_ids)
-        ).group_by(
+        )
+        if start_date:
+            responses_query = responses_query.filter(func.date(EventResponseModel.created_at) >= start_date)
+        if end_date:
+            responses_query = responses_query.filter(func.date(EventResponseModel.created_at) <= end_date)
+        
+        responses = responses_query.group_by(
             func.date(EventResponseModel.created_at)
         ).order_by('date').all()
         
@@ -201,16 +226,46 @@ def generate_pdf_analytics(npo_id: int, db: Session) -> io.BytesIO:
             else:
                 responses_by_date[date] = count
     
-    # Общая статистика
-    total_profile_views = db.query(NPOView).filter(NPOView.npo_id == npo_id).count()
-    unique_viewers = db.query(func.count(func.distinct(NPOView.viewer_id))).filter(
+    # Общая статистика с фильтрацией по датам
+    total_profile_views_query = db.query(NPOView).filter(NPOView.npo_id == npo_id)
+    if start_date:
+        total_profile_views_query = total_profile_views_query.filter(func.date(NPOView.viewed_at) >= start_date)
+    if end_date:
+        total_profile_views_query = total_profile_views_query.filter(func.date(NPOView.viewed_at) <= end_date)
+    total_profile_views = total_profile_views_query.count()
+    
+    unique_viewers_query = db.query(func.count(func.distinct(NPOView.viewer_id))).filter(
         NPOView.npo_id == npo_id,
         NPOView.viewer_id.isnot(None)
-    ).scalar() or 0
+    )
+    if start_date:
+        unique_viewers_query = unique_viewers_query.filter(func.date(NPOView.viewed_at) >= start_date)
+    if end_date:
+        unique_viewers_query = unique_viewers_query.filter(func.date(NPOView.viewed_at) <= end_date)
+    unique_viewers = unique_viewers_query.scalar() or 0
     
     total_events = len(events)
-    total_event_views = db.query(EventView).filter(EventView.event_id.in_(event_ids)).count() if event_ids else 0
-    total_responses = db.query(EventResponseModel).filter(EventResponseModel.event_id.in_(event_ids)).count() if event_ids else 0
+    
+    total_event_views_query = db.query(EventView).filter(EventView.event_id.in_(event_ids)) if event_ids else None
+    if total_event_views_query:
+        if start_date:
+            total_event_views_query = total_event_views_query.filter(func.date(EventView.viewed_at) >= start_date)
+        if end_date:
+            total_event_views_query = total_event_views_query.filter(func.date(EventView.viewed_at) <= end_date)
+        total_event_views = total_event_views_query.count() if event_ids else 0
+    else:
+        total_event_views = 0
+    
+    total_responses_query = db.query(EventResponseModel).filter(EventResponseModel.event_id.in_(event_ids)) if event_ids else None
+    if total_responses_query:
+        if start_date:
+            total_responses_query = total_responses_query.filter(func.date(EventResponseModel.created_at) >= start_date)
+        if end_date:
+            total_responses_query = total_responses_query.filter(func.date(EventResponseModel.created_at) <= end_date)
+        total_responses = total_responses_query.count() if event_ids else 0
+    else:
+        total_responses = 0
+    
     total_news = db.query(News).filter(News.npo_id == npo_id).count()
     
     # События по статусам
@@ -220,8 +275,14 @@ def generate_pdf_analytics(npo_id: int, db: Session) -> io.BytesIO:
         events_by_status[status] = events_by_status.get(status, 0) + 1
     
     # Страница 1: Общая статистика
-    fig, ax = plt.subplots(figsize=(11, 8.5))
-    fig.suptitle(f'Аналитика НКО: {npo.name}', fontsize=18, fontweight='bold', y=0.95)
+    fig, ax = plt.subplots(figsize=(8.5, 11))
+    # Переносим длинное название НКО на несколько строк
+    title_text = f'Аналитика НКО: {npo.name}'
+    date_range_text = ""
+    if start_date or end_date:
+        date_range_text = f"\nПериод: {start_date.strftime('%d.%m.%Y') if start_date else 'начало'} - {end_date.strftime('%d.%m.%Y') if end_date else 'конец'}"
+    wrapped_title = textwrap.fill(title_text + date_range_text, width=50)
+    fig.suptitle(wrapped_title, fontsize=18, fontweight='bold', y=0.95)
     
     # Текстовая статистика с лучшим форматированием
     stats_lines = [
@@ -268,7 +329,7 @@ def generate_pdf_analytics(npo_id: int, db: Session) -> io.BytesIO:
     
     # Страница 2: График активности пользователей (просмотры профиля)
     if npo_views:
-        fig, ax = plt.subplots(figsize=(11, 8.5))
+        fig, ax = plt.subplots(figsize=(8.5, 6))
         dates = [view.date for view in npo_views]
         counts = [view.count for view in npo_views]
         
@@ -312,7 +373,7 @@ def generate_pdf_analytics(npo_id: int, db: Session) -> io.BytesIO:
     
     # Страница 3: График просмотров событий
     if event_views_by_date:
-        fig, ax = plt.subplots(figsize=(11, 8.5))
+        fig, ax = plt.subplots(figsize=(8.5, 6))
         dates = sorted(event_views_by_date.keys())
         counts = [event_views_by_date[date] for date in dates]
         
@@ -351,7 +412,7 @@ def generate_pdf_analytics(npo_id: int, db: Session) -> io.BytesIO:
     
     # Страница 4: График откликов на события
     if responses_by_date:
-        fig, ax = plt.subplots(figsize=(11, 8.5))
+        fig, ax = plt.subplots(figsize=(8.5, 6))
         dates = sorted(responses_by_date.keys())
         counts = [responses_by_date[date] for date in dates]
         
@@ -390,7 +451,7 @@ def generate_pdf_analytics(npo_id: int, db: Session) -> io.BytesIO:
     
     # Страница 5: Сводный график активности
     if npo_views or event_views_by_date or responses_by_date:
-        fig, ax = plt.subplots(figsize=(11, 8.5))
+        fig, ax = plt.subplots(figsize=(8.5, 6))
         
         # Объединяем все даты
         all_dates = set()
@@ -465,6 +526,233 @@ def generate_pdf_analytics(npo_id: int, db: Session) -> io.BytesIO:
             plt.tight_layout()
             pdf.savefig(fig, bbox_inches='tight')
             plt.close(fig)
+    
+    pdf.close()
+    buffer.seek(0)
+    return buffer
+
+
+def generate_all_npos_pdf_analytics(
+    statistics: AllNPOStatisticsResponse,
+    db: Session,
+    start_date: Optional[date] = None,
+    end_date: Optional[date] = None
+) -> io.BytesIO:
+    """
+    Генерирует PDF файл с общей статистикой всех НКО
+    
+    Включает:
+    - Общую статистику по всем НКО
+    - График активности пользователей по времени (просмотры профиля)
+    - График просмотров событий по времени
+    - График откликов на события по времени
+    - Сводный график активности
+    """
+    # Создаем PDF в памяти
+    buffer = io.BytesIO()
+    pdf = PdfPages(buffer)
+    
+    # Страница 1: Общая статистика
+    fig, ax = plt.subplots(figsize=(8.5, 11))
+    date_range_text = ""
+    if start_date or end_date:
+        date_range_text = f"\nПериод: {start_date.strftime('%d.%m.%Y') if start_date else 'начало'} - {end_date.strftime('%d.%m.%Y') if end_date else 'конец'}"
+    
+    fig.suptitle(f'Общая статистика всех НКО{date_range_text}', fontsize=18, fontweight='bold', y=0.95)
+    
+    # Текстовая статистика
+    stats_lines = [
+        "ОБЩАЯ СТАТИСТИКА ПО ВСЕМ НКО",
+        "",
+        f"Всего НКО: {statistics.total_npos}",
+        "",
+        "Просмотры профиля:",
+        f"  • Всего просмотров: {statistics.total_profile_views}",
+        f"  • Уникальных посетителей: {statistics.total_unique_viewers}",
+        "",
+        "События:",
+        f"  • Всего событий: {statistics.total_events}",
+    ]
+    
+    if statistics.total_events_by_status:
+        stats_lines.append("")
+        stats_lines.append("События по статусам:")
+        status_labels = {
+            'draft': 'Черновик',
+            'published': 'Опубликовано',
+            'cancelled': 'Отменено',
+            'completed': 'Завершено'
+        }
+        for status, count in statistics.total_events_by_status.items():
+            label = status_labels.get(status, status)
+            stats_lines.append(f"  • {label}: {count}")
+    
+    stats_lines.extend([
+        "",
+        "Новости:",
+        f"  • Всего новостей: {statistics.total_news}",
+        "",
+        "Отклики:",
+        f"  • Всего откликов: {statistics.total_event_responses}",
+        "",
+        f"Дата формирования отчета: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}"
+    ])
+    
+    stats_text = "\n".join(stats_lines)
+    
+    # Размещаем текст в верхней части страницы
+    ax.text(0.1, 0.85, stats_text, fontsize=12, verticalalignment='top',
+             family='monospace', transform=ax.transAxes,
+             bbox=dict(boxstyle='round', facecolor='wheat', alpha=0.3))
+    ax.axis('off')
+    pdf.savefig(fig, bbox_inches='tight')
+    plt.close(fig)
+    
+    if statistics.total_date_statistics and len(statistics.total_date_statistics) > 0:
+        # Страница 2: График активности пользователей (просмотры профиля)
+        # Преобразуем даты из строк в объекты datetime
+        dates = []
+        for item in statistics.total_date_statistics:
+            if isinstance(item.date, str):
+                # Пробуем разные форматы
+                try:
+                    date_obj = datetime.strptime(item.date, '%Y-%m-%d')
+                except:
+                    try:
+                        date_obj = datetime.strptime(item.date, '%Y-%m-%dT%H:%M:%S')
+                    except:
+                        try:
+                            date_obj = datetime.fromisoformat(item.date.replace('Z', '+00:00'))
+                        except:
+                            # Если ничего не помогло, используем текущую дату
+                            date_obj = datetime.now()
+            elif isinstance(item.date, datetime):
+                date_obj = item.date
+            elif isinstance(item.date, date):
+                date_obj = datetime.combine(item.date, datetime.min.time())
+            else:
+                date_obj = datetime.now()
+            dates.append(date_obj)
+        profile_counts = [item.profile_views for item in statistics.total_date_statistics]
+        
+        fig, ax = plt.subplots(figsize=(8.5, 6))
+        ax.plot(dates, profile_counts, marker='o', linewidth=2, markersize=6, color='#2E86AB', label='Просмотры профиля')
+        ax.set_xlabel('Дата', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Количество просмотров', fontsize=12, fontweight='bold')
+        ax.set_title('Просмотры профилей НКО по времени', fontsize=14, fontweight='bold', pad=20)
+        ax.grid(True, alpha=0.3, linestyle='--')
+        ax.legend(fontsize=10)
+        
+        # Форматируем даты на оси X
+        if len(dates) <= 15:
+            ax.set_xticks(dates)
+            ax.set_xticklabels([d.strftime('%d.%m.%Y') for d in dates], rotation=45, ha='right')
+        else:
+            step = max(1, len(dates) // 15)
+            ax.set_xticks(dates[::step])
+            ax.set_xticklabels([d.strftime('%d.%m.%Y') for d in dates[::step]], rotation=45, ha='right')
+        
+        plt.tight_layout()
+        pdf.savefig(fig, bbox_inches='tight')
+        plt.close(fig)
+        
+        # Страница 3: График просмотров событий
+        event_counts = [item.event_views for item in statistics.total_date_statistics]
+        
+        fig, ax = plt.subplots(figsize=(8.5, 6))
+        ax.bar(dates, event_counts, color='#A23B72', alpha=0.7, label='Просмотры событий')
+        ax.set_xlabel('Дата', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Количество просмотров', fontsize=12, fontweight='bold')
+        ax.set_title('Просмотры событий по времени', fontsize=14, fontweight='bold', pad=20)
+        ax.grid(True, alpha=0.3, axis='y', linestyle='--')
+        ax.legend(fontsize=10)
+        
+        # Добавляем подписи значений на столбцах
+        for i, (date_val, count) in enumerate(zip(dates, event_counts)):
+            if count > 0:
+                ax.text(date_val, count, f'{int(count)}', ha='center', va='bottom', fontsize=9, fontweight='bold')
+        
+        # Форматируем даты на оси X
+        if len(dates) <= 15:
+            ax.set_xticks(dates)
+            ax.set_xticklabels([d.strftime('%d.%m.%Y') for d in dates], rotation=45, ha='right')
+        else:
+            step = max(1, len(dates) // 15)
+            ax.set_xticks(dates[::step])
+            ax.set_xticklabels([d.strftime('%d.%m.%Y') for d in dates[::step]], rotation=45, ha='right')
+        
+        plt.tight_layout()
+        pdf.savefig(fig, bbox_inches='tight')
+        plt.close(fig)
+        
+        # Страница 4: График откликов
+        response_counts = [item.responses for item in statistics.total_date_statistics]
+        
+        fig, ax = plt.subplots(figsize=(8.5, 6))
+        ax.bar(dates, response_counts, color='#F18F01', alpha=0.7, label='Отклики')
+        ax.set_xlabel('Дата', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Количество откликов', fontsize=12, fontweight='bold')
+        ax.set_title('Отклики на события по времени', fontsize=14, fontweight='bold', pad=20)
+        ax.grid(True, alpha=0.3, axis='y', linestyle='--')
+        ax.legend(fontsize=10)
+        
+        # Добавляем подписи значений на столбцах
+        for i, (date_val, count) in enumerate(zip(dates, response_counts)):
+            if count > 0:
+                ax.text(date_val, count, f'{int(count)}', ha='center', va='bottom', fontsize=9, fontweight='bold')
+        
+        # Форматируем даты на оси X
+        if len(dates) <= 15:
+            ax.set_xticks(dates)
+            ax.set_xticklabels([d.strftime('%d.%m.%Y') for d in dates], rotation=45, ha='right')
+        else:
+            step = max(1, len(dates) // 15)
+            ax.set_xticks(dates[::step])
+            ax.set_xticklabels([d.strftime('%d.%m.%Y') for d in dates[::step]], rotation=45, ha='right')
+        
+        plt.tight_layout()
+        pdf.savefig(fig, bbox_inches='tight')
+        plt.close(fig)
+        
+        # Страница 5: Сводный график активности
+        fig, ax = plt.subplots(figsize=(8.5, 6))
+        width = 0.25
+        x_positions = range(len(dates))
+        
+        bars1 = ax.bar([i - width for i in x_positions], profile_counts, width,
+                      label='Просмотры профиля', color='#2E86AB', alpha=0.7)
+        bars2 = ax.bar(x_positions, event_counts, width,
+                      label='Просмотры событий', color='#A23B72', alpha=0.7)
+        bars3 = ax.bar([i + width for i in x_positions], response_counts, width,
+                      label='Отклики', color='#F18F01', alpha=0.7)
+        
+        # Добавляем подписи значений на столбцах
+        for bars in [bars1, bars2, bars3]:
+            for bar in bars:
+                height = bar.get_height()
+                if height > 0:
+                    ax.text(bar.get_x() + bar.get_width()/2., height,
+                           f'{int(height)}', ha='center', va='bottom', fontsize=9, fontweight='bold')
+        
+        # Форматируем даты на оси X
+        if len(dates) <= 15:
+            ax.set_xticks(x_positions)
+            ax.set_xticklabels([d.strftime('%d.%m.%Y') for d in dates], rotation=45, ha='right')
+        else:
+            step = max(1, len(dates) // 15)
+            ax.set_xticks(x_positions[::step])
+            ax.set_xticklabels([d.strftime('%d.%m.%Y') for d in dates[::step]], rotation=45, ha='right')
+        
+        ax.set_xlabel('Дата', fontsize=12, fontweight='bold')
+        ax.set_ylabel('Количество', fontsize=12, fontweight='bold')
+        ax.set_title('Сводная активность пользователей', fontsize=14, fontweight='bold', pad=20)
+        ax.legend(loc='upper right', fontsize=10, framealpha=0.9)
+        ax.grid(True, alpha=0.3, axis='y', linestyle='--')
+        ax.set_ylim(bottom=0)
+        
+        plt.tight_layout()
+        pdf.savefig(fig, bbox_inches='tight')
+        plt.close(fig)
     
     pdf.close()
     buffer.seek(0)

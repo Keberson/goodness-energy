@@ -59,7 +59,7 @@ const DraggableToolbarItem = ({ item }: DraggableToolbarItemProps) => {
                     cursor: "grab",
                     marginBottom: 8,
                 }}
-                bodyStyle={{ padding: "12px" }}
+                styles={{ body: { padding: "12px" } }}
             >
                 <Space>
                     {item.icon}

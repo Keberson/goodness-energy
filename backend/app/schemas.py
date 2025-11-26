@@ -272,6 +272,40 @@ class NPOStatisticsResponse(BaseModel):
     # Статистика откликов
     total_event_responses: int
 
+class DateStatisticsItem(BaseModel):
+    """Статистика по дате"""
+    date: str  # Дата в формате YYYY-MM-DD
+    profile_views: int
+    event_views: int
+    responses: int
+
+class NPOStatisticsItem(BaseModel):
+    """Статистика для одного НКО"""
+    npo_id: int
+    npo_name: str
+    total_profile_views: int
+    unique_viewers: int
+    total_events: int
+    events_by_status: dict  # {status: count}
+    total_news: int
+    total_event_responses: int
+    date_statistics: Optional[List[DateStatisticsItem]] = None  # Данные по датам для графиков
+
+class AllNPOStatisticsResponse(BaseModel):
+    """Статистика всех НКО для администратора"""
+    # Общая статистика по всем НКО
+    total_npos: int
+    total_profile_views: int
+    total_unique_viewers: int
+    total_events: int
+    total_events_by_status: dict  # {status: count}
+    total_news: int
+    total_event_responses: int
+    total_date_statistics: Optional[List[DateStatisticsItem]] = None  # Суммарные данные по датам для графиков
+    
+    # Статистика по каждому НКО
+    npo_statistics: List[NPOStatisticsItem]
+
 # Схемы избранного
 class FavoriteCreate(BaseModel):
     item_type: FavoriteType

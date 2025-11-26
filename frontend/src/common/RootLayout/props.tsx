@@ -136,6 +136,11 @@ export const adminMenuItems: MenuItem[] = [
                 label: "Модерация",
             },
             {
+                key: "admin-statistics",
+                icon: <BarChartOutlined />,
+                label: "Статистика НКО",
+            },
+            {
                 key: "logout",
                 icon: <LogoutOutlined />,
                 label: "Выйти",
