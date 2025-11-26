@@ -26,6 +26,40 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+def build_event_response(event: Event, db: Session) -> EventResponse:
+    """Создает EventResponse с подсчетом регистраций и свободных мест"""
+    tags = [t.tag for t in event.tags]
+    attached_ids = [a.file_id for a in event.attachments]
+    
+    # Подсчет зарегистрированных участников
+    registered_count = db.query(EventResponseModel).filter(
+        EventResponseModel.event_id == event.id
+    ).count()
+    
+    # Количество свободных мест
+    free_spots = None
+    if event.quantity is not None:
+        free_spots = max(0, event.quantity - registered_count)
+    
+    return EventResponse(
+        id=event.id,
+        npo_id=event.npo_id,
+        npo_name=event.npo.name if event.npo else None,
+        name=event.name,
+        description=event.description,
+        start=event.start,
+        end=event.end,
+        coordinates=[float(event.coordinates_lat), float(event.coordinates_lon)] if event.coordinates_lat is not None and event.coordinates_lon is not None else None,
+        quantity=event.quantity,
+        registered_count=registered_count,
+        free_spots=free_spots,
+        status=event.status,
+        tags=tags,
+        city=event.city,
+        attachedIds=attached_ids,
+        created_at=event.created_at
+    )
+
 def get_news_author(news: News, db: Session) -> str:
     """Определяет автора новости на основе типа создателя"""
     if news.volunteer_id:
@@ -274,24 +308,7 @@ async def get_npo_events(
     
     result = []
     for event in events:
-        tags = [t.tag for t in event.tags]
-        attached_ids = [a.file_id for a in event.attachments]
-        result.append(EventResponse(
-            id=event.id,
-            npo_id=event.npo_id,
-            npo_name=event.npo.name if event.npo else None,
-            name=event.name,
-            description=event.description,
-            start=event.start,
-            end=event.end,
-            coordinates=[float(event.coordinates_lat), float(event.coordinates_lon)] if event.coordinates_lat is not None and event.coordinates_lon is not None else None,
-            quantity=event.quantity,
-            status=event.status,
-            tags=tags,
-            city=event.city,
-            attachedIds=attached_ids,
-            created_at=event.created_at
-        ))
+        result.append(build_event_response(event, db))
     
     return result
 
@@ -356,6 +373,13 @@ async def create_event(
                 detail=f"Долгота события должна быть в диапазоне от -180 до 180, получено {coordinates_lon}"
             )
     
+    # Валидация количества участников
+    if event_data.quantity <= 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Количество участников должно быть больше 0"
+        )
+    
     event = Event(
         npo_id=npo.id,
         name=event_data.name,
@@ -386,24 +410,7 @@ async def create_event(
     db.commit()
     db.refresh(event)
     
-    tags = [t.tag for t in event.tags]
-    attached_ids = [a.file_id for a in event.attachments]
-    return EventResponse(
-        id=event.id,
-        npo_id=event.npo_id,
-        npo_name=event.npo.name if event.npo else None,
-        name=event.name,
-        description=event.description,
-        start=event.start,
-        end=event.end,
-        coordinates=[event.coordinates_lat, event.coordinates_lon] if event.coordinates_lat and event.coordinates_lon else None,
-        quantity=event.quantity,
-        status=event.status,
-        tags=tags,
-        city=event.city,
-        attachedIds=attached_ids,
-        created_at=event.created_at
-    )
+    return build_event_response(event, db)
 
 @router.put("/{npo_id}/event/{event_id}", response_model=EventResponse)
 async def update_event(
@@ -479,6 +486,11 @@ async def update_event(
         event.coordinates_lat = coordinates_lat
         event.coordinates_lon = coordinates_lon
     if event_update.quantity is not None:
+        if event_update.quantity <= 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Количество участников должно быть больше 0"
+            )
         event.quantity = event_update.quantity
     if event_update.city is not None:
         # NPOCity - это строковый enum, поэтому можно использовать напрямую
@@ -533,24 +545,7 @@ async def update_event(
         task.add_done_callback(lambda t: logger.error(f"Ошибка в задаче отправки уведомлений об отмене события: {t.exception()}") if t.exception() else None)
         logger.info(f"Отправка уведомлений об отмене события {event.id} после изменения статуса с 'published' на 'cancelled'")
     
-    tags = [t.tag for t in event.tags]
-    attached_ids = [a.file_id for a in event.attachments]
-    return EventResponse(
-        id=event.id,
-        npo_id=event.npo_id,
-        npo_name=event.npo.name if event.npo else None,
-        name=event.name,
-        description=event.description,
-        start=event.start,
-        end=event.end,
-        coordinates=[event.coordinates_lat, event.coordinates_lon] if event.coordinates_lat and event.coordinates_lon else None,
-        quantity=event.quantity,
-        status=event.status,
-        tags=tags,
-        city=event.city,
-        attachedIds=attached_ids,
-        created_at=event.created_at
-    )
+    return build_event_response(event, db)
 
 @router.delete("/{npo_id}/event/{event_id}")
 async def delete_event(

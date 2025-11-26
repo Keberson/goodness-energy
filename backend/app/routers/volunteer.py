@@ -11,6 +11,40 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+def build_event_response(event: Event, db: Session) -> EventResponse:
+    """Создает EventResponse с подсчетом регистраций и свободных мест"""
+    tags = [t.tag for t in event.tags]
+    attached_ids = [a.file_id for a in event.attachments] if hasattr(event, 'attachments') else []
+    
+    # Подсчет зарегистрированных участников
+    registered_count = db.query(EventResponseModel).filter(
+        EventResponseModel.event_id == event.id
+    ).count()
+    
+    # Количество свободных мест
+    free_spots = None
+    if event.quantity is not None:
+        free_spots = max(0, event.quantity - registered_count)
+    
+    return EventResponse(
+        id=event.id,
+        npo_id=event.npo_id,
+        npo_name=event.npo.name if event.npo else None,
+        name=event.name,
+        description=event.description,
+        start=event.start,
+        end=event.end,
+        coordinates=[float(event.coordinates_lat), float(event.coordinates_lon)] if event.coordinates_lat is not None and event.coordinates_lon is not None else None,
+        quantity=event.quantity,
+        registered_count=registered_count,
+        free_spots=free_spots,
+        status=event.status,
+        tags=tags,
+        city=event.city,
+        attachedIds=attached_ids,
+        created_at=event.created_at
+    )
+
 def get_news_author(news: News, db: Session) -> str:
     """Определяет автора новости на основе типа создателя"""
     if news.volunteer_id:
@@ -168,6 +202,18 @@ async def respond_to_event(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Событие не найдено"
         )
+    
+    # Проверка наличия свободных мест
+    if event.quantity is not None:
+        registered_count = db.query(EventResponseModel).filter(
+            EventResponseModel.event_id == event_id
+        ).count()
+        
+        if registered_count >= event.quantity:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Все места на это событие заполнены"
+            )
     
     # Получаем волонтера из текущего пользователя
     volunteer = get_volunteer_by_user_id(current_user.id, db)
@@ -342,24 +388,9 @@ async def get_volunteer_events(
     
     result = []
     for event_response in event_responses:
-        event = db.query(Event).options(joinedload(Event.npo)).filter(Event.id == event_response.event_id).first()
+        event = db.query(Event).options(joinedload(Event.npo), joinedload(Event.tags), joinedload(Event.attachments)).filter(Event.id == event_response.event_id).first()
         if event:
-            tags = [t.tag for t in event.tags]
-            result.append(EventResponse(
-                id=event.id,
-                npo_id=event.npo_id,
-                npo_name=event.npo.name if event.npo else None,
-                name=event.name,
-                description=event.description,
-                start=event.start,
-                end=event.end,
-                coordinates=[float(event.coordinates_lat), float(event.coordinates_lon)] if event.coordinates_lat is not None and event.coordinates_lon is not None else None,
-                quantity=event.quantity,
-                status=event.status,
-                tags=tags,
-                city=event.city,
-                created_at=event.created_at
-            ))
+            result.append(build_event_response(event, db))
     
     return result
 

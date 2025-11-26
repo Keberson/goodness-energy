@@ -68,11 +68,6 @@ const NPOProfileView: React.FC<NPOProfileViewProps> = ({ profileData }) => {
                         <Text type="secondary" italic>Данных нет</Text>
                     )}
                 </Descriptions.Item>
-                <Descriptions.Item label="Вакансии">
-                    <Tag color={profileData.vacancies > 0 ? "green" : "default"}>
-                        {profileData.vacancies > 0 ? `${profileData.vacancies} открыто` : "Нет вакансий"}
-                    </Tag>
-                </Descriptions.Item>
                 <Descriptions.Item label="Дата создания">
                     {new Date(profileData.created_at).toLocaleDateString("ru-RU")}
                 </Descriptions.Item>

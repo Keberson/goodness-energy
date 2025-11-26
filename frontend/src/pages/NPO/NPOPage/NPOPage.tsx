@@ -151,9 +151,6 @@ const NPOPage = () => {
                         <TabPane tab="Галерея" key="gallery">
                             <NPODetails npo={data} showGallery />
                         </TabPane>
-                        <TabPane tab="Вакансии" key="vacancies">
-                            <Text type="secondary">Раздел находится в разработке</Text>
-                        </TabPane>
                     </Tabs>
                 </Card>
             )}

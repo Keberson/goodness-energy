@@ -85,11 +85,6 @@ const NPODetails: React.FC<NPODetailsProps> = ({ npo, showGallery = false }) => 
                     <Text type="secondary" italic>Данных нет</Text>
                 )}
             </Descriptions.Item>
-            <Descriptions.Item label="Вакансии">
-                <Tag color={npo.vacancies > 0 ? "green" : "default"}>
-                    {npo.vacancies > 0 ? `${npo.vacancies} открыто` : "Нет вакансий"}
-                </Tag>
-            </Descriptions.Item>
             <Descriptions.Item label="Дата создания">
                 {new Date(npo.created_at).toLocaleDateString("ru-RU")}
             </Descriptions.Item>

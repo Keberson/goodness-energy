@@ -221,7 +221,7 @@ const ManageEventsPage = () => {
                     start: start.toISOString(),
                     end: end.toISOString(),
                     coordinates,
-                    quantity: values.quantity || null,
+                    quantity: values.quantity, // Обязательное поле
                     tags: tags.length > 0 ? tags : null,
                     city: values.city,
                     attachedIds: attachedIds.length > 0 ? attachedIds : null,
@@ -461,7 +461,11 @@ const ManageEventsPage = () => {
                             <Input placeholder="Например: г. Москва, ул. Ленина, д. 10" />
                         </Form.Item>
 
-                        <Form.Item name="quantity" label="Количество участников">
+                        <Form.Item 
+                            name="quantity" 
+                            label="Количество участников"
+                            rules={[{ required: true, message: "Укажите количество участников" }]}
+                        >
                             <InputNumber min={1} style={{ width: "100%" }} placeholder="Количество" />
                         </Form.Item>
 

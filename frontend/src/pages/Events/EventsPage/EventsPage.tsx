@@ -381,9 +381,9 @@ const EventsPage = () => {
                                                                 </Text>
                                                             </Space>
                                                         )}
-                                                        {event.quantity && (
+                                                        {event.quantity !== null && event.quantity !== undefined && (
                                                             <Text type="secondary">
-                                                                Участников: {event.quantity}
+                                                                Свободно {event.free_spots ?? event.quantity}/{event.quantity} мест
                                                             </Text>
                                                         )}
                                                     </Space>
@@ -414,6 +414,14 @@ const EventsPage = () => {
                                                                     style={{ width: "100%" }}
                                                                 >
                                                                     Событие завершено
+                                                                </Button>
+                                                            ) : (event.free_spots !== undefined && event.free_spots === 0) ? (
+                                                                <Button
+                                                                    type="default"
+                                                                    disabled
+                                                                    style={{ width: "100%" }}
+                                                                >
+                                                                    Все места заполнены
                                                                 </Button>
                                                             ) : (
                                                                 <Button

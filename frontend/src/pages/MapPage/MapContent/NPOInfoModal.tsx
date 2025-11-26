@@ -54,11 +54,6 @@ const NPOInfoModal: React.FC<NPOInfoModalProps> = ({ npoInfo, onClose }) => {
                         )}
                     </Space>
                 </Descriptions.Item>
-                <Descriptions.Item label="Вакансии">
-                    <Tag color={npoInfo.vacancies > 0 ? "green" : "default"}>
-                        {npoInfo.vacancies > 0 ? `${npoInfo.vacancies} открыто` : "Нет вакансий"}
-                    </Tag>
-                </Descriptions.Item>
                 <Descriptions.Item label="Дата создания">
                     {new Date(npoInfo.created_at).toLocaleDateString("ru-RU")}
                 </Descriptions.Item>

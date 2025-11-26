@@ -69,16 +69,4 @@ export const getNPOColumns = (navigate: NavigateFunction): TableColumnsType<INPO
             </Space>
         ),
     },
-    {
-        title: "Вакансии",
-        dataIndex: "vacancies",
-        key: "vacancies",
-        width: 120,
-        align: "center" as const,
-        render: (vacancies: number) => (
-            <Tag color={vacancies > 0 ? "green" : "default"}>
-                {vacancies > 0 ? `${vacancies} открыто` : "Нет вакансий"}
-            </Tag>
-        ),
-    },
 ];

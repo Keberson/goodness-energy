@@ -9,7 +9,9 @@ export interface IEvent {
     start: string;
     end: string;
     coordinates: [number, number] | null; // [lat, lon]
-    quantity: number | null;
+    quantity: number | null; // Общее количество участников (может быть null для старых событий)
+    registered_count?: number; // Количество зарегистрированных участников
+    free_spots?: number | null; // Количество свободных мест (null если quantity не указано)
     status: EventStatus;
     tags: string[];
     city: string | null; // Город НКО, создавшего событие

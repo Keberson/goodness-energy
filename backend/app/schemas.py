@@ -101,7 +101,7 @@ class EventCreate(BaseModel):
     start: datetime
     end: datetime
     coordinates: Optional[List[float]] = None  # [lat, lon]
-    quantity: Optional[int] = None
+    quantity: int  # Обязательное поле - количество участников
     tags: Optional[List[str]] = None
     city: NPOCity  # Обязательное поле - город проведения события
     attachedIds: Optional[List[int]] = None  # ID файлов (изображений)
@@ -129,7 +129,9 @@ class EventResponse(BaseModel):
     start: datetime
     end: datetime
     coordinates: Optional[List[float]]
-    quantity: Optional[int]
+    quantity: Optional[int] = None  # Общее количество участников (может быть None для старых событий)
+    registered_count: int = 0  # Количество зарегистрированных участников
+    free_spots: Optional[int] = None  # Количество свободных мест (None если quantity не указано)
     status: EventStatus
     tags: List[str]
     city: Optional[str]  # Город НКО, создавшего событие

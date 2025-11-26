@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 from typing import List
 from app.database import get_db
-from app.models import Favorite, FavoriteType, News, Event, Knowledge, User, NewsTag, NewsAttachment, EventTag, KnowledgeTag, KnowledgeAttachment, NPO, Volunteer
+from app.models import Favorite, FavoriteType, News, Event, Knowledge, User, NewsTag, NewsAttachment, EventTag, EventAttachment, KnowledgeTag, KnowledgeAttachment, NPO, Volunteer, EventResponse as EventResponseModel
 from app.schemas import FavoriteCreate, FavoriteResponse, FavoriteItemResponse, NewsResponse, EventResponse, KnowledgeResponse
 from app.auth import get_current_user
 import logging
@@ -10,6 +10,40 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+def build_event_response(event: Event, db: Session) -> EventResponse:
+    """Создает EventResponse с подсчетом регистраций и свободных мест"""
+    tags = [t.tag for t in event.tags]
+    attached_ids = [a.file_id for a in event.attachments] if hasattr(event, 'attachments') else []
+    
+    # Подсчет зарегистрированных участников
+    registered_count = db.query(EventResponseModel).filter(
+        EventResponseModel.event_id == event.id
+    ).count()
+    
+    # Количество свободных мест
+    free_spots = None
+    if event.quantity is not None:
+        free_spots = max(0, event.quantity - registered_count)
+    
+    return EventResponse(
+        id=event.id,
+        npo_id=event.npo_id,
+        npo_name=event.npo.name if event.npo else None,
+        name=event.name,
+        description=event.description,
+        start=event.start,
+        end=event.end,
+        coordinates=[float(event.coordinates_lat), float(event.coordinates_lon)] if event.coordinates_lat is not None and event.coordinates_lon is not None else None,
+        quantity=event.quantity,
+        registered_count=registered_count,
+        free_spots=free_spots,
+        status=event.status,
+        tags=tags,
+        city=event.city,
+        attachedIds=attached_ids,
+        created_at=event.created_at
+    )
 
 def get_news_author(news: News, db: Session) -> str:
     """Определяет автора новости на основе типа создателя"""
@@ -144,24 +178,9 @@ async def get_favorites(
                 ).model_dump()
         
         elif favorite.item_type == FavoriteType.EVENT:
-            event = db.query(Event).options(joinedload(Event.npo)).filter(Event.id == favorite.item_id).first()
+            event = db.query(Event).options(joinedload(Event.npo), joinedload(Event.tags), joinedload(Event.attachments)).filter(Event.id == favorite.item_id).first()
             if event:
-                tags = [t.tag for t in event.tags]
-                item_data = EventResponse(
-                    id=event.id,
-                    npo_id=event.npo_id,
-                    npo_name=event.npo.name if event.npo else None,
-                    name=event.name,
-                    description=event.description,
-                    start=event.start,
-                    end=event.end,
-                    coordinates=[float(event.coordinates_lat), float(event.coordinates_lon)] if event.coordinates_lat is not None and event.coordinates_lon is not None else None,
-                    quantity=event.quantity,
-                    status=event.status,
-                    tags=tags,
-                    city=event.city,
-                    created_at=event.created_at
-                ).model_dump()
+                item_data = build_event_response(event, db).model_dump()
         
         elif favorite.item_type == FavoriteType.KNOWLEDGE:
             knowledge = db.query(Knowledge).filter(Knowledge.id == favorite.item_id).first()

@@ -12,7 +12,7 @@ export interface IEventCreateRequest {
     start: string;
     end: string;
     coordinates?: [number, number] | null;
-    quantity?: number | null;
+    quantity: number; // Обязательное поле
     tags?: string[] | null;
     city: string;
     attachedIds?: number[] | null;

@@ -163,9 +163,9 @@ const MyEventsPage = () => {
                                                         </Text>
                                                     </Space>
                                                 )}
-                                                {event.quantity && (
+                                                {event.quantity !== null && event.quantity !== undefined && (
                                                     <Text type="secondary">
-                                                        Участников: {event.quantity}
+                                                        Свободно {event.free_spots ?? event.quantity}/{event.quantity} мест
                                                     </Text>
                                                 )}
                                             </Space>
