@@ -84,7 +84,7 @@ const NPOPage = () => {
                     <Tabs defaultActiveKey="page">
                         <TabPane tab="Страница" key="page">
                             <NewsContent
-                                html={data.page_content}
+                                html={data.page_content || ""}
                                 className="npo-page-content"
                                 style={{
                                     fontSize: 16,

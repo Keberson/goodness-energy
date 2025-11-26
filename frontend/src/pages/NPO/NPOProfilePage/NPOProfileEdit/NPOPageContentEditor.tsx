@@ -233,6 +233,7 @@ const NPOPageContentEditor: React.FC<NPOPageContentEditorProps> = ({
                                 elements={elements}
                                 onUpdateElement={handleUpdateElement}
                                 onDeleteElement={handleDeleteElement}
+                                activeId={activeId}
                             />
                         </div>
                     </div>
