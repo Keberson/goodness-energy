@@ -15,9 +15,10 @@ interface NewsWorkspaceProps {
         props?: Record<string, any>
     ) => void;
     onDeleteElement: (id: string) => void;
+    activeId: string | null;
 }
 
-const NewsWorkspace = ({ elements, onUpdateElement, onDeleteElement }: NewsWorkspaceProps) => {
+const NewsWorkspace = ({ elements, onUpdateElement, onDeleteElement, activeId }: NewsWorkspaceProps) => {
     const { setNodeRef, isOver } = useDroppable({
         id: "workspace",
     });
@@ -54,6 +55,7 @@ const NewsWorkspace = ({ elements, onUpdateElement, onDeleteElement }: NewsWorks
                                 onUpdateElement(element.id, content, props)
                             }
                             onDelete={() => onDeleteElement(element.id)}
+                            activeId={activeId}
                         />
                     ))}
                 </SortableContext>

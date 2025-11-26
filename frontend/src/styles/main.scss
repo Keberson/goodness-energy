@@ -73,3 +73,629 @@ body,
         font-size: 12px;
     }
 }
+
+// Версия для слабовидящих
+body.accessibility-mode {
+    // Увеличение базового размера шрифта
+    --font-size-base: 20px;
+    font-size: 20px !important;
+
+    // Улучшение контрастности текста (исключаем боковое меню)
+    color: #000000 !important;
+
+    // Исключаем боковое меню из правил для слабовидящих
+    .menu,
+    .ant-layout-sider {
+        color: rgba(255, 255, 255, 0.85) !important;
+
+        .menu__logo-container__title {
+            color: #ffffff !important;
+        }
+
+        .ant-menu-dark {
+            .ant-menu-item {
+                color: rgba(255, 255, 255, 0.85) !important;
+
+                a {
+                    color: rgba(255, 255, 255, 0.85) !important;
+                    text-decoration: none !important;
+                }
+
+                &:hover,
+                &.ant-menu-item-selected,
+                &.ant-menu-item-active {
+                    color: #fff !important;
+
+                    a {
+                        color: #fff !important;
+                        text-decoration: none !important;
+                    }
+                }
+            }
+        }
+    }
+
+    .mobile-drawer,
+    .ant-drawer {
+        .ant-drawer-title,
+        .ant-drawer-header-title {
+            color: #ffffff !important;
+        }
+
+        .ant-menu-dark {
+            .ant-menu-item {
+                color: rgba(255, 255, 255, 0.85) !important;
+
+                a {
+                    color: rgba(255, 255, 255, 0.85) !important;
+                    text-decoration: none !important;
+                }
+
+                &:hover,
+                &.ant-menu-item-selected,
+                &.ant-menu-item-active {
+                    color: #fff !important;
+
+                    a {
+                        color: #fff !important;
+                        text-decoration: none !important;
+                    }
+                }
+            }
+        }
+    }
+
+    // Исключаем заголовок меню из правил Typography
+    .menu .ant-typography,
+    .menu .menu__logo-container__title,
+    .ant-drawer .ant-typography {
+        color: #ffffff !important;
+    }
+
+    // Увеличение размеров заголовков (исключаем меню)
+    // Исключаем заголовки на главной странице из глобальных правил
+    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography):not(.home__header .ant-typography) h1 {
+        font-size: 36px !important;
+        font-weight: 700 !important;
+        color: #000000 !important;
+        line-height: 1.3 !important;
+    }
+
+    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography):not(.home__header .ant-typography):not(.home__section-title) h2 {
+        font-size: 30px !important;
+        font-weight: 700 !important;
+        color: #000000 !important;
+        line-height: 1.3 !important;
+    }
+
+    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography):not(.home__header .ant-typography) h3 {
+        font-size: 24px !important;
+        font-weight: 700 !important;
+        color: #000000 !important;
+        line-height: 1.4 !important;
+    }
+
+    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography):not(.home__header .ant-typography) h4 {
+        font-size: 20px !important;
+        font-weight: 700 !important;
+        color: #000000 !important;
+        line-height: 1.4 !important;
+    }
+
+    .ant-typography:not(.menu .ant-typography):not(.ant-drawer .ant-typography):not(.home__header .ant-typography) {
+        font-size: 20px !important;
+        color: #000000 !important;
+        line-height: 1.6 !important;
+    }
+
+    // Увеличение размеров кнопок
+    .ant-btn {
+        font-size: 18px !important;
+        padding: 12px 24px !important;
+        height: auto !important;
+        min-height: 48px !important;
+        font-weight: 600 !important;
+        border-width: 2px !important;
+    }
+
+    .ant-btn-sm {
+        font-size: 16px !important;
+        padding: 10px 20px !important;
+        min-height: 44px !important;
+    }
+
+    .ant-btn-lg {
+        font-size: 20px !important;
+        padding: 14px 28px !important;
+        min-height: 52px !important;
+    }
+
+    // Улучшение контрастности ссылок (исключаем боковое меню и кнопки)
+    a:not(.menu a):not(.ant-menu-dark a):not(.ant-drawer a):not(.mobile-drawer a):not(.ant-btn):not(.ant-typography-expand):not(.ant-typography-ellipsis-expand) {
+        color: #0066cc !important;
+        text-decoration: underline !important;
+        font-weight: 600 !important;
+
+        &:hover {
+            color: #0052a3 !important;
+            text-decoration: underline !important;
+        }
+    }
+
+    // Кнопки с href не должны быть подчёркнуты и должны сохранять стили кнопки
+    .ant-btn[href],
+    .ant-btn a,
+    a.ant-btn,
+    .ant-btn[href]:hover,
+    .ant-btn[href]:focus,
+    .ant-btn[href]:active {
+        text-decoration: none !important;
+        color: inherit !important;
+
+        &:hover,
+        &:focus,
+        &:active {
+            text-decoration: none !important;
+            color: inherit !important;
+        }
+    }
+
+    // Кнопки primary с href должны сохранять стили primary кнопки
+    .ant-btn-primary[href],
+    a.ant-btn-primary {
+        color: #ffffff !important;
+        text-decoration: none !important;
+
+        &:hover,
+        &:focus,
+        &:active {
+            color: #ffffff !important;
+            text-decoration: none !important;
+        }
+    }
+
+    // Увеличение размеров инпутов
+    .ant-input,
+    .ant-input-affix-wrapper,
+    .ant-select-selector,
+    .ant-picker {
+        font-size: 18px !important;
+        padding: 12px 16px !important;
+        min-height: 48px !important;
+        border-width: 2px !important;
+    }
+
+    // Увеличение размеров карточек
+    .ant-card {
+        border-width: 2px !important;
+        border-color: #000000 !important;
+
+        .ant-card-head-title {
+            font-size: 22px !important;
+            font-weight: 700 !important;
+            color: #000000 !important;
+        }
+
+        .ant-card-body {
+            font-size: 18px !important;
+        }
+    }
+
+    // Улучшение контрастности таблиц
+    .ant-table {
+        font-size: 18px !important;
+
+        .ant-table-thead > tr > th {
+            font-size: 18px !important;
+            font-weight: 700 !important;
+            background-color: #f0f0f0 !important;
+            color: #000000 !important;
+            border-bottom: 2px solid #000000 !important;
+            padding: 16px !important;
+        }
+
+        .ant-table-tbody > tr > td {
+            font-size: 18px !important;
+            color: #000000 !important;
+            padding: 16px !important;
+            border-bottom: 1px solid #666666 !important;
+        }
+
+        .ant-table-tbody > tr:hover > td {
+            background-color: #f5f5f5 !important;
+        }
+    }
+
+    // Увеличение размеров меню (только для светлого меню, не для бокового)
+    .ant-menu:not(.ant-menu-dark) {
+        font-size: 18px !important;
+
+        .ant-menu-item {
+            font-size: 18px !important;
+            height: auto !important;
+            min-height: 48px !important;
+            line-height: 1.6 !important;
+            padding: 12px 24px !important;
+        }
+    }
+
+    // Для тёмного меню только увеличиваем размеры, но сохраняем цвета
+    .ant-menu-dark {
+        font-size: 18px !important;
+
+        .ant-menu-item {
+            font-size: 18px !important;
+            height: auto !important;
+            min-height: 48px !important;
+            line-height: 1.6 !important;
+            padding: 12px 24px !important;
+            color: rgba(255, 255, 255, 0.85) !important;
+
+            a {
+                color: rgba(255, 255, 255, 0.85) !important;
+                text-decoration: none !important;
+            }
+
+            &:hover,
+            &.ant-menu-item-selected {
+                color: #fff !important;
+
+                a {
+                    color: #fff !important;
+                }
+            }
+        }
+    }
+
+    // Улучшение контрастности модальных окон
+    .ant-modal {
+        .ant-modal-title {
+            font-size: 24px !important;
+            font-weight: 700 !important;
+            color: #000000 !important;
+        }
+
+        .ant-modal-content {
+            border: 2px solid #000000 !important;
+        }
+    }
+
+    // Увеличение размеров чекбоксов и радиокнопок
+    .ant-checkbox,
+    .ant-radio {
+        .ant-checkbox-inner,
+        .ant-radio-inner {
+            width: 24px !important;
+            height: 24px !important;
+            border-width: 2px !important;
+        }
+    }
+
+    // Улучшение контрастности разделителей
+    .ant-divider {
+        border-color: #000000 !important;
+        border-width: 2px !important;
+    }
+
+    // Увеличение размеров табов
+    .ant-tabs {
+        .ant-tabs-tab {
+            font-size: 18px !important;
+            padding: 12px 24px !important;
+            min-height: 48px !important;
+        }
+    }
+
+    // Улучшение контрастности тегов
+    .ant-tag {
+        font-size: 16px !important;
+        padding: 6px 12px !important;
+        border-width: 2px !important;
+        font-weight: 600 !important;
+    }
+
+    // Увеличение размеров описаний
+    .ant-descriptions {
+        font-size: 18px !important;
+
+        .ant-descriptions-item-label {
+            font-weight: 700 !important;
+            color: #000000 !important;
+        }
+
+        .ant-descriptions-item-content {
+            color: #000000 !important;
+        }
+    }
+
+    // Улучшение контрастности уведомлений
+    .ant-message,
+    .ant-notification {
+        font-size: 18px !important;
+    }
+
+    // Увеличение размеров иконок в кнопках
+    .ant-btn .anticon {
+        font-size: 18px !important;
+    }
+
+    // Улучшение контрастности placeholder'ов
+    .ant-input::placeholder,
+    .ant-input-affix-wrapper input::placeholder {
+        color: #666666 !important;
+        font-size: 18px !important;
+    }
+
+    // Увеличение размеров выпадающих списков
+    .ant-select-dropdown {
+        .ant-select-item {
+            font-size: 18px !important;
+            padding: 12px 16px !important;
+            min-height: 48px !important;
+        }
+    }
+
+    // Кнопки раскрыть/свернуть в Paragraph ellipsis
+    .ant-typography-expand,
+    .ant-typography-ellipsis-expand,
+    .ant-typography-ellipsis-single-line-expand,
+    .ant-typography-expand-icon,
+    button.ant-typography-expand,
+    a.ant-typography-expand,
+    .ant-typography-ellipsis-expand-icon,
+    span.ant-typography-expand,
+    .ant-typography .ant-typography-expand,
+    .ant-typography-collapse,
+    .ant-typography-ellipsis-collapse,
+    button.ant-typography-collapse,
+    a.ant-typography-collapse,
+    span.ant-typography-collapse,
+    .ant-typography .ant-typography-collapse,
+    .ant-typography-collapse-icon,
+    .ant-typography-ellipsis-collapse-icon,
+    // Дополнительные селекторы для кнопки свернуть
+    .ant-typography-ellipsis .ant-typography-expand,
+    .ant-typography-ellipsis .ant-typography-collapse,
+    .ant-typography-ellipsis-expand,
+    .ant-typography-ellipsis-collapse {
+        font-size: 18px !important;
+        padding: 8px 16px !important;
+        min-height: 44px !important;
+        min-width: 80px !important;
+        height: auto !important;
+        font-weight: 600 !important;
+        color: #0066cc !important;
+        text-decoration: none !important;
+        cursor: pointer !important;
+        display: inline-block !important;
+        line-height: 1.5 !important;
+
+        &:hover,
+        &:focus,
+        &:active {
+            color: #0052a3 !important;
+            text-decoration: none !important;
+        }
+    }
+
+    // Увеличение размеров текста в таблицах
+    .ant-table {
+        .ant-table-tbody > tr > td {
+            font-size: 18px !important;
+            color: #000000 !important;
+            padding: 16px !important;
+            border-bottom: 1px solid #666666 !important;
+
+            // Текст в ячейках таблиц
+            .ant-typography,
+            .ant-typography p,
+            span,
+            div {
+                font-size: 18px !important;
+                color: #000000 !important;
+                line-height: 1.6 !important;
+            }
+
+            // Paragraph с ellipsis в таблицах
+            .ant-typography-ellipsis {
+                font-size: 18px !important;
+                line-height: 1.6 !important;
+            }
+        }
+
+        // Увеличение размеров тегов в таблицах
+        .ant-tag {
+            font-size: 16px !important;
+            padding: 6px 12px !important;
+            border-width: 2px !important;
+            font-weight: 600 !important;
+            line-height: 1.5 !important;
+        }
+    }
+
+    // Увеличение размеров текста в NewsContent
+    .news-content,
+    .news-content * {
+        font-size: 20px !important;
+        line-height: 1.8 !important;
+        color: #000000 !important;
+
+        p {
+            font-size: 20px !important;
+            line-height: 1.8 !important;
+            margin-bottom: 1em !important;
+        }
+
+        h1 {
+            font-size: 36px !important;
+            font-weight: 700 !important;
+            line-height: 1.3 !important;
+            margin-top: 1.5em !important;
+            margin-bottom: 0.5em !important;
+        }
+
+        h2 {
+            font-size: 30px !important;
+            font-weight: 700 !important;
+            line-height: 1.3 !important;
+            margin-top: 1.5em !important;
+            margin-bottom: 0.5em !important;
+        }
+
+        h3 {
+            font-size: 24px !important;
+            font-weight: 700 !important;
+            line-height: 1.4 !important;
+            margin-top: 1.5em !important;
+            margin-bottom: 0.5em !important;
+        }
+
+        h4 {
+            font-size: 20px !important;
+            font-weight: 700 !important;
+            line-height: 1.4 !important;
+            margin-top: 1.5em !important;
+            margin-bottom: 0.5em !important;
+        }
+
+        ul,
+        ol {
+            font-size: 20px !important;
+            line-height: 1.8 !important;
+            margin-bottom: 1em !important;
+            padding-left: 2em !important;
+
+            li {
+                font-size: 20px !important;
+                line-height: 1.8 !important;
+                margin-bottom: 0.5em !important;
+            }
+        }
+
+        a {
+            font-size: 20px !important;
+            color: #0066cc !important;
+            text-decoration: underline !important;
+            font-weight: 600 !important;
+
+            &:hover {
+                color: #0052a3 !important;
+            }
+        }
+
+        strong {
+            font-weight: 700 !important;
+        }
+
+        blockquote {
+            font-size: 20px !important;
+            line-height: 1.8 !important;
+            border-left-width: 4px !important;
+            padding: 1em 1.5em !important;
+        }
+    }
+
+    // Увеличение размеров текста в Paragraph компонентах
+    .ant-typography {
+        font-size: 20px !important;
+        line-height: 1.6 !important;
+        color: #000000 !important;
+
+        &.ant-typography-ellipsis {
+            font-size: 20px !important;
+            line-height: 1.6 !important;
+        }
+    }
+
+    // Увеличение размеров текста в Descriptions
+    .ant-descriptions {
+        font-size: 18px !important;
+
+        .ant-descriptions-item-label {
+            font-weight: 700 !important;
+            color: #000000 !important;
+            font-size: 18px !important;
+            padding: 16px !important;
+        }
+
+        .ant-descriptions-item-content {
+            color: #000000 !important;
+            font-size: 18px !important;
+            padding: 16px !important;
+            line-height: 1.6 !important;
+
+            .ant-typography,
+            .ant-typography p,
+            span,
+            div {
+                font-size: 18px !important;
+                line-height: 1.6 !important;
+            }
+        }
+    }
+
+    // Увеличение размеров всех текстовых элементов
+    span,
+    p,
+    div:not(.menu):not(.ant-menu-dark):not(.ant-drawer) {
+        font-size: inherit !important;
+    }
+
+    // Увеличение размеров Space компонентов
+    .ant-space {
+        font-size: 18px !important;
+
+        .ant-space-item {
+            font-size: 18px !important;
+        }
+    }
+
+    // Увеличение размеров текста в Text компонентах
+    .ant-typography {
+        &.ant-typography-secondary {
+            font-size: 18px !important;
+            color: #666666 !important;
+        }
+    }
+
+    // Улучшение контрастности для мобильных устройств
+    @media (max-width: 767px) {
+        --font-size-base: 18px;
+        font-size: 18px !important;
+
+        .ant-typography h1 {
+            font-size: 28px !important;
+        }
+
+        .ant-typography h2 {
+            font-size: 24px !important;
+        }
+
+        .ant-typography h3 {
+            font-size: 20px !important;
+        }
+
+        .ant-btn {
+            font-size: 16px !important;
+            padding: 10px 20px !important;
+            min-height: 44px !important;
+        }
+
+        .news-content,
+        .news-content * {
+            font-size: 18px !important;
+
+            h1 {
+                font-size: 28px !important;
+            }
+
+            h2 {
+                font-size: 24px !important;
+            }
+
+            h3 {
+                font-size: 20px !important;
+            }
+        }
+    }
+}

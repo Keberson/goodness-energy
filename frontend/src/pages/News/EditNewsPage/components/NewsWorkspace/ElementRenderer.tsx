@@ -2,6 +2,7 @@ import { useState } from "react";
 import { Card, Button } from "antd";
 import { DeleteOutlined, EditOutlined, DragOutlined } from "@ant-design/icons";
 import { useSortable } from "@dnd-kit/sortable";
+import { useDroppable } from "@dnd-kit/core";
 import { CSS } from "@dnd-kit/utilities";
 
 import type { NewsEditorElement } from "@app-types/news-editor.types";
@@ -18,14 +19,30 @@ interface ElementRendererProps {
     element: NewsEditorElement;
     onUpdate: (content: string | string[] | number | number[], props?: Record<string, any>) => void;
     onDelete: () => void;
+    activeId: string | null;
 }
 
-const ElementRenderer = ({ element, onUpdate, onDelete }: ElementRendererProps) => {
+const ElementRenderer = ({ element, onUpdate, onDelete, activeId }: ElementRendererProps) => {
     const [isEditing, setIsEditing] = useState(false);
 
     const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({
         id: element.id,
     });
+
+    // Используем useDroppable для визуальной обратной связи при перетаскивании элементов из тулбара
+    const { setNodeRef: setDroppableRef, isOver } = useDroppable({
+        id: element.id,
+    });
+
+    // Показываем подсветку только если перетаскивается элемент из тулбара (новый элемент)
+    const isDraggingFromToolbar = activeId?.toString().startsWith("toolbar-") ?? false;
+    const shouldHighlight = isOver && !isDragging && isDraggingFromToolbar;
+
+    // Объединяем refs
+    const combinedRef = (node: HTMLElement | null) => {
+        setNodeRef(node);
+        setDroppableRef(node);
+    };
 
     const style = {
         transform: CSS.Transform.toString(transform),
@@ -154,10 +171,24 @@ const ElementRenderer = ({ element, onUpdate, onDelete }: ElementRendererProps) 
     };
 
     return (
-        <div ref={setNodeRef} style={style}>
+        <div ref={combinedRef} style={style}>
+            {/* Индикатор вставки перед элементом - только при добавлении новых элементов */}
+            {shouldHighlight && (
+                <div
+                    style={{
+                        height: 3,
+                        backgroundColor: "#1890ff",
+                        marginBottom: 8,
+                        borderRadius: 2,
+                        boxShadow: "0 0 8px rgba(24, 144, 255, 0.5)",
+                    }}
+                />
+            )}
             <Card
                 style={{
                     marginBottom: 16,
+                    border: shouldHighlight ? "2px solid #1890ff" : undefined,
+                    transition: "border-color 0.2s",
                 }}
                 actions={[
                     <div

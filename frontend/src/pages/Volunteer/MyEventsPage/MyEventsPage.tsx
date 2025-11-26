@@ -138,7 +138,7 @@ const MyEventsPage = () => {
 
                                             {event.description && (
                                                 <Paragraph
-                                                    ellipsis={{ rows: 2, expandable: true }}
+                                                    ellipsis={{ rows: 2, expandable: "collapsible" }}
                                                     style={{ margin: 0 }}
                                                 >
                                                     {event.description}

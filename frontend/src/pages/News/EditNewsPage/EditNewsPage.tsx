@@ -1,8 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Layout, Button, Input, Select, Space, Typography, Card, message } from "antd";
 
 const { TextArea } = Input;
-import { SaveOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import { 
+    SaveOutlined, 
+    ArrowLeftOutlined,
+    FontSizeOutlined,
+    FileTextOutlined,
+    PictureOutlined,
+    UnorderedListOutlined,
+    MutedOutlined,
+    MinusOutlined,
+    LinkOutlined,
+    FileOutlined,
+} from "@ant-design/icons";
 import { useNavigate, useParams } from "react-router-dom";
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
@@ -22,7 +33,7 @@ import { convertElementsToNewsData, convertNewsDataToElements } from "./utils/ne
 import "./styles.scss";
 
 const { Content, Sider } = Layout;
-const { Title } = Typography;
+const { Title, Text } = Typography;
 const { Option } = Select;
 
 const EditNewsPage = () => {
@@ -38,6 +49,9 @@ const EditNewsPage = () => {
     const [type, setType] = useState<NewsType>("blog");
     const [saving, setSaving] = useState(false);
     const [isLoadingNews, setIsLoadingNews] = useState(false);
+    const dragOffsetRef = useRef<{ x: number; y: number } | null>(null);
+    const initialRectRef = useRef<{ left: number; top: number; width: number; height: number } | null>(null);
+    const currentCursorRef = useRef<{ x: number; y: number } | null>(null);
 
     const { data: newsTypes = [], isLoading: isLoadingTypes } = useGetNewsTypesQuery();
     const [createNews] = useCreateNewsMutation();
@@ -69,6 +83,15 @@ const EditNewsPage = () => {
         }
     }, [newsTypes]);
 
+    // Очистка обработчиков при размонтировании компонента
+    useEffect(() => {
+        return () => {
+            dragOffsetRef.current = null;
+            initialRectRef.current = null;
+            currentCursorRef.current = null;
+        };
+    }, []);
+
     // Загрузка существующей новости при редактировании
     useEffect(() => {
         if (isEditing && existingNews && !isLoadingNews) {
@@ -90,6 +113,89 @@ const EditNewsPage = () => {
         }
     }, [isEditing, existingNews, isLoadingNews]);
 
+    // Модификатор для корректировки позиции курсора при перетаскивании
+    // Сохраняет относительное положение курсора к элементу
+    const snapCenterToCursor = ({ transform, draggingNodeRect, activatorEvent }: {
+        transform: { x: number; y: number; scaleX?: number; scaleY?: number };
+        draggingNodeRect: { left: number; top: number; width: number; height: number } | null;
+        activatorEvent: Event | null;
+    }) => {
+        const scaleX = (transform.scaleX ?? 1) as number;
+        const scaleY = (transform.scaleY ?? 1) as number;
+        
+        if (!draggingNodeRect || !activatorEvent) {
+            return {
+                x: transform.x,
+                y: transform.y,
+                scaleX,
+                scaleY,
+            };
+        }
+
+        // Сохраняем начальный rect элемента при первом вызове
+        if (!initialRectRef.current) {
+            initialRectRef.current = {
+                left: draggingNodeRect.left,
+                top: draggingNodeRect.top,
+                width: draggingNodeRect.width,
+                height: draggingNodeRect.height,
+            };
+        }
+
+        // Получаем текущие координаты курсора
+        // Используем сохраненные координаты из глобального отслеживания, если они есть
+        let currentX: number;
+        let currentY: number;
+        
+        if (currentCursorRef.current) {
+            currentX = currentCursorRef.current.x;
+            currentY = currentCursorRef.current.y;
+        } else if (activatorEvent instanceof PointerEvent) {
+            currentX = activatorEvent.clientX;
+            currentY = activatorEvent.clientY;
+        } else if ((activatorEvent as any).clientX !== undefined) {
+            currentX = (activatorEvent as any).clientX;
+            currentY = (activatorEvent as any).clientY;
+        } else {
+            return {
+                x: transform.x,
+                y: transform.y,
+                scaleX,
+                scaleY,
+            };
+        }
+
+        // Если offset еще не сохранен, сохраняем его (относительно начальной позиции элемента)
+        if (!dragOffsetRef.current && initialRectRef.current) {
+            // Вычисляем offset от точки клика до верхнего левого угла элемента
+            dragOffsetRef.current = {
+                x: currentX - initialRectRef.current.left,
+                y: currentY - initialRectRef.current.top,
+            };
+        }
+
+        // Вычисляем новую позицию элемента так, чтобы курсор оставался на том же месте относительно элемента
+        // Используем начальный rect, а не текущий
+        if (dragOffsetRef.current && initialRectRef.current) {
+            const newX = currentX - dragOffsetRef.current.x - initialRectRef.current.left;
+            const newY = currentY - dragOffsetRef.current.y - initialRectRef.current.top;
+
+            return {
+                x: newX,
+                y: newY,
+                scaleX,
+                scaleY,
+            };
+        }
+
+        return {
+            x: transform.x,
+            y: transform.y,
+            scaleX,
+            scaleY,
+        };
+    };
+
     const sensors = useSensors(
         useSensor(PointerSensor, {
             activationConstraint: {
@@ -97,6 +203,17 @@ const EditNewsPage = () => {
             },
         })
     );
+
+    const toolbarItems = [
+        { type: "heading" as NewsEditorElementType, label: "Заголовок", icon: <FontSizeOutlined /> },
+        { type: "paragraph" as NewsEditorElementType, label: "Текст", icon: <FileTextOutlined /> },
+        { type: "image" as NewsEditorElementType, label: "Изображение", icon: <PictureOutlined /> },
+        { type: "list" as NewsEditorElementType, label: "Список", icon: <UnorderedListOutlined /> },
+        { type: "quote" as NewsEditorElementType, label: "Цитата", icon: <MutedOutlined /> },
+        { type: "link" as NewsEditorElementType, label: "Ссылка", icon: <LinkOutlined /> },
+        { type: "file" as NewsEditorElementType, label: "Документ", icon: <FileOutlined /> },
+        { type: "divider" as NewsEditorElementType, label: "Разделитель", icon: <MinusOutlined /> },
+    ];
 
     const createElement = (elementType: NewsEditorElementType): NewsEditorElement => {
         const id = `element-${Date.now()}-${Math.random()}`;
@@ -125,11 +242,39 @@ const EditNewsPage = () => {
 
     const handleDragStart = (event: DragStartEvent) => {
         setActiveId(event.active.id as string);
+        // Сбрасываем offset и начальный rect при начале нового перетаскивания
+        dragOffsetRef.current = null;
+        initialRectRef.current = null;
+        currentCursorRef.current = null;
+
+        // Отслеживаем текущие координаты курсора во время перетаскивания
+        const handleMouseMove = (e: MouseEvent) => {
+            currentCursorRef.current = { x: e.clientX, y: e.clientY };
+        };
+
+        document.addEventListener('mousemove', handleMouseMove);
+        
+        // Сохраняем обработчик для удаления при окончании перетаскивания
+        if (event.active.data.current) {
+            (event.active.data.current as any).cleanup = () => {
+                document.removeEventListener('mousemove', handleMouseMove);
+            };
+        }
     };
 
     const handleDragEnd = (event: DragEndEvent) => {
         const { active, over } = event;
         setActiveId(null);
+        // Сбрасываем offset и начальный rect при окончании перетаскивания
+        dragOffsetRef.current = null;
+        initialRectRef.current = null;
+        currentCursorRef.current = null;
+
+        // Удаляем обработчик событий мыши
+        const cleanup = (active.data.current as any)?.cleanup;
+        if (cleanup) {
+            cleanup();
+        }
 
         if (!over) return;
 
@@ -139,13 +284,17 @@ const EditNewsPage = () => {
                 const newElement = createElement(elementType);
 
                 if (over.id === "workspace") {
+                    // Добавляем элемент в конец workspace
                     setElements((prev) => [...prev, newElement]);
                 } else {
+                    // Добавляем элемент перед другим элементом в workspace
                     setElements((items) => {
                         const targetIndex = items.findIndex((item) => item.id === over.id);
                         if (targetIndex === -1) {
+                            // Если элемент не найден, добавляем в конец
                             return [...items, newElement];
                         }
+                        // Вставляем перед найденным элементом
                         const newItems = [...items];
                         newItems.splice(targetIndex, 0, newElement);
                         return newItems;
@@ -258,6 +407,71 @@ const EditNewsPage = () => {
         }
     };
 
+    const renderDragOverlayContent = () => {
+        if (!activeId) return null;
+
+        // Если перетаскивается элемент из тулбара
+        if (activeId.toString().startsWith("toolbar-")) {
+            const elementType = activeId.toString().replace("toolbar-", "") as NewsEditorElementType;
+            const toolbarItem = toolbarItems.find((item) => item.type === elementType);
+            
+            if (toolbarItem) {
+                return (
+                    <Card
+                        size="small"
+                        style={{
+                            opacity: 0.9,
+                            width: 200,
+                            boxShadow: "0 4px 12px rgba(0, 0, 0, 0.15)",
+                            border: "2px dashed #1890ff",
+                            transform: "rotate(2deg)",
+                        }}
+                        bodyStyle={{ padding: "12px" }}
+                    >
+                        <Space>
+                            {toolbarItem.icon}
+                            <Text strong>{toolbarItem.label}</Text>
+                        </Space>
+                    </Card>
+                );
+            }
+        }
+
+        // Если перетаскивается существующий элемент
+        const element = elements.find((el) => el.id === activeId);
+        if (element) {
+            return (
+                <Card
+                    style={{
+                        opacity: 0.8,
+                        width: 400,
+                    }}
+                >
+                    {element.type === "quote" && (
+                        <Card
+                            style={{ borderLeft: "4px solid #1890ff", backgroundColor: "#f0f0f0" }}
+                            bodyStyle={{ padding: "12px" }}
+                        >
+                            <Text italic>"{element.content as string}"</Text>
+                        </Card>
+                    )}
+                    {element.type === "heading" && (
+                        <Title level={((element.props?.level as number) || 2) as 1 | 2 | 3 | 4 | 5}>
+                            {element.content as string}
+                        </Title>
+                    )}
+                    {element.type === "paragraph" && <Text>{element.content as string}</Text>}
+                    {element.type === "divider" && <div style={{ borderTop: "1px solid #d9d9d9" }} />}
+                    {!["quote", "heading", "paragraph", "divider"].includes(element.type) && (
+                        <Text>Элемент: {element.type}</Text>
+                    )}
+                </Card>
+            );
+        }
+
+        return null;
+    };
+
     // Показываем загрузку при получении существующей новости
     if (isEditing && (isLoadingExistingNews || isLoadingNews)) {
         return (
@@ -286,7 +500,12 @@ const EditNewsPage = () => {
     }
 
     return (
-        <DndContext sensors={sensors} onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
+        <DndContext 
+            sensors={sensors} 
+            onDragStart={handleDragStart} 
+            onDragEnd={handleDragEnd}
+            modifiers={[snapCenterToCursor]}
+        >
             <Layout style={{ minHeight: "calc(100vh - 48px)" }}>
                 <Content>
                     <div style={{ padding: 24, backgroundColor: "#fff" }}>
@@ -367,6 +586,7 @@ const EditNewsPage = () => {
                                 elements={elements}
                                 onUpdateElement={handleUpdateElement}
                                 onDeleteElement={handleDeleteElement}
+                                activeId={activeId}
                             />
                         </div>
                     </div>
@@ -375,17 +595,8 @@ const EditNewsPage = () => {
                     <NewsToolbar />
                 </Sider>
             </Layout>
-            <DragOverlay>
-                {activeId ? (
-                    <Card
-                        style={{
-                            opacity: 0.8,
-                            transform: "rotate(5deg)",
-                        }}
-                    >
-                        Перетаскивание...
-                    </Card>
-                ) : null}
+            <DragOverlay dropAnimation={null}>
+                {renderDragOverlayContent()}
             </DragOverlay>
         </DndContext>
     );

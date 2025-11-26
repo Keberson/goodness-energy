@@ -99,9 +99,22 @@
         height: 100vh;
         min-height: 100vh;
         overflow-y: auto;
+        position: relative;
 
         @media (max-width: 767px) {
             margin-left: 0 !important;
+        }
+
+        // Добавляем небольшой отступ снизу через псевдоэлемент для кнопки "Версия для слабовидящих"
+        &::after {
+            content: "";
+            display: block;
+            height: 80px;
+            flex-shrink: 0;
+
+            @media (max-width: 767px) {
+                height: 70px;
+            }
         }
     }
 
@@ -127,4 +140,76 @@
     scrollbar-color: #c1c1c1 #f1f1f1;
 
     scroll-behavior: smooth;
+}
+
+// Исключаем меню из правил версии для слабовидящих
+body.accessibility-mode {
+    .content__wrapper {
+        // Увеличиваем отступ через псевдоэлемент для увеличенной кнопки в режиме для слабовидящих
+        &::after {
+            height: 100px;
+
+            @media (max-width: 767px) {
+                height: 90px;
+            }
+        }
+    }
+
+    .menu {
+        .menu__logo-container__title {
+            color: #ffffff !important;
+        }
+
+        .ant-menu-dark {
+            .ant-menu-item {
+                color: rgba(255, 255, 255, 0.85) !important;
+
+                a {
+                    color: rgba(255, 255, 255, 0.85) !important;
+                    text-decoration: none !important;
+                }
+
+                &:hover,
+                &.ant-menu-item-selected,
+                &.ant-menu-item-active {
+                    color: #ffffff !important;
+
+                    a {
+                        color: #ffffff !important;
+                        text-decoration: none !important;
+                    }
+                }
+            }
+        }
+    }
+
+    .mobile-drawer,
+    .ant-drawer {
+        .ant-drawer-title,
+        .ant-drawer-header-title {
+            color: #ffffff !important;
+        }
+
+        .ant-menu-dark {
+            .ant-menu-item {
+                color: rgba(255, 255, 255, 0.85) !important;
+
+                a {
+                    color: rgba(255, 255, 255, 0.85) !important;
+                    text-decoration: none !important;
+                }
+
+                &:hover,
+                &.ant-menu-item-selected,
+                &.ant-menu-item-active {
+                    color: #ffffff !important;
+
+                    a {
+                        color: #ffffff !important;
+                        text-decoration: none !important;
+                    }
+                }
+            }
+        }
+    }
 }

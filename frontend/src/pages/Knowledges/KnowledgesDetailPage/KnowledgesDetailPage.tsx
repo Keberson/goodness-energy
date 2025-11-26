@@ -179,7 +179,7 @@ const KnowledgeDetailPage = () => {
                                 </div>
                                 <Carousel
                                     dots={false}
-                                    arrows
+                                    arrows={data.attachedIds.length > 1}
                                     style={{ maxWidth: 800, margin: "0 auto" }}
                                 >
                                     {data.attachedIds.map((fileId) => (
@@ -196,11 +196,11 @@ const KnowledgeDetailPage = () => {
                                 <Title level={4}>Видео материал</Title>
                                 <Carousel
                                     dots={false}
-                                    arrows
+                                    arrows={data.links.length > 1}
                                     style={{ maxWidth: 600, margin: "0 auto" }}
                                 >
-                                    {data.links.map((link) => (
-                                        <VideoPlayer videoUrl={link} />
+                                    {data.links.map((link, index) => (
+                                        <VideoPlayer key={index} videoUrl={link} />
                                     ))}
                                 </Carousel>
                             </div>
