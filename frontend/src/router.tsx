@@ -15,6 +15,7 @@ import RegistrationPage from "./pages/Auth/RegistrationPage/RegistrationPage";
 import ProfilePage from "./pages/Volunteer/ProfilePage/ProfilePage";
 import MyEventsPage from "./pages/Volunteer/MyEventsPage/MyEventsPage";
 import FavoritesPage from "./pages/Volunteer/FavoritesPage/FavoritesPage";
+import MyNewsPage from "./pages/News/MyNewsPage/MyNewsPage";
 import NPOProfilePage from "./pages/NPO/NPOProfilePage/NPOProfilePage";
 import ManageEventsPage from "./pages/NPO/ManageEventsPage/ManageEventsPage";
 import StatisticsPage from "./pages/NPO/StatisticsPage/StatisticsPage";
@@ -143,6 +144,14 @@ const router = createBrowserRouter([
                         element: (
                             <ProtectedRoute>
                                 <FavoritesPage />
+                            </ProtectedRoute>
+                        ),
+                    },
+                    {
+                        path: "my-news",
+                        element: (
+                            <ProtectedRoute>
+                                <MyNewsPage />
                             </ProtectedRoute>
                         ),
                     },

@@ -6,7 +6,7 @@ import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
 import { useGetEventsQuery } from "@services/api/events.api";
-import { useRegisterEventViewMutation } from "@services/api/npo.api";
+import { useRegisterEventViewMutation, useGetNPOByIdQuery } from "@services/api/npo.api";
 import { useGetVolunteerEventsQuery, useRespondToEventMutation } from "@services/api/volunteer.api";
 import type { IEvent } from "@app-types/events.types";
 import { useMemo, useState, useEffect } from "react";
@@ -53,6 +53,10 @@ const EventsPage = () => {
     const isVolunteer = isAuthenticated && userType === "volunteer";
     const isNPO = isAuthenticated && userType === "npo";
     const navigate = useNavigate();
+    
+    // Получаем данные НКО для проверки статуса
+    const { data: npoData } = useGetNPOByIdQuery(isNPO && userId ? userId : skipToken);
+    const isNPOConfirmed = isNPO && npoData?.status === "confirmed";
     
     const { data: volunteerEvents } = useGetVolunteerEventsQuery(
         isVolunteer && userId ? userId : skipToken
@@ -277,7 +281,7 @@ const EventsPage = () => {
                         <Title level={3} className="events-page__title" style={{ margin: 0 }}>
                             Календарь событий в городе {currentCity}
                         </Title>
-                        {isNPO && (
+                        {isNPOConfirmed && (
                             <Button
                                 type="primary"
                                 icon={<PlusOutlined />}

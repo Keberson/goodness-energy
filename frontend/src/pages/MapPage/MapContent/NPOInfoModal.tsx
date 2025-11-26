@@ -81,7 +81,7 @@ const NPOInfoModal: React.FC<NPOInfoModalProps> = ({ npoInfo, onClose }) => {
                     <Row gutter={[16, 16]}>
                         {npoInfo.galleryIds.map((fileId) => (
                             <Col xs={24} sm={12} md={8} lg={6} key={fileId}>
-                                <FilePreview fileId={fileId} />
+                                <FilePreview fileId={fileId} hideFileName={true} />
                             </Col>
                         ))}
                     </Row>

@@ -40,9 +40,19 @@ export const newsApi = createApi({
             query: (id) => ({ url: `/${id}` }),
             providesTags: (_result, _error, id) => [{ type: "News", id }],
         }),
+        getMyNews: builder.query<INews[], void>({
+            query: () => ({ url: `/my` }),
+            providesTags: (result) =>
+                result
+                    ? [
+                          ...result.map(({ id }) => ({ type: "News" as const, id })),
+                          { type: "News", id: "MY_LIST" },
+                      ]
+                    : [{ type: "News", id: "MY_LIST" }],
+        }),
         createNews: builder.mutation<INews, INewsCreate>({
             query: (body) => ({ url: ``, method: "POST", body }),
-            invalidatesTags: [{ type: "News", id: "LIST" }],
+            invalidatesTags: [{ type: "News", id: "LIST" }, { type: "News", id: "MY_LIST" }],
         }),
         updateNews: builder.mutation<INews, { id: number; body: INewsUpdate }>({
             query: (payload) => ({
@@ -53,6 +63,7 @@ export const newsApi = createApi({
             invalidatesTags: (_result, _error, payload) => [
                 { type: "News", id: payload.id },
                 { type: "News", id: "LIST" },
+                { type: "News", id: "MY_LIST" },
             ],
         }),
         deleteNews: builder.mutation<void, number>({
@@ -60,6 +71,7 @@ export const newsApi = createApi({
             invalidatesTags: (_result, _error, id) => [
                 { type: "News", id },
                 { type: "News", id: "LIST" },
+                { type: "News", id: "MY_LIST" },
             ],
         }),
     }),
@@ -69,6 +81,7 @@ export const {
     useGetNewsTypesQuery,
     useGetNewsQuery,
     useGetNewsByIdQuery,
+    useGetMyNewsQuery,
     useCreateNewsMutation,
     useUpdateNewsMutation,
     useDeleteNewsMutation,

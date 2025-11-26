@@ -206,7 +206,6 @@ const EditNewsPage = () => {
     );
 
     const toolbarItems = [
-        { type: "heading" as NewsEditorElementType, label: "Заголовок", icon: <FontSizeOutlined /> },
         { type: "paragraph" as NewsEditorElementType, label: "Текст", icon: <FileTextOutlined /> },
         { type: "image" as NewsEditorElementType, label: "Изображение", icon: <PictureOutlined /> },
         { type: "list" as NewsEditorElementType, label: "Список", icon: <UnorderedListOutlined /> },
@@ -231,7 +230,7 @@ const EditNewsPage = () => {
             case "quote":
                 return { id, type: "quote", content: "" };
             case "link":
-                return { id, type: "link", content: "Текст ссылки", props: { url: "" } };
+                return { id, type: "link", content: "", props: { url: "" } };
             case "file":
                 return { id, type: "file", content: 0 };
             case "divider":

@@ -13,9 +13,15 @@ interface FavoriteButtonProps {
 
 const FavoriteButton = ({ itemType, itemId, size = "middle" }: FavoriteButtonProps) => {
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+    const userType = useAppSelector((state) => state.auth.userType);
+    
+    // НКО не могут добавлять в избранное
+    if (!isAuthenticated || userType === "npo") {
+        return null;
+    }
     
     const { data: checkData } = useCheckFavoriteQuery(
-        isAuthenticated ? { item_type: itemType, item_id: itemId } : skipToken
+        { item_type: itemType, item_id: itemId }
     );
     
     const [addFavorite, { isLoading: isAdding }] = useAddFavoriteMutation();
@@ -26,9 +32,6 @@ const FavoriteButton = ({ itemType, itemId, size = "middle" }: FavoriteButtonPro
     
     const handleToggle = async (e: React.MouseEvent) => {
         e.stopPropagation(); // Предотвращаем всплытие события, чтобы не вызывать onClick родительских элементов
-        if (!isAuthenticated) {
-            return;
-        }
         
         try {
             if (isFavorite) {
@@ -40,10 +43,6 @@ const FavoriteButton = ({ itemType, itemId, size = "middle" }: FavoriteButtonPro
             console.error("Ошибка при изменении избранного:", error);
         }
     };
-    
-    if (!isAuthenticated) {
-        return null;
-    }
     
     return (
         <Tooltip title={isFavorite ? "Удалить из избранного" : "Добавить в избранное"}>

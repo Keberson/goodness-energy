@@ -107,6 +107,58 @@ async def get_all_news(
     
     return result
 
+@router.get("/my", response_model=List[NewsResponse])
+async def get_my_news(
+    current_user = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+    """Получение новостей текущего пользователя"""
+    from sqlalchemy import or_
+    
+    # Определяем фильтр в зависимости от роли пользователя
+    if current_user.role == UserRole.NPO:
+        npo = db.query(NPO).filter(NPO.user_id == current_user.id).first()
+        if not npo:
+            return []
+        # Для НКО ищем новости по npo_id
+        news_list = db.query(News).filter(News.npo_id == npo.id).order_by(News.created_at.desc()).all()
+    elif current_user.role == UserRole.VOLUNTEER:
+        volunteer = db.query(Volunteer).filter(Volunteer.user_id == current_user.id).first()
+        if not volunteer:
+            return []
+        # Для волонтёра ищем новости по volunteer_id
+        news_list = db.query(News).filter(News.volunteer_id == volunteer.id).order_by(News.created_at.desc()).all()
+    elif current_user.role == UserRole.ADMIN:
+        # Для админа ищем новости по admin_id или user_id (на случай старых новостей)
+        news_list = db.query(News).filter(
+            or_(News.admin_id == current_user.id, News.user_id == current_user.id)
+        ).order_by(News.created_at.desc()).all()
+    else:
+        # Fallback: ищем по user_id
+        news_list = db.query(News).filter(News.user_id == current_user.id).order_by(News.created_at.desc()).all()
+    
+    result = []
+    
+    for news in news_list:
+        tags = [t.tag for t in news.tags]
+        attached_ids = [a.file_id for a in news.attachments]
+        author = get_news_author(news, db)
+        
+        result.append(NewsResponse(
+            id=news.id,
+            name=news.name,
+            annotation=news.annotation,
+            text=news.text,
+            attachedIds=attached_ids,
+            tags=tags,
+            type=news.type,
+            created_at=news.created_at,
+            user_id=news.user_id,
+            author=author
+        ))
+    
+    return result
+
 @router.get("/{news_id}", response_model=NewsResponse)
 async def get_news_by_id(news_id: int, db: Session = Depends(get_db)):
     """Получение новости по ID"""

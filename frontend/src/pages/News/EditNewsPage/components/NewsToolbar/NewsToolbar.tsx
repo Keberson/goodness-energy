@@ -23,7 +23,6 @@ interface ToolbarItem {
 }
 
 const toolbarItems: ToolbarItem[] = [
-    { type: "heading", label: "Заголовок", icon: <FontSizeOutlined /> },
     { type: "paragraph", label: "Текст", icon: <FileTextOutlined /> },
     { type: "image", label: "Изображение", icon: <PictureOutlined /> },
     { type: "list", label: "Список", icon: <UnorderedListOutlined /> },

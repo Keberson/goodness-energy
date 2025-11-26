@@ -19,7 +19,7 @@ async def get_map_npo(
     db: Session = Depends(get_db)
 ):
     """Карта с точками НКО с опциональной фильтрацией по городу"""
-    query = db.query(NPO)
+    query = db.query(NPO).filter(NPO.status == NPOStatus.CONFIRMED)
     
     if city:
         query = query.filter(NPO.city == city)

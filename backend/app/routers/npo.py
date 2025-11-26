@@ -55,7 +55,7 @@ async def get_all_npos(
     db: Session = Depends(get_db)
 ):
     """Список всех организаций с опциональной фильтрацией по городу"""
-    query = db.query(NPO)
+    query = db.query(NPO).filter(NPO.status == NPOStatus.CONFIRMED)
     
     if city:
         query = query.filter(NPO.city == city)
@@ -309,6 +309,13 @@ async def create_event(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Вы можете создавать события только для своей НКО"
+        )
+    
+    # Проверка статуса НКО
+    if npo.status != NPOStatus.CONFIRMED:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Неподтверждённые НКО не могут создавать события"
         )
     
     # Валидация координат события
@@ -655,6 +662,13 @@ async def create_news(
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Вы можете создавать новости только для своей НКО"
+        )
+    
+    # Проверка статуса НКО
+    if npo.status != NPOStatus.CONFIRMED:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Неподтверждённые НКО не могут создавать новости"
         )
     
     news = News(

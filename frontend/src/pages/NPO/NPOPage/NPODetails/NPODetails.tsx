@@ -28,7 +28,7 @@ const NPODetails: React.FC<NPODetailsProps> = ({ npo, showGallery = false }) => 
                     <Row gutter={[16, 16]}>
                         {npo.galleryIds.map((fileId) => (
                             <Col xs={24} sm={12} md={8} lg={6} key={fileId}>
-                                <FilePreview fileId={fileId} />
+                                <FilePreview fileId={fileId} hideFileName={true} />
                             </Col>
                         ))}
                     </Row>

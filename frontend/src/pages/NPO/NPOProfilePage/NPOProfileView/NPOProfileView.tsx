@@ -4,7 +4,6 @@ import { FileTextOutlined } from "@ant-design/icons";
 
 import type { INPO } from "@app-types/npo.types";
 import FilePreview from "@components/FilePreview/FilePreview";
-import NotificationSettings from "@components/NotificationSettings/NotificationSettings";
 import NewsContent from "@components/NewsContent/NewsContent";
 
 const { Text, Paragraph, Title } = Typography;
@@ -122,7 +121,7 @@ const NPOProfileView: React.FC<NPOProfileViewProps> = ({ profileData }) => {
                     <Row gutter={[16, 16]}>
                         {profileData.galleryIds.map((fileId) => (
                             <Col xs={24} sm={12} md={8} lg={6} key={fileId}>
-                                <FilePreview fileId={fileId} />
+                                <FilePreview fileId={fileId} hideFileName={true} />
                             </Col>
                         ))}
                     </Row>
@@ -130,8 +129,6 @@ const NPOProfileView: React.FC<NPOProfileViewProps> = ({ profileData }) => {
                     <Empty description="Фотографии не загружены" />
                 )}
             </div>
-
-            <NotificationSettings />
         </div>
     );
 };

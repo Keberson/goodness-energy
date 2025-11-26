@@ -13,8 +13,6 @@ import {
     message,
 } from "antd";
 import {
-    EyeOutlined,
-    UserOutlined,
     CalendarOutlined,
     CheckCircleOutlined,
     ArrowLeftOutlined,
@@ -31,7 +29,7 @@ import useAppSelector from "@hooks/useAppSelector";
 import { skipToken } from "@reduxjs/toolkit/query";
 import { useNavigate } from "react-router-dom";
 import React from "react";
-import type { IProfileViewerStats, IEventStats } from "@app-types/npo.types";
+import type { IEventStats } from "@app-types/npo.types";
 
 const { Title } = Typography;
 
@@ -108,28 +106,6 @@ const StatisticsPage = () => {
             icon: <FilePdfOutlined />,
             onClick: () => handleDownload("pdf"),
             disabled: isDownloading,
-        },
-    ];
-
-    const viewerColumns: ColumnsType<IProfileViewerStats> = [
-        {
-            title: "Пользователь",
-            dataIndex: "viewer_login",
-            key: "viewer_login",
-            render: (login: string | null) => login || "Неавторизованный пользователь",
-        },
-        {
-            title: "Количество просмотров",
-            dataIndex: "view_count",
-            key: "view_count",
-            sorter: (a, b) => a.view_count - b.view_count,
-            defaultSortOrder: "descend",
-        },
-        {
-            title: "Последний просмотр",
-            dataIndex: "last_viewed_at",
-            key: "last_viewed_at",
-            render: (date: string | null) => (date ? new Date(date).toLocaleString("ru-RU") : "-"),
         },
     ];
 
@@ -228,24 +204,6 @@ const StatisticsPage = () => {
                     <Col xs={24} sm={12} md={6}>
                         <Card>
                             <Statistic
-                                title="Всего просмотров профиля"
-                                value={statistics.total_profile_views}
-                                prefix={<EyeOutlined />}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} md={6}>
-                        <Card>
-                            <Statistic
-                                title="Уникальных посетителей"
-                                value={statistics.unique_viewers}
-                                prefix={<UserOutlined />}
-                            />
-                        </Card>
-                    </Col>
-                    <Col xs={24} sm={12} md={6}>
-                        <Card>
-                            <Statistic
                                 title="Всего событий"
                                 value={statistics.total_events}
                                 prefix={<CalendarOutlined />}
@@ -285,18 +243,6 @@ const StatisticsPage = () => {
                             );
                         })}
                     </Space>
-                </Card>
-
-                {/* Статистика просмотров профиля */}
-                <Card style={{ marginBottom: 24 }}>
-                    <Title level={4}>Просмотры профиля</Title>
-                    <Table
-                        columns={viewerColumns}
-                        dataSource={statistics.profile_viewers}
-                        rowKey={(record) => record.viewer_id || `anonymous-${record.view_count}`}
-                        pagination={{ pageSize: 10 }}
-                        locale={{ emptyText: "Просмотров пока нет" }}
-                    />
                 </Card>
 
                 {/* Статистика по событиям */}

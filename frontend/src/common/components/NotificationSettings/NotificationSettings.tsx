@@ -1,6 +1,6 @@
-import React from "react";
-import { Card, Checkbox, Space, Typography, App } from "antd";
-import { MailOutlined } from "@ant-design/icons";
+import React, { useState, useEffect } from "react";
+import { Card, Checkbox, Space, Typography, App, Button } from "antd";
+import { MailOutlined, SaveOutlined } from "@ant-design/icons";
 
 import {
     useGetNotificationSettingsQuery,
@@ -12,23 +12,50 @@ const { Text } = Typography;
 
 const NotificationSettings: React.FC = () => {
     const { data: settings } = useGetNotificationSettingsQuery();
-    const [updateSettings] = useUpdateNotificationSettingsMutation();
+    const [updateSettings, { isLoading }] = useUpdateNotificationSettingsMutation();
     const { message } = App.useApp();
 
-    const handleChange = async (
-        field: "notify_city_news" | "notify_events",
-        checked: boolean
-    ) => {
+    // Локальное состояние для хранения изменений
+    const [localSettings, setLocalSettings] = useState({
+        notify_city_news: false,
+        notify_events: false,
+    });
+
+    // Синхронизируем локальное состояние с данными из сервера
+    useEffect(() => {
+        if (settings) {
+            setLocalSettings({
+                notify_city_news: settings.notify_city_news,
+                notify_events: settings.notify_events,
+            });
+        }
+    }, [settings]);
+
+    // Проверяем, есть ли несохранённые изменения
+    const hasChanges =
+        settings &&
+        (localSettings.notify_city_news !== settings.notify_city_news ||
+            localSettings.notify_events !== settings.notify_events);
+
+    const handleChange = (field: "notify_city_news" | "notify_events", checked: boolean) => {
+        setLocalSettings((prev) => ({
+            ...prev,
+            [field]: checked,
+        }));
+    };
+
+    const handleSave = async () => {
         if (!settings) return;
 
         try {
             const update: INotificationSettingsUpdate = {
-                [field]: checked,
+                notify_city_news: localSettings.notify_city_news,
+                notify_events: localSettings.notify_events,
             };
             await updateSettings(update).unwrap();
-            // Сообщение не показываем, так как обновление происходит автоматически через invalidate
+            message.success("Настройки уведомлений успешно сохранены");
         } catch (error) {
-            message.error("Ошибка при обновлении настроек уведомлений");
+            message.error("Ошибка при сохранении настроек уведомлений");
         }
     };
 
@@ -49,7 +76,7 @@ const NotificationSettings: React.FC = () => {
             <Space direction="vertical" size="large" style={{ width: "100%" }}>
                 <div>
                     <Checkbox
-                        checked={settings.notify_city_news}
+                        checked={localSettings.notify_city_news}
                         onChange={(e) => handleChange("notify_city_news", e.target.checked)}
                     >
                         <Text strong>Уведомления о новостях из вашего города</Text>
@@ -61,7 +88,7 @@ const NotificationSettings: React.FC = () => {
 
                 <div>
                     <Checkbox
-                        checked={settings.notify_events}
+                        checked={localSettings.notify_events}
                         onChange={(e) => handleChange("notify_events", e.target.checked)}
                     >
                         <Text strong>Уведомления о событиях</Text>
@@ -69,6 +96,18 @@ const NotificationSettings: React.FC = () => {
                     <div style={{ marginLeft: 24, marginTop: 4, color: "#8c8c8c" }}>
                         Получать уведомления о новых событиях и мероприятиях
                     </div>
+                </div>
+
+                <div style={{ marginTop: 8 }}>
+                    <Button
+                        type="primary"
+                        icon={<SaveOutlined />}
+                        onClick={handleSave}
+                        loading={isLoading}
+                        disabled={!hasChanges}
+                    >
+                        Сохранить
+                    </Button>
                 </div>
             </Space>
         </Card>
