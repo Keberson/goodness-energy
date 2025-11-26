@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { useGetNewsQuery } from "@services/api/news.api";
 import type { INews } from "@app-types/news.types";
 import { useCity } from "@hooks/useCity";
+import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
 
 const { Title } = Typography;
 
@@ -57,7 +58,14 @@ const NewsListPage = () => {
                             <List.Item
                                 key={item.id}
                                 actions={[
+                                    <FavoriteButton
+                                        key="favorite"
+                                        itemType="news"
+                                        itemId={item.id}
+                                        size="small"
+                                    />,
                                     <Button
+                                        key="details"
                                         type="link"
                                         icon={<EyeOutlined />}
                                         onClick={() => navigate(`/news/${item.id}`)}

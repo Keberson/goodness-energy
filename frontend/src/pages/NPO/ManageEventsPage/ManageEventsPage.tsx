@@ -12,7 +12,7 @@ import {
     DatePicker,
     InputNumber,
     Select,
-    message,
+    App,
     Popconfirm,
     Flex,
     Upload,
@@ -67,6 +67,7 @@ const statusOptions: { label: string; value: EventStatus; color: string }[] = [
 
 const ManageEventsPage = () => {
     const navigate = useNavigate();
+    const { message } = App.useApp();
     const userId = useAppSelector((state) => state.auth.userId);
     const { data: npoData } = useGetNPOByIdQuery(userId ?? skipToken);
     const { data: events, isLoading } = useGetNPOEventsQuery(npoData?.id ?? skipToken);
@@ -358,7 +359,7 @@ const ManageEventsPage = () => {
                     }}
                     width={600}
                     style={{ top: 50 }}
-                    bodyStyle={{ maxHeight: "calc(100vh - 200px)", overflowY: "auto" }}
+                    styles={{ body: { maxHeight: "calc(100vh - 200px)", overflowY: "auto" } }}
                     footer={
                         editingEvent ? (
                             <Flex justify="space-between">

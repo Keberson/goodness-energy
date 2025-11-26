@@ -4,6 +4,7 @@ import type { INews, INewsCreate } from "@app-types/news.types";
 
 import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import { getApiBaseUrl } from "@utils/apiUrl";
+import { eventsApi } from "./events.api";
 
 export interface IEventCreateRequest {
     name: string;
@@ -88,6 +89,20 @@ export const npoApi = createApi({
                 method: "POST",
                 body: payload.body,
             }),
+            async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+                try {
+                    const { data } = await queryFulfilled;
+                    // Инвалидируем теги в eventsApi для обновления календаря
+                    dispatch(
+                        eventsApi.util.invalidateTags([
+                            { type: "Event", id: data.id },
+                            { type: "Event", id: "LIST" },
+                        ])
+                    );
+                } catch {
+                    // Игнорируем ошибки при инвалидации
+                }
+            },
             invalidatesTags: (_, __, payload) => [
                 { type: "Event", id: "LIST" },
                 { type: "Statistics", id: payload.npoId },
@@ -102,6 +117,20 @@ export const npoApi = createApi({
                 method: "PUT",
                 body: payload.body,
             }),
+            async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    // Инвалидируем теги в eventsApi для обновления календаря
+                    dispatch(
+                        eventsApi.util.invalidateTags([
+                            { type: "Event", id: arg.eventId },
+                            { type: "Event", id: "LIST" },
+                        ])
+                    );
+                } catch {
+                    // Игнорируем ошибки при инвалидации
+                }
+            },
             invalidatesTags: (_, __, payload) => [
                 { type: "Event", id: payload.eventId },
                 { type: "Event", id: "LIST" },
@@ -113,6 +142,20 @@ export const npoApi = createApi({
                 url: `/${payload.npoId}/event/${payload.eventId}`,
                 method: "DELETE",
             }),
+            async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    // Инвалидируем теги в eventsApi для обновления календаря
+                    dispatch(
+                        eventsApi.util.invalidateTags([
+                            { type: "Event", id: arg.eventId },
+                            { type: "Event", id: "LIST" },
+                        ])
+                    );
+                } catch {
+                    // Игнорируем ошибки при инвалидации
+                }
+            },
             invalidatesTags: (_, __, payload) => [
                 { type: "Event", id: payload.eventId },
                 { type: "Event", id: "LIST" },
@@ -128,6 +171,20 @@ export const npoApi = createApi({
                 method: "PATCH",
                 body: payload.body,
             }),
+            async onQueryStarted(arg, { dispatch, queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    // Инвалидируем теги в eventsApi для обновления календаря
+                    dispatch(
+                        eventsApi.util.invalidateTags([
+                            { type: "Event", id: arg.eventId },
+                            { type: "Event", id: "LIST" },
+                        ])
+                    );
+                } catch {
+                    // Игнорируем ошибки при инвалидации
+                }
+            },
             invalidatesTags: (_, __, payload) => [
                 { type: "Event", id: payload.eventId },
                 { type: "Event", id: "LIST" },

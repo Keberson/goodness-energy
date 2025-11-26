@@ -206,7 +206,7 @@ const RootLayout = () => {
                         placement="left"
                         onClose={() => setMobileMenuOpen(false)}
                         open={mobileMenuOpen}
-                        bodyStyle={{ padding: 0, backgroundColor: "#001529" }}
+                        styles={{ body: { padding: 0, backgroundColor: "#001529" } }}
                         headerStyle={{ backgroundColor: "#001529", borderBottom: "none", padding: "16px" }}
                         width={280}
                         className="mobile-drawer"

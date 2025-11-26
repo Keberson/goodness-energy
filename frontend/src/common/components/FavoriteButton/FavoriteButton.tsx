@@ -24,7 +24,8 @@ const FavoriteButton = ({ itemType, itemId, size = "middle" }: FavoriteButtonPro
     const isFavorite = checkData?.is_favorite ?? false;
     const isLoading = isAdding || isRemoving;
     
-    const handleToggle = async () => {
+    const handleToggle = async (e: React.MouseEvent) => {
+        e.stopPropagation(); // Предотвращаем всплытие события, чтобы не вызывать onClick родительских элементов
         if (!isAuthenticated) {
             return;
         }

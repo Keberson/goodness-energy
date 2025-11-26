@@ -474,7 +474,8 @@ async def update_event(
     if event_update.quantity is not None:
         event.quantity = event_update.quantity
     if event_update.city is not None:
-        event.city = event_update.city.value  # Сохраняем строковое значение enum
+        # NPOCity - это строковый enum, поэтому можно использовать напрямую
+        event.city = event_update.city.value if hasattr(event_update.city, 'value') else str(event_update.city)
     
     # Обновление тегов
     if event_update.tags is not None:
@@ -507,9 +508,9 @@ async def update_event(
             event_city=event.city,
             event_start=str(event.start)
         ))
-    # Добавляем обработку ошибок для задачи
-    task.add_done_callback(lambda t: logger.error(f"Ошибка в задаче отправки уведомлений о событии: {t.exception()}") if t.exception() else None)
-    logger.info(f"Отправка уведомлений о событии {event.id} после изменения статуса на 'published'")
+        # Добавляем обработку ошибок для задачи
+        task.add_done_callback(lambda t: logger.error(f"Ошибка в задаче отправки уведомлений о событии: {t.exception()}") if t.exception() else None)
+        logger.info(f"Отправка уведомлений о событии {event.id} после изменения статуса на 'published'")
     
     # Отправка уведомлений об отмене, если статус изменился с "Опубликовано" на "Отменено"
     if (old_status == EventStatus.PUBLISHED and 

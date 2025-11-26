@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 from typing import List
 from app.database import get_db
-from app.models import Favorite, FavoriteType, News, Event, Knowledge, User, NewsTag, NewsAttachment, EventTag, KnowledgeTag, KnowledgeAttachment
+from app.models import Favorite, FavoriteType, News, Event, Knowledge, User, NewsTag, NewsAttachment, EventTag, KnowledgeTag, KnowledgeAttachment, NPO, Volunteer
 from app.schemas import FavoriteCreate, FavoriteResponse, FavoriteItemResponse, NewsResponse, EventResponse, KnowledgeResponse
 from app.auth import get_current_user
 import logging
@@ -10,6 +10,20 @@ import logging
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+def get_news_author(news: News, db: Session) -> str:
+    """Определяет автора новости на основе типа создателя"""
+    if news.volunteer_id:
+        volunteer = db.query(Volunteer).filter(Volunteer.id == news.volunteer_id).first()
+        if volunteer:
+            return f"{volunteer.first_name} {volunteer.second_name}"
+    elif news.npo_id:
+        npo = db.query(NPO).filter(NPO.id == news.npo_id).first()
+        if npo:
+            return npo.name
+    elif news.admin_id:
+        return "Администратор"
+    return "Неизвестный автор"
 
 @router.post("", response_model=FavoriteResponse, status_code=status.HTTP_201_CREATED)
 async def add_favorite(
@@ -115,14 +129,18 @@ async def get_favorites(
             if news:
                 tags = [t.tag for t in news.tags]
                 attached_ids = [a.file_id for a in news.attachments]
+                author = get_news_author(news, db)
                 item_data = NewsResponse(
                     id=news.id,
                     name=news.name,
+                    annotation=news.annotation,
                     text=news.text,
                     attachedIds=attached_ids,
                     tags=tags,
                     type=news.type,
-                    created_at=news.created_at
+                    created_at=news.created_at,
+                    user_id=news.user_id,
+                    author=author
                 ).model_dump()
         
         elif favorite.item_type == FavoriteType.EVENT:

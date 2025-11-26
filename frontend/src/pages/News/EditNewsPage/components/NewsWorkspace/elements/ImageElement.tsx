@@ -83,7 +83,7 @@ const ImageElement = ({ content, caption = "", isEditing, onSave, onCancel, onEd
                                     key={fileId}
                                     size="small"
                                     style={{ width: 150, position: "relative" }}
-                                    bodyStyle={{ padding: 8 }}
+                                    styles={{ body: { padding: 8 } }}
                                 >
                                     <FilePreview fileId={fileId} />
                                     <Button
