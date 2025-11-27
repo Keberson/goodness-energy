@@ -66,10 +66,6 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
         { status: "approved", city: filterCity, theme_tag: filterTheme },
         { skip: activeSection !== "posts" || activeTab !== "all" }
     );
-    const { data: cityPosts, isLoading: isLoadingCityPosts } = useGetVolunteerPostsQuery(
-        { city: currentCity || undefined, status: "approved", theme_tag: filterTheme },
-        { skip: !currentCity || activeSection !== "posts" || activeTab !== "city" }
-    );
     const { data: myPosts, isLoading: isLoadingMyPosts } = useGetMyPostsQuery(undefined, {
         skip: !isAuthenticated || activeSection !== "posts" || activeTab !== "my" || !isVolunteer,
     });
@@ -79,12 +75,6 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
     const { data: allNews, isLoading: isLoadingAll } = useGetNewsQuery(filterNewsCity, {
         skip: activeSection !== "news" || activeTab !== "all",
     });
-    const { data: cityNews, isLoading: isLoadingCity } = useGetNewsQuery(
-        activeTab === "city" ? (currentCity || filterNewsCity) : filterNewsCity,
-        {
-            skip: (!currentCity && !filterNewsCity) || activeSection !== "news" || activeTab !== "city",
-        }
-    );
     const { data: myNews, isLoading: isLoadingMy } = useGetMyNewsQuery(undefined, {
         skip: !isAuthenticated || activeSection !== "news" || activeTab !== "my",
     });
@@ -99,14 +89,8 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
     const canCreatePost = isAuthenticated && isVolunteer;
     
     // Данные в зависимости от активного раздела
-    const postsData =
-        activeTab === "my" ? myPosts : activeTab === "city" ? cityPosts : allPosts;
-    const postsLoading =
-        activeTab === "my"
-            ? isLoadingMyPosts
-            : activeTab === "city"
-            ? isLoadingCityPosts
-            : isLoadingAllPosts;
+    const postsData = activeTab === "my" ? myPosts : allPosts;
+    const postsLoading = activeTab === "my" ? isLoadingMyPosts : isLoadingAllPosts;
     
     // Фильтрация новостей по типу на фронтенде
     const getFilteredNews = (news: INews[] | undefined) => {
@@ -115,14 +99,9 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
         return news.filter((item) => item.type === filterNewsType);
     };
 
-    const newsDataRaw = activeTab === "my" ? myNews : activeTab === "city" ? cityNews : allNews;
+    const newsDataRaw = activeTab === "my" ? myNews : allNews;
     const newsData = getFilteredNews(newsDataRaw);
-    const newsLoading =
-        activeTab === "my"
-            ? isLoadingMy
-            : activeTab === "city"
-            ? isLoadingCity
-            : isLoadingAll;
+    const newsLoading = activeTab === "my" ? isLoadingMy : isLoadingAll;
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
@@ -457,10 +436,6 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                             key: "all",
                             label: activeSection === "posts" ? "Все истории" : "Все новости",
                         },
-                        {
-                            key: "city",
-                            label: `${activeSection === "posts" ? "Истории" : "Новости"} города ${currentCity || ""}`.trim(),
-                        },
                         ...(isAuthenticated && (activeSection === "posts" ? isVolunteer : true)
                             ? [
                                   {
@@ -537,7 +512,6 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                                 value={tempFilterCity}
                                 onChange={(value) => setTempFilterCity(value)}
                                 style={{ width: "100%", marginTop: 8 }}
-                                disabled={activeTab === "city"}
                             >
                                 {availableCities.map((cityName: string) => (
                                     <Option key={cityName} value={cityName}>
@@ -604,7 +578,6 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                                 value={tempFilterNewsCity}
                                 onChange={(value) => setTempFilterNewsCity(value)}
                                 style={{ width: "100%", marginTop: 8 }}
-                                disabled={activeTab === "city"}
                             >
                                 {availableCities.map((cityName: string) => (
                                     <Option key={cityName} value={cityName}>
