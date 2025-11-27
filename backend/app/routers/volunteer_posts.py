@@ -40,6 +40,7 @@ async def get_available_themes():
 async def get_volunteer_posts(
     city: Optional[str] = Query(None, description="Фильтр по городу"),
     status_filter: Optional[VolunteerPostStatus] = Query(None, description="Фильтр по статусу модерации"),
+    theme_tag: Optional[str] = Query(None, description="Фильтр по тематике"),
     db: Session = Depends(get_db)
 ):
     """
@@ -56,6 +57,9 @@ async def get_volunteer_posts(
     
     if city:
         query = query.filter(VolunteerPost.city == city)
+    
+    if theme_tag:
+        query = query.filter(VolunteerPost.theme_tag == theme_tag)
     
     posts_list = query.order_by(VolunteerPost.created_at.desc()).all()
     result = []

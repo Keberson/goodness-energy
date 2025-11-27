@@ -21,7 +21,7 @@ export const volunteerPostsApi = createApi({
     }),
     tagTypes: ["VolunteerPost"],
     endpoints: (builder) => ({
-        getVolunteerPosts: builder.query<IVolunteerPost[], { city?: string; status?: string } | void>({
+        getVolunteerPosts: builder.query<IVolunteerPost[], { city?: string; status?: string; theme_tag?: string } | void>({
             query: (params) => {
                 const searchParams = new URLSearchParams();
                 if (params?.city) {
@@ -29,6 +29,9 @@ export const volunteerPostsApi = createApi({
                 }
                 if (params?.status) {
                     searchParams.append("status_filter", params.status);
+                }
+                if (params?.theme_tag) {
+                    searchParams.append("theme_tag", params.theme_tag);
                 }
                 const queryString = searchParams.toString();
                 return {

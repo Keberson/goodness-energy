@@ -91,40 +91,36 @@ const NewsPage = () => {
                         </Button>
                     )}
                 </Space>
-                <Space 
-                    wrap 
-                    size="large" 
-                    style={{ 
-                        marginBottom: 24,
-                        padding: "8px 0",
-                        borderBottom: "1px solid #f0f0f0"
-                    }}
-                >
-                    <Space>
-                        <UserOutlined />
-                        <span>{data.author}</span>
-                    </Space>
-                    <Tag color={getTypeColor(data.type)}>{getTypeLabel(data.type)}</Tag>
-                    <Space>
-                        <CalendarOutlined />
-                        <span>
-                            {new Date(data.created_at).toLocaleDateString("ru-RU", {
-                                year: "numeric",
-                                month: "long",
-                                day: "numeric",
-                                hour: "2-digit",
-                                minute: "2-digit",
-                            })}
-                        </span>
-                    </Space>
-                    {data.tags && data.tags.length > 0 && (
-                        <Space wrap>
-                            {data.tags.map((tag) => (
-                                <Tag key={tag}>{tag}</Tag>
-                            ))}
+                <div style={{ marginBottom: 24, padding: "8px 0", borderBottom: "1px solid #f0f0f0" }}>
+                    <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                        <Space>
+                            <UserOutlined />
+                            <span>{data.author}</span>
                         </Space>
-                    )}
-                </Space>
+                        <Space>
+                            <Tag color={getTypeColor(data.type)}>{getTypeLabel(data.type)}</Tag>
+                        </Space>
+                        <Space>
+                            <CalendarOutlined />
+                            <span>
+                                {new Date(data.created_at).toLocaleDateString("ru-RU", {
+                                    year: "numeric",
+                                    month: "long",
+                                    day: "numeric",
+                                    hour: "2-digit",
+                                    minute: "2-digit",
+                                })}
+                            </span>
+                        </Space>
+                        {data.tags && data.tags.length > 0 && (
+                            <Space wrap>
+                                {data.tags.map((tag) => (
+                                    <Tag key={tag}>{tag}</Tag>
+                                ))}
+                            </Space>
+                        )}
+                    </Space>
+                </div>
                 <Title level={4}>Содержание</Title>
                 <NewsContent
                     html={data.text}

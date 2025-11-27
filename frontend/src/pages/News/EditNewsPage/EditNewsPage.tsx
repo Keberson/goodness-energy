@@ -13,7 +13,7 @@ import {
     LinkOutlined,
     FileOutlined,
 } from "@ant-design/icons";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useParams, useLocation } from "react-router-dom";
 import { DndContext, DragOverlay, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core";
 import { arrayMove } from "@dnd-kit/sortable";
@@ -26,6 +26,13 @@ import {
     useUpdateNewsMutation,
     useGetNewsByIdQuery,
 } from "@services/api/news.api";
+import {
+    useGetPostByIdQuery,
+    useCreatePostMutation,
+    useUpdatePostMutation,
+    useGetAvailableThemesQuery,
+} from "@services/api/volunteer-posts.api";
+import { useGetNPOsQuery } from "@services/api/npo.api";
 import { useCity } from "@hooks/useCity";
 import NewsToolbar from "./components/NewsToolbar/NewsToolbar";
 import NewsWorkspace from "./components/NewsWorkspace/NewsWorkspace";
@@ -38,10 +45,14 @@ const { Option } = Select;
 
 const EditNewsPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { id } = useParams<{ id?: string }>();
     const isEditing = !!id;
     const newsId = id ? Number(id) : 0;
     const { message } = App.useApp();
+    
+    // Определяем, создаем ли мы новость или историю волонтера
+    const isVolunteerPost = location.pathname.includes("/volunteer-posts/edit");
 
     const [elements, setElements] = useState<NewsEditorElement[]>([]);
     const [activeId, setActiveId] = useState<string | null>(null);
@@ -49,23 +60,42 @@ const EditNewsPage = () => {
     const [annotation, setAnnotation] = useState("");
     const [type, setType] = useState<NewsType>("theme");
     const [city, setCity] = useState<string | undefined>(undefined);
+    const [themeTag, setThemeTag] = useState<string | undefined>(undefined);
+    const [npoId, setNpoId] = useState<number | undefined>(undefined);
     const [saving, setSaving] = useState(false);
     const [isLoadingNews, setIsLoadingNews] = useState(false);
     const dragOffsetRef = useRef<{ x: number; y: number } | null>(null);
     const initialRectRef = useRef<{ left: number; top: number; width: number; height: number } | null>(null);
     const currentCursorRef = useRef<{ x: number; y: number } | null>(null);
 
-    const { data: newsTypes = [], isLoading: isLoadingTypes } = useGetNewsTypesQuery();
+    const { data: newsTypes = [], isLoading: isLoadingTypes } = useGetNewsTypesQuery(undefined, {
+        skip: isVolunteerPost,
+    });
+    const { data: availableThemes = [], isLoading: isLoadingThemes } = useGetAvailableThemesQuery(undefined, {
+        skip: !isVolunteerPost,
+    });
     const [createNews] = useCreateNewsMutation();
     const [updateNews] = useUpdateNewsMutation();
+    const [createPost] = useCreatePostMutation();
+    const [updatePost] = useUpdatePostMutation();
     const {
         data: existingNews,
         isLoading: isLoadingExistingNews,
         error: newsError,
     } = useGetNewsByIdQuery(newsId, {
-        skip: !isEditing || isNaN(newsId),
+        skip: !isEditing || isNaN(newsId) || isVolunteerPost,
+    });
+    const {
+        data: existingPost,
+        isLoading: isLoadingExistingPost,
+        error: postError,
+    } = useGetPostByIdQuery(newsId, {
+        skip: !isEditing || isNaN(newsId) || !isVolunteerPost,
     });
     const { currentCity, availableCities } = useCity();
+    const { data: npos = [] } = useGetNPOsQuery(undefined, {
+        skip: !isVolunteerPost,
+    });
 
     const typeMapping: Record<string, NewsType> = {
         Тематика: "theme",
@@ -95,11 +125,11 @@ const EditNewsPage = () => {
 
     // Загрузка существующей новости при редактировании
     useEffect(() => {
-        if (isEditing && existingNews && !isLoadingNews) {
+        if (isEditing && existingNews && !isLoadingNews && !isVolunteerPost) {
             setIsLoadingNews(true);
             setTitle(existingNews.name || "");
             setAnnotation(existingNews.annotation || "");
-            setType(existingNews.type || "blog");
+            setType(existingNews.type || "theme");
             setCity(existingNews.city || undefined);
 
             // Конвертируем HTML в элементы редактора
@@ -113,7 +143,30 @@ const EditNewsPage = () => {
                 setIsLoadingNews(false);
             }
         }
-    }, [isEditing, existingNews, isLoadingNews, message]);
+    }, [isEditing, existingNews, isLoadingNews, message, isVolunteerPost]);
+    
+    // Загрузка существующей истории волонтера при редактировании
+    useEffect(() => {
+        if (isEditing && existingPost && !isLoadingNews && isVolunteerPost) {
+            setIsLoadingNews(true);
+            setTitle(existingPost.name || "");
+            setAnnotation(existingPost.annotation || "");
+            setCity(existingPost.city || undefined);
+            setThemeTag(existingPost.theme_tag || undefined);
+            setNpoId(existingPost.npo_id || undefined);
+
+            // Конвертируем HTML в элементы редактора
+            try {
+                const parsedElements = convertNewsDataToElements(existingPost.text || "");
+                setElements(parsedElements);
+            } catch (error) {
+                console.error("Ошибка при парсинге HTML истории:", error);
+                message.error("Ошибка при загрузке контента истории");
+            } finally {
+                setIsLoadingNews(false);
+            }
+        }
+    }, [isEditing, existingPost, isLoadingNews, message, isVolunteerPost]);
 
     // Для создания новости по умолчанию подставляем текущий выбранный город
     useEffect(() => {
@@ -343,8 +396,9 @@ const EditNewsPage = () => {
     };
 
     const handleSave = async () => {
+        const itemType = isVolunteerPost ? "истории" : "новости";
         if (!title.trim()) {
-            message.warning("Введите заголовок новости");
+            message.warning(`Введите заголовок ${itemType}`);
             return;
         }
 
@@ -371,15 +425,64 @@ const EditNewsPage = () => {
             const { html, attachedIds } = convertElementsToNewsData(elements);
 
             if (!html.trim()) {
-                message.warning("Контент новости не может быть пустым");
+                message.warning(`Контент ${itemType} не может быть пустым`);
                 return;
             }
 
-            if (isEditing) {
-                // Редактирование существующей новости
-                const result = await updateNews({
-                    id: newsId,
-                    body: {
+            if (isVolunteerPost) {
+                // Работа с историей волонтера
+                if (isEditing) {
+                    const result = await updatePost({
+                        id: newsId,
+                        data: {
+                            name: title.trim(),
+                            annotation: annotation.trim() || undefined,
+                            text: html,
+                            city: city || undefined,
+                            theme_tag: themeTag || undefined,
+                            npo_id: npoId || undefined,
+                            attachedIds: attachedIds.length > 0 ? attachedIds : undefined,
+                            tags: [],
+                        },
+                    }).unwrap();
+
+                    message.success("История успешно обновлена");
+                    navigate(`/volunteer-posts/${result.id}`);
+                } else {
+                    const result = await createPost({
+                        name: title.trim(),
+                        annotation: annotation.trim() || undefined,
+                        text: html,
+                        city: city || undefined,
+                        theme_tag: themeTag || undefined,
+                        npo_id: npoId || undefined,
+                        attachedIds: attachedIds.length > 0 ? attachedIds : undefined,
+                        tags: [],
+                    }).unwrap();
+
+                    message.success("История успешно сохранена");
+                    navigate(`/volunteer-posts/${result.id}`);
+                }
+            } else {
+                // Работа с новостью
+                if (isEditing) {
+                    const result = await updateNews({
+                        id: newsId,
+                        body: {
+                            name: title.trim(),
+                            annotation: annotation.trim() || undefined,
+                            text: html,
+                            city: city || undefined,
+                            type,
+                            attachedIds: attachedIds.length > 0 ? attachedIds : undefined,
+                            tags: [],
+                        },
+                    }).unwrap();
+
+                    message.success("Новость успешно обновлена");
+                    navigate(`/news/${result.id}`);
+                } else {
+                    const result = await createNews({
                         name: title.trim(),
                         annotation: annotation.trim() || undefined,
                         text: html,
@@ -387,30 +490,16 @@ const EditNewsPage = () => {
                         type,
                         attachedIds: attachedIds.length > 0 ? attachedIds : undefined,
                         tags: [],
-                    },
-                }).unwrap();
+                    }).unwrap();
 
-                message.success("Новость успешно обновлена");
-                navigate(`/news/${result.id}`);
-            } else {
-                // Создание новой новости
-                const result = await createNews({
-                    name: title.trim(),
-                    annotation: annotation.trim() || undefined,
-                    text: html,
-                    city: city || undefined,
-                    type,
-                    attachedIds: attachedIds.length > 0 ? attachedIds : undefined,
-                    tags: [],
-                }).unwrap();
-
-                message.success("Новость успешно сохранена");
-                navigate(`/news/${result.id}`);
+                    message.success("Новость успешно сохранена");
+                    navigate(`/news/${result.id}`);
+                }
             }
         } catch (error: any) {
-            console.error("Ошибка при сохранении новости:", error);
+            console.error(`Ошибка при сохранении ${isVolunteerPost ? "истории" : "новости"}:`, error);
             message.error(
-                error?.data?.detail || "Произошла ошибка при сохранении новости"
+                error?.data?.detail || `Произошла ошибка при сохранении ${itemType}`
             );
         } finally {
             setSaving(false);
@@ -487,8 +576,8 @@ const EditNewsPage = () => {
         return null;
     };
 
-    // Показываем загрузку при получении существующей новости
-    if (isEditing && (isLoadingExistingNews || isLoadingNews)) {
+    // Показываем загрузку при получении существующей новости/истории
+    if (isEditing && ((!isVolunteerPost && (isLoadingExistingNews || isLoadingNews)) || (isVolunteerPost && (isLoadingExistingPost || isLoadingNews)))) {
         return (
             <div style={{ padding: 24 }}>
                 <Card loading={true} />
@@ -496,18 +585,21 @@ const EditNewsPage = () => {
         );
     }
 
-    // Показываем ошибку, если новость не найдена
-    if (isEditing && newsError) {
+    // Показываем ошибку, если новость/история не найдена
+    if (isEditing && ((!isVolunteerPost && newsError) || (isVolunteerPost && postError))) {
+        const itemType = isVolunteerPost ? "история" : "новость";
+        const listPath = isVolunteerPost ? "/volunteer-posts" : "/news";
+        const listLabel = isVolunteerPost ? "историй волонтеров" : "новостей";
         return (
             <div style={{ padding: 24 }}>
                 <Card>
-                    <Title level={3}>Новость не найдена</Title>
+                    <Title level={3}>{itemType.charAt(0).toUpperCase() + itemType.slice(1)} не найдена</Title>
                     <Button
                         type="link"
                         icon={<ArrowLeftOutlined />}
-                        onClick={() => navigate("/news")}
+                        onClick={() => navigate(listPath)}
                     >
-                        Назад к списку новостей
+                        Назад к списку {listLabel}
                     </Button>
                 </Card>
             </div>
@@ -527,24 +619,27 @@ const EditNewsPage = () => {
                         <Button
                             type="link"
                             icon={<ArrowLeftOutlined />}
-                            onClick={() => navigate("/news")}
+                            onClick={() => navigate(isVolunteerPost ? "/volunteer-posts" : "/news")}
                             style={{ marginBottom: 16, padding: 0 }}
                         >
-                            Назад к списку новостей
+                            Назад к списку {isVolunteerPost ? "историй волонтеров" : "новостей"}
                         </Button>
                         <Title level={2} style={{ marginBottom: 24 }}>
-                            {isEditing ? "Редактирование новости" : "Создание новости"}
+                            {isEditing 
+                                ? (isVolunteerPost ? "Редактирование истории" : "Редактирование новости")
+                                : (isVolunteerPost ? "Создание истории" : "Создание новости")
+                            }
                         </Title>
                         <Card style={{ marginBottom: 16 }}>
                             <Space direction="vertical" style={{ width: "100%" }} size="middle">
                                 <div>
                                     <Title level={5} style={{ marginBottom: 8 }}>
-                                        Заголовок новости
+                                        Заголовок {isVolunteerPost ? "истории" : "новости"}
                                     </Title>
                                     <Input
                                         value={title}
                                         onChange={(e) => setTitle(e.target.value)}
-                                        placeholder="Введите заголовок новости"
+                                        placeholder={`Введите заголовок ${isVolunteerPost ? "истории" : "новости"}`}
                                         size="large"
                                     />
                                 </div>
@@ -555,37 +650,86 @@ const EditNewsPage = () => {
                                     <TextArea
                                         value={annotation}
                                         onChange={(e) => setAnnotation(e.target.value)}
-                                        placeholder="Введите краткое описание новости для отображения в списке (необязательно)"
+                                        placeholder={`Введите краткое описание ${isVolunteerPost ? "истории" : "новости"} для отображения в списке (необязательно)`}
                                         rows={3}
                                         maxLength={500}
                                         showCount
                                     />
                                 </div>
+                                {!isVolunteerPost && (
+                                    <div>
+                                        <Title level={5} style={{ marginBottom: 8 }}>
+                                            Тип новости
+                                        </Title>
+                                        <Select
+                                            value={type}
+                                            onChange={(value) => setType(value as NewsType)}
+                                            style={{ width: 200 }}
+                                            size="large"
+                                            loading={isLoadingTypes}
+                                            disabled={isLoadingTypes}
+                                        >
+                                            {newsTypes.map((typeName) => {
+                                                const typeValue = typeMapping[typeName];
+                                                return (
+                                                    <Option key={typeValue} value={typeValue}>
+                                                        {typeName}
+                                                    </Option>
+                                                );
+                                            })}
+                                        </Select>
+                                    </div>
+                                )}
+                                {isVolunteerPost && (
+                                    <>
+                                        <div>
+                                            <Title level={5} style={{ marginBottom: 8 }}>
+                                                Тематика (необязательно)
+                                            </Title>
+                                            <Select
+                                                allowClear
+                                                placeholder="Выберите тематику"
+                                                value={themeTag}
+                                                onChange={(value) => setThemeTag(value)}
+                                                style={{ width: 260 }}
+                                                size="large"
+                                                loading={isLoadingThemes}
+                                            >
+                                                {availableThemes.map((theme) => (
+                                                    <Option key={theme} value={theme}>
+                                                        {theme}
+                                                    </Option>
+                                                ))}
+                                            </Select>
+                                        </div>
+                                        <div>
+                                            <Title level={5} style={{ marginBottom: 8 }}>
+                                                НКО (необязательно)
+                                            </Title>
+                                            <Select
+                                                allowClear
+                                                placeholder="Выберите НКО"
+                                                value={npoId}
+                                                onChange={(value) => setNpoId(value)}
+                                                style={{ width: 260 }}
+                                                size="large"
+                                                showSearch
+                                                filterOption={(input, option) =>
+                                                    (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
+                                                }
+                                            >
+                                                {npos.map((npo) => (
+                                                    <Option key={npo.id} value={npo.id}>
+                                                        {npo.name}
+                                                    </Option>
+                                                ))}
+                                            </Select>
+                                        </div>
+                                    </>
+                                )}
                                 <div>
                                     <Title level={5} style={{ marginBottom: 8 }}>
-                                        Тип новости
-                                    </Title>
-                                    <Select
-                                        value={type}
-                                        onChange={(value) => setType(value as NewsType)}
-                                        style={{ width: 200 }}
-                                        size="large"
-                                        loading={isLoadingTypes}
-                                        disabled={isLoadingTypes}
-                                    >
-                                        {newsTypes.map((typeName) => {
-                                            const typeValue = typeMapping[typeName];
-                                            return (
-                                                <Option key={typeValue} value={typeValue}>
-                                                    {typeName}
-                                                </Option>
-                                            );
-                                        })}
-                                    </Select>
-                                </div>
-                                <div>
-                                    <Title level={5} style={{ marginBottom: 8 }}>
-                                        Город новости (необязательно)
+                                        Город {isVolunteerPost ? "истории" : "новости"} (необязательно)
                                     </Title>
                                     <Select
                                         allowClear
@@ -610,7 +754,10 @@ const EditNewsPage = () => {
                                     loading={saving}
                                     disabled={!title.trim() || elements.length === 0 || saving}
                                 >
-                                    {isEditing ? "Обновить новость" : "Сохранить новость"}
+                                    {isEditing 
+                                        ? (isVolunteerPost ? "Обновить историю" : "Обновить новость")
+                                        : (isVolunteerPost ? "Сохранить историю" : "Сохранить новость")
+                                    }
                                 </Button>
                             </Space>
                         </Card>

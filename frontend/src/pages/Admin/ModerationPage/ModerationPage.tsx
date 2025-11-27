@@ -598,7 +598,7 @@ const ModerationPage = () => {
                     <TabPane
                         tab={
                             <span>
-                                Блоги волонтеров{" "}
+                                Истории волонтеров{" "}
                                 {pendingPosts && pendingPosts.length > 0 && (
                                     <Tag color="red">{pendingPosts.length}</Tag>
                                 )}

@@ -1,9 +1,9 @@
 import { useState, useEffect } from "react";
-import { Card, List, Typography, Tag, Space, Button, Empty, Flex, Tabs, Popconfirm, App } from "antd";
+import { Card, List, Typography, Tag, Space, Button, Empty, Flex, Tabs, Popconfirm, App, Select } from "antd";
 import { EyeOutlined, CalendarOutlined, PlusOutlined, UserOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
 import { useGetNewsQuery, useGetMyNewsQuery, useDeleteNewsMutation } from "@services/api/news.api";
-import { useGetVolunteerPostsQuery, useGetMyPostsQuery, useDeletePostMutation } from "@services/api/volunteer-posts.api";
+import { useGetVolunteerPostsQuery, useGetMyPostsQuery, useDeletePostMutation, useGetAvailableThemesQuery } from "@services/api/volunteer-posts.api";
 import { useGetNPOByIdQuery } from "@services/api/npo.api";
 import type { INews } from "@app-types/news.types";
 import type { IVolunteerPost } from "@app-types/volunteer-posts.types";
@@ -13,6 +13,7 @@ import useAppSelector from "@hooks/useAppSelector";
 import { skipToken } from "@reduxjs/toolkit/query";
 
 const { Title } = Typography;
+const { Option } = Select;
 
 interface NewsListPageProps {
     section?: "posts" | "news";
@@ -40,19 +41,25 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
         }
     }, [location.pathname]);
     const [activeTab, setActiveTab] = useState("all");
+    const [filterCity, setFilterCity] = useState<string | undefined>(undefined);
+    const [filterTheme, setFilterTheme] = useState<string | undefined>(undefined);
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
     const userType = useAppSelector((state) => state.auth.userType);
     const userId = useAppSelector((state) => state.auth.userId);
     const isNPO = isAuthenticated && userType === "npo";
     const isVolunteer = isAuthenticated && userType === "volunteer";
+    
+    const { data: availableThemes = [] } = useGetAvailableThemesQuery(undefined, {
+        skip: activeSection !== "posts",
+    });
 
     // Блоги волонтеров (посты)
     const { data: allPosts, isLoading: isLoadingAllPosts } = useGetVolunteerPostsQuery(
-        { status: "approved" },
-        { skip: activeSection !== "posts" }
+        { status: "approved", city: filterCity, theme_tag: filterTheme },
+        { skip: activeSection !== "posts" || activeTab !== "all" }
     );
     const { data: cityPosts, isLoading: isLoadingCityPosts } = useGetVolunteerPostsQuery(
-        { city: currentCity || undefined, status: "approved" },
+        { city: currentCity || undefined, status: "approved", theme_tag: filterTheme },
         { skip: !currentCity || activeSection !== "posts" || activeTab !== "city" }
     );
     const { data: myPosts, isLoading: isLoadingMyPosts } = useGetMyPostsQuery(undefined, {
@@ -399,6 +406,36 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                         )}
                     </Space>
                 </Flex>
+                {activeSection === "posts" && activeTab !== "my" && (
+                    <Flex gap="middle" style={{ marginBottom: 16 }}>
+                        <Select
+                            allowClear
+                            placeholder="Фильтр по городу"
+                            value={filterCity}
+                            onChange={(value) => setFilterCity(value)}
+                            style={{ width: 200 }}
+                        >
+                            {availableCities.map((cityName) => (
+                                <Option key={cityName} value={cityName}>
+                                    {cityName}
+                                </Option>
+                            ))}
+                        </Select>
+                        <Select
+                            allowClear
+                            placeholder="Фильтр по тематике"
+                            value={filterTheme}
+                            onChange={(value) => setFilterTheme(value)}
+                            style={{ width: 200 }}
+                        >
+                            {availableThemes.map((theme) => (
+                                <Option key={theme} value={theme}>
+                                    {theme}
+                                </Option>
+                            ))}
+                        </Select>
+                    </Flex>
+                )}
                 <Tabs
                     activeKey={activeTab}
                     onChange={setActiveTab}
