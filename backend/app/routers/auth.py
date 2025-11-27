@@ -678,76 +678,76 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = D
     # Используем заголовки от клиента, чтобы VK видел правильный IP
     if not vk_user_id:
         async with httpx.AsyncClient() as client:
-        try:
-            # Получаем информацию о пользователе через VK API
-            # Передаем заголовки от клиента, чтобы VK видел правильный источник запроса
-            headers = {}
-            if request:
-                # Передаем User-Agent и другие заголовки от клиента
-                if "user-agent" in request.headers:
-                    headers["User-Agent"] = request.headers["user-agent"]
-                if "x-forwarded-for" in request.headers:
-                    headers["X-Forwarded-For"] = request.headers["x-forwarded-for"]
-            
-            user_info_response = await client.get(
-                "https://api.vk.com/method/users.get",
-                params={
-                    "access_token": vk_access_token,
-                    "v": VK_API_VERSION,
-                    "fields": "email"
-                },
-                headers=headers
-            )
-            
-            if user_info_response.status_code == 200:
-                user_info_data = user_info_response.json()
-                logger.info(f"VK API response keys: {list(user_info_data.keys())}")
+            try:
+                # Получаем информацию о пользователе через VK API
+                # Передаем заголовки от клиента, чтобы VK видел правильный источник запроса
+                headers = {}
+                if request:
+                    # Передаем User-Agent и другие заголовки от клиента
+                    if "user-agent" in request.headers:
+                        headers["User-Agent"] = request.headers["user-agent"]
+                    if "x-forwarded-for" in request.headers:
+                        headers["X-Forwarded-For"] = request.headers["x-forwarded-for"]
                 
-                if "error" in user_info_data:
-                    error_msg = user_info_data.get('error', {}).get('error_msg', 'Unknown error')
-                    error_code = user_info_data.get('error', {}).get('error_code', 'Unknown')
-                    logger.error(f"VK API error: {error_msg} (code: {error_code})")
+                user_info_response = await client.get(
+                    "https://api.vk.com/method/users.get",
+                    params={
+                        "access_token": vk_access_token,
+                        "v": VK_API_VERSION,
+                        "fields": "email"
+                    },
+                    headers=headers
+                )
+                
+                if user_info_response.status_code == 200:
+                    user_info_data = user_info_response.json()
+                    logger.info(f"VK API response keys: {list(user_info_data.keys())}")
                     
-                    # Если ошибка связана с IP, пробуем получить данные из id_token или используем другой метод
-                    if error_code == 5:  # User authorization failed
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Ошибка VK API: {error_msg}. Попробуйте перезагрузить страницу и авторизоваться снова."
-                        )
+                    if "error" in user_info_data:
+                        error_msg = user_info_data.get('error', {}).get('error_msg', 'Unknown error')
+                        error_code = user_info_data.get('error', {}).get('error_code', 'Unknown')
+                        logger.error(f"VK API error: {error_msg} (code: {error_code})")
+                        
+                        # Если ошибка связана с IP, пробуем получить данные из id_token или используем другой метод
+                        if error_code == 5:  # User authorization failed
+                            raise HTTPException(
+                                status_code=status.HTTP_400_BAD_REQUEST,
+                                detail=f"Ошибка VK API: {error_msg}. Попробуйте перезагрузить страницу и авторизоваться снова."
+                            )
+                        else:
+                            raise HTTPException(
+                                status_code=status.HTTP_400_BAD_REQUEST,
+                                detail=f"Ошибка VK API: {error_msg}"
+                            )
+                    
+                    if "response" in user_info_data and len(user_info_data["response"]) > 0:
+                        user_info = user_info_data["response"][0]
+                        vk_user_id = user_info.get("id")
+                        first_name = user_info.get("first_name")
+                        last_name = user_info.get("last_name")
+                        email = user_info.get("email")
+                        logger.info(f"Получены данные через VK API: user_id={vk_user_id}, first_name={first_name}, last_name={last_name}, email={email}")
                     else:
+                        logger.warning(f"VK API response не содержит данных пользователя: {user_info_data}")
                         raise HTTPException(
                             status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Ошибка VK API: {error_msg}"
+                            detail="Не удалось получить данные пользователя от VK API"
                         )
-                
-                if "response" in user_info_data and len(user_info_data["response"]) > 0:
-                    user_info = user_info_data["response"][0]
-                    vk_user_id = user_info.get("id")
-                    first_name = user_info.get("first_name")
-                    last_name = user_info.get("last_name")
-                    email = user_info.get("email")
-                    logger.info(f"Получены данные через VK API: user_id={vk_user_id}, first_name={first_name}, last_name={last_name}, email={email}")
                 else:
-                    logger.warning(f"VK API response не содержит данных пользователя: {user_info_data}")
+                    error_text = user_info_response.text
+                    logger.error(f"VK API HTTP error: {error_text}")
                     raise HTTPException(
                         status_code=status.HTTP_400_BAD_REQUEST,
-                        detail="Не удалось получить данные пользователя от VK API"
+                        detail=f"Ошибка при запросе к VK API: {error_text[:200]}"
                     )
-            else:
-                error_text = user_info_response.text
-                logger.error(f"VK API HTTP error: {error_text}")
+            except HTTPException:
+                raise
+            except Exception as e:
+                logger.error(f"Не удалось получить данные через VK API: {e}", exc_info=True)
                 raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f"Ошибка при запросе к VK API: {error_text[:200]}"
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Внутренняя ошибка при получении данных от VK: {str(e)}"
                 )
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Не удалось получить данные через VK API: {e}", exc_info=True)
-            raise HTTPException(
-                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                detail=f"Внутренняя ошибка при получении данных от VK: {str(e)}"
-            )
     
     if not vk_user_id:
         raise HTTPException(
