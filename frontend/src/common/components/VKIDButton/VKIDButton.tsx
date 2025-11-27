@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useAppDispatch } from "@hooks/useAppDispatch";
+import useAppDispatch from "@hooks/useAppDispatch";
 import { login } from "@services/slices/auth.slice";
 import { useVkIdAuthMutation } from "@services/api/auth.api";
 
@@ -19,7 +19,9 @@ const loadVKIDSDK = (): Promise<void> => {
         }
 
         const script = document.createElement("script");
-        script.src = "https://unpkg.com/@vkid/sdk@3/dist-sdk/umd/index.js";
+        // Используем VK ID SDK через CDN (загружается динамически)
+        // Версия будет автоматически последняя стабильная
+        script.src = "https://unpkg.com/@vkid/sdk/dist-sdk/umd/index.js";
         script.async = true;
         script.onload = () => {
             if (window.VKIDSDK) {
@@ -99,7 +101,7 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
                     try {
                         // Обмениваем код на токен через VK ID SDK
                         const vkData = await VKID.Auth.exchangeCode(code, deviceId);
-                        
+
                         // Отправляем токен на бэкенд для создания/входа пользователя
                         const response = await vkIdAuth({
                             access_token: vkData.access_token,
@@ -142,4 +144,3 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
 };
 
 export default VKIDButton;
-
