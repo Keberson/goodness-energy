@@ -10,7 +10,6 @@ from urllib.parse import quote
 import logging
 import zipfile
 import io
-import os
 
 logger = logging.getLogger(__name__)
 
@@ -108,33 +107,17 @@ async def create_knowledge(
     
     # Создаем системную новость о новом материале в базе знаний
     try:
-        # Получаем базовый URL фронтенда
-        FRONTEND_BASE_URL_ENV = os.getenv("FRONTEND_BASE_URL", "").strip()
-        if FRONTEND_BASE_URL_ENV:
-            frontend_url = FRONTEND_BASE_URL_ENV.rstrip("/")
-        else:
-            # Пытаемся извлечь из VITE_API_PROD_BASE_URL
-            API_PROD_URL = os.getenv("VITE_API_PROD_BASE_URL", "").strip()
-            if API_PROD_URL:
-                if API_PROD_URL.endswith("/api"):
-                    frontend_url = API_PROD_URL[:-4].rstrip("/")
-                elif API_PROD_URL.endswith("/api/"):
-                    frontend_url = API_PROD_URL[:-5].rstrip("/")
-                else:
-                    frontend_url = API_PROD_URL.rstrip("/")
-            else:
-                frontend_url = "http://localhost:5173"
-        
-        # Создаем ссылку на материал
-        knowledge_link = f"{frontend_url}/knowledges/{knowledge.id}"
+        # Используем относительный путь, который будет работать на любом домене
+        # Фронтенд сам разрешит относительный путь относительно своего домена
+        knowledge_link = f"/knowledges/{knowledge.id}"
         
         # Создаем системную новость
         system_news = News(
             user_id=current_user.id,
             admin_id=current_user.id,
-            name=f"Создан новый материал: {knowledge.name}",
-            annotation=f"В базе знаний появился новый материал: {knowledge.name}",
-            text=f'<p>Создан новый материал в базе знаний: <strong>{knowledge.name}</strong></p><p><a href="{knowledge_link}">Перейти к материалу</a></p>',
+            name=f"Был опубликован новый материал",
+            annotation=f"Был опубликован новый материал: {knowledge.name}",
+            text=f'<p>Был опубликован новый материал: <strong>{knowledge.name}</strong></p><p><a href="{knowledge_link}">Перейти к материалу</a></p>',
             type=NewsType.SYSTEM,
             city=None  # Системные новости не привязаны к городу
         )
