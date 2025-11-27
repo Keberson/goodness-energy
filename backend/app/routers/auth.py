@@ -654,18 +654,36 @@ async def vk_get_user_data(
 ):
     """Прокси-эндпоинт для получения данных пользователя через VK API
     Используется на фронтенде для обхода CORS
+    Передает IP клиента из заголовков nginx в запрос к VK API
     """
     async with httpx.AsyncClient() as client:
         try:
+            # Получаем реальный IP клиента из заголовков nginx
+            client_ip = None
+            if request:
+                # Приоритет: X-Real-IP (от nginx) > X-Forwarded-For (может содержать цепочку IP)
+                if "x-real-ip" in request.headers:
+                    client_ip = request.headers["x-real-ip"]
+                elif "x-forwarded-for" in request.headers:
+                    # X-Forwarded-For может содержать цепочку IP через запятую
+                    # Берем первый IP (оригинальный клиент)
+                    forwarded_for = request.headers["x-forwarded-for"]
+                    client_ip = forwarded_for.split(",")[0].strip()
+                elif "x-original-ip" in request.headers:
+                    client_ip = request.headers["x-original-ip"]
+            
             # Передаем заголовки от клиента, чтобы VK видел правильный IP
             headers = {}
             if request:
                 if "user-agent" in request.headers:
                     headers["User-Agent"] = request.headers["user-agent"]
-                if "x-forwarded-for" in request.headers:
-                    headers["X-Forwarded-For"] = request.headers["x-forwarded-for"]
-                elif "x-real-ip" in request.headers:
-                    headers["X-Forwarded-For"] = request.headers["x-real-ip"]
+                # Передаем IP клиента в заголовках
+                if client_ip:
+                    headers["X-Forwarded-For"] = client_ip
+                    headers["X-Real-IP"] = client_ip
+                    logger.info(f"Используем IP клиента из заголовков nginx: {client_ip}")
+                else:
+                    logger.warning("Не удалось получить IP клиента из заголовков")
             
             user_info_response = await client.get(
                 "https://api.vk.com/method/users.get",
