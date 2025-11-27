@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { Card, Tabs, Typography, Table, Space, Button, Tag, Modal, App } from "antd";
 import type { ColumnsType } from "antd/es/table";
-import { CheckOutlined, CloseOutlined, DeleteOutlined, ExclamationCircleOutlined, ArrowLeftOutlined } from "@ant-design/icons";
+import {
+    CheckOutlined,
+    CloseOutlined,
+    DeleteOutlined,
+    ExclamationCircleOutlined,
+    ArrowLeftOutlined,
+} from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 
 import {
@@ -12,10 +18,10 @@ import {
 } from "@services/api/admin.api";
 import { useGetEventsQuery } from "@services/api/events.api";
 import { useGetNewsQuery, useDeleteNewsMutation } from "@services/api/news.api";
-import { 
-    useGetPendingPostsQuery, 
-    useModeratePostMutation, 
-    useDeletePostMutation 
+import {
+    useGetPendingPostsQuery,
+    useModeratePostMutation,
+    useDeletePostMutation,
 } from "@services/api/volunteer-posts.api";
 
 import type { INPO } from "@app-types/npo.types";
@@ -40,7 +46,11 @@ const ModerationPage = () => {
     const [deleteNPO] = useDeleteNPOMutation();
 
     // Events queries - для админа показываем все события без фильтрации по городу
-    const { data: events, isLoading: isLoadingEvents, refetch: refetchEvents } = useGetEventsQuery(undefined);
+    const {
+        data: events,
+        isLoading: isLoadingEvents,
+        refetch: refetchEvents,
+    } = useGetEventsQuery(undefined);
     const [deleteEvent] = useDeleteEventMutation();
 
     // News queries - для админа показываем все новости без фильтрации по городу
@@ -48,7 +58,11 @@ const ModerationPage = () => {
     const [deleteNews] = useDeleteNewsMutation();
 
     // Volunteer posts queries - блоги волонтеров на модерацию
-    const { data: pendingPosts, isLoading: isLoadingPosts, refetch: refetchPosts } = useGetPendingPostsQuery();
+    const {
+        data: pendingPosts,
+        isLoading: isLoadingPosts,
+        refetch: refetchPosts,
+    } = useGetPendingPostsQuery();
     const [moderatePost] = useModeratePostMutation();
     const [deletePost] = useDeletePostMutation();
 
@@ -60,7 +74,29 @@ const ModerationPage = () => {
             key: "name",
             width: 200,
             ellipsis: true,
-            render: (name: string) => <Text strong title={name}>{name}</Text>,
+            render: (name: string, record: INPO) => (
+                <Text
+                    strong
+                    title={name}
+                    style={{
+                        color: "#1890ff",
+                        cursor: "pointer",
+                        textDecoration: "none",
+                    }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/npo/${record.id}`);
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.textDecoration = "underline";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.textDecoration = "none";
+                    }}
+                >
+                    {name}
+                </Text>
+            ),
         },
         {
             title: "Описание",
@@ -159,16 +195,35 @@ const ModerationPage = () => {
             dataIndex: "name",
             key: "name",
             width: 200,
-            render: (name: string) => <Text strong>{name}</Text>,
+            render: (name: string, record: IEvent) => (
+                <Text
+                    strong
+                    style={{
+                        color: "#1890ff",
+                        cursor: "pointer",
+                        textDecoration: "none",
+                    }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/events`);
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.textDecoration = "underline";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.textDecoration = "none";
+                    }}
+                >
+                    {name}
+                </Text>
+            ),
         },
         {
             title: "НКО",
             dataIndex: "npo_name",
             key: "npo_name",
             width: 200,
-            render: (npoName: string | null | undefined) => (
-                <Text>{npoName || "Не указано"}</Text>
-            ),
+            render: (npoName: string | null | undefined) => <Text>{npoName || "Не указано"}</Text>,
         },
         {
             title: "Описание",
@@ -238,7 +293,28 @@ const ModerationPage = () => {
             dataIndex: "name",
             key: "name",
             width: 200,
-            render: (name: string) => <Text strong>{name}</Text>,
+            render: (name: string, record: INews) => (
+                <Text
+                    strong
+                    style={{
+                        color: "#1890ff",
+                        cursor: "pointer",
+                        textDecoration: "none",
+                    }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/news/${record.id}`);
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.textDecoration = "underline";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.textDecoration = "none";
+                    }}
+                >
+                    {name}
+                </Text>
+            ),
         },
         {
             title: "Текст",
@@ -475,7 +551,29 @@ const ModerationPage = () => {
             key: "name",
             width: 200,
             ellipsis: true,
-            render: (name: string) => <Text strong title={name}>{name}</Text>,
+            render: (name: string, record: IVolunteerPost) => (
+                <Text
+                    strong
+                    title={name}
+                    style={{
+                        color: "#1890ff",
+                        cursor: "pointer",
+                        textDecoration: "none",
+                    }}
+                    onClick={(e) => {
+                        e.stopPropagation();
+                        navigate(`/volunteer-posts/${record.id}`);
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.textDecoration = "underline";
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.textDecoration = "none";
+                    }}
+                >
+                    {name}
+                </Text>
+            ),
         },
         {
             title: "Автор",
@@ -494,7 +592,7 @@ const ModerationPage = () => {
             dataIndex: "theme_tag",
             key: "theme_tag",
             width: 120,
-            render: (theme: string | undefined) => theme ? <Tag color="blue">{theme}</Tag> : "-",
+            render: (theme: string | undefined) => (theme ? <Tag color="blue">{theme}</Tag> : "-"),
         },
         {
             title: "НКО",
@@ -571,7 +669,10 @@ const ModerationPage = () => {
                     >
                         <Table
                             columns={npoColumns}
-                            dataSource={(unconfirmedNPOs || []).map((item) => ({ ...item, key: item.id }))}
+                            dataSource={(unconfirmedNPOs || []).map((item) => ({
+                                ...item,
+                                key: item.id,
+                            }))}
                             loading={isLoadingNPOs}
                             scroll={{ x: 1450 }}
                             pagination={{ pageSize: 10 }}
@@ -609,7 +710,10 @@ const ModerationPage = () => {
                     >
                         <Table
                             columns={postsColumns}
-                            dataSource={(pendingPosts || []).map((item) => ({ ...item, key: item.id }))}
+                            dataSource={(pendingPosts || []).map((item) => ({
+                                ...item,
+                                key: item.id,
+                            }))}
                             loading={isLoadingPosts}
                             scroll={{ x: 1200 }}
                             pagination={{ pageSize: 10 }}
@@ -622,4 +726,3 @@ const ModerationPage = () => {
 };
 
 export default ModerationPage;
-
