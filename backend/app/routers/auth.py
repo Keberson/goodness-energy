@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models import User, UserRole, NPO, Volunteer, NPOStatus
 from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse, VKAuthCallback, VKIDAuthRequest, VKIDAuthResponse
 from app.auth import verify_password, get_password_hash, create_access_token, get_current_user
+from jose import jwt as jose_jwt
 import json
 import logging
 import httpx
@@ -645,19 +646,19 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, db: Session = Depends(get_db)):
     # Обмениваем код на токен через VK ID API на сервере
     async with httpx.AsyncClient() as client:
         # Обмен кода на токен через VK ID API
-        # VK ID использует специальный endpoint для обмена кода
+        # VK ID использует endpoint id.vk.ru/oauth2/auth с form-data
+        # Согласно документации VK ID, client_secret не нужен для этого endpoint
         token_response = await client.post(
-            "https://id.vk.com/oauth/token",
-            json={
+            "https://id.vk.ru/oauth2/auth",
+            data={
                 "grant_type": "authorization_code",
                 "code": code,
                 "client_id": VK_CLIENT_ID,
-                "client_secret": VK_CLIENT_SECRET,
                 "redirect_uri": VK_REDIRECT_URI,
                 "device_id": device_id,
             },
             headers={
-                "Content-Type": "application/json",
+                "Content-Type": "application/x-www-form-urlencoded",
             }
         )
         
@@ -671,8 +672,16 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, db: Session = Depends(get_db)):
                 detail=f"Не удалось обменять код на токен от VK ID: {error_text[:200]}"
             )
         
-        token_data = token_response.json()
-        logger.info(f"VK ID token data keys: {list(token_data.keys())}")
+        try:
+            token_data = token_response.json()
+        except Exception as e:
+            logger.error(f"Ошибка парсинга JSON ответа VK ID: {e}, response text: {token_response.text[:500]}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Не удалось обработать ответ от VK ID: {token_response.text[:200]}"
+            )
+        
+        logger.info(f"VK ID token data keys: {list(token_data.keys()) if isinstance(token_data, dict) else 'not a dict'}")
         
         if "error" in token_data:
             error_msg = token_data.get('error_description', token_data.get('error', 'Unknown error'))
@@ -683,13 +692,33 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, db: Session = Depends(get_db)):
             )
         
         vk_access_token = token_data.get("access_token")
+        id_token = token_data.get("id_token")  # JWT токен с данными пользователя
         vk_user_id = token_data.get("user_id")
         email = token_data.get("email")
         
-        if not vk_access_token or not vk_user_id:
+        # Если user_id не в ответе, пытаемся получить из id_token (JWT)
+        if not vk_user_id and id_token:
+            try:
+                # Декодируем id_token без проверки подписи (для получения данных)
+                # В production лучше проверять подпись
+                id_token_data = jose_jwt.decode(id_token, options={"verify_signature": False})
+                vk_user_id = id_token_data.get("sub") or id_token_data.get("user_id")
+                if not email:
+                    email = id_token_data.get("email")
+                logger.info(f"Получен user_id из id_token: {vk_user_id}")
+            except Exception as e:
+                logger.warning(f"Не удалось декодировать id_token: {e}")
+        
+        if not vk_access_token:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Не удалось получить данные от VK ID"
+                detail="Не удалось получить access_token от VK ID"
+            )
+        
+        if not vk_user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Не удалось получить user_id от VK ID"
             )
         
         # Получаем информацию о пользователе из VK API
