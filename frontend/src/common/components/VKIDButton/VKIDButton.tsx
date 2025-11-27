@@ -99,11 +99,13 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
                     const deviceId = payload.device_id;
 
                     try {
-                        // Отправляем код и device_id на бэкенд для обмена на токен
+                        // Отправляем код, device_id и redirect_uri на бэкенд для обмена на токен
                         // Обмен происходит на сервере, чтобы избежать проблем с IP адресами
+                        // ВАЖНО: redirect_uri должен точно совпадать с тем, что использовался при инициализации
                         const response = await vkIdAuth({
                             code: code,
                             device_id: deviceId,
+                            redirect_uri: redirectUrl, // Передаем тот же redirect_uri, что использовался в SDK
                         }).unwrap();
 
                         if (response.user_exists && response.token) {

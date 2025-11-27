@@ -640,23 +640,32 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, db: Session = Depends(get_db)):
     
     code = vk_data.code
     device_id = vk_data.device_id
+    # Используем redirect_uri из запроса или дефолтный
+    # ВАЖНО: redirect_uri должен ТОЧНО совпадать с тем, что использовался при инициализации VK ID SDK
+    redirect_uri = vk_data.redirect_uri or VK_REDIRECT_URI
     
     logger.info(f"VK ID auth: получен code и device_id, начинаем обмен на токен")
+    logger.info(f"redirect_uri: {redirect_uri}")
+    logger.info(f"VK_REDIRECT_URI (default): {VK_REDIRECT_URI}")
     
     # Обмениваем код на токен через VK ID API на сервере
     async with httpx.AsyncClient() as client:
         # Обмен кода на токен через VK ID API
         # VK ID использует endpoint id.vk.ru/oauth2/auth с form-data
         # Согласно документации VK ID, client_secret не нужен для этого endpoint
+        # ВАЖНО: redirect_uri должен ТОЧНО совпадать с настройками в VK приложении
+        request_data = {
+            "grant_type": "authorization_code",
+            "code": code,
+            "client_id": VK_CLIENT_ID,
+            "redirect_uri": redirect_uri,
+            "device_id": device_id,
+        }
+        logger.info(f"VK ID request data (без code): grant_type={request_data['grant_type']}, client_id={request_data['client_id']}, redirect_uri={request_data['redirect_uri']}, device_id={request_data['device_id']}")
+        
         token_response = await client.post(
             "https://id.vk.ru/oauth2/auth",
-            data={
-                "grant_type": "authorization_code",
-                "code": code,
-                "client_id": VK_CLIENT_ID,
-                "redirect_uri": VK_REDIRECT_URI,
-                "device_id": device_id,
-            },
+            data=request_data,
             headers={
                 "Content-Type": "application/x-www-form-urlencoded",
             }

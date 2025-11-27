@@ -21,6 +21,7 @@ class VKAuthCallback(BaseModel):
 class VKIDAuthRequest(BaseModel):
     code: str
     device_id: str
+    redirect_uri: Optional[str] = None  # Redirect URI, использованный при инициализации VK ID SDK
 
 class VKIDAuthResponse(BaseModel):
     user_exists: bool
