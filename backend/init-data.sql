@@ -5945,71 +5945,65 @@ VALUES (
 );
 
 -- Теги для новых статей базы знаний
+-- Добавляем теги для всех материалов курса «Формула Будущего»
 INSERT INTO knowledge_tags (knowledge_id, tag)
-VALUES (
-  (SELECT id FROM knowledges WHERE name LIKE '%Формула Будущего%'),
-  'Формула Будущего'
-);
+SELECT id, 'Формула Будущего'
+FROM knowledges
+WHERE name LIKE '%Формула Будущего%';
 
 INSERT INTO knowledge_tags (knowledge_id, tag)
-VALUES (
-  (SELECT id FROM knowledges WHERE name LIKE '%Формула Будущего%'),
-  'Развитие НКО'
-);
+SELECT id, 'Развитие НКО'
+FROM knowledges
+WHERE name LIKE '%Формула Будущего%';
+
+-- Теги для консультаций
+INSERT INTO knowledge_tags (knowledge_id, tag)
+SELECT id, 'Консультации'
+FROM knowledges
+WHERE name LIKE '%Консультация%Группа 1%' AND name LIKE '%Формула Будущего%';
 
 INSERT INTO knowledge_tags (knowledge_id, tag)
-VALUES (
-  (SELECT id FROM knowledges WHERE name LIKE '%Консультация%Группа 1%' AND name LIKE '%Формула Будущего%'),
-  'Консультации'
-);
+SELECT id, 'Консультации'
+FROM knowledges
+WHERE name LIKE '%Консультация%Группа 2%' AND name LIKE '%Формула Будущего%';
 
 INSERT INTO knowledge_tags (knowledge_id, tag)
-VALUES (
-  (SELECT id FROM knowledges WHERE name LIKE '%Консультация%Группа 2%' AND name LIKE '%Формула Будущего%'),
-  'Консультации'
-);
+SELECT id, 'Консультации'
+FROM knowledges
+WHERE name LIKE '%Консультация%Группа 3%' AND name LIKE '%Формула Будущего%';
+
+-- Теги для лекций по финансам
+INSERT INTO knowledge_tags (knowledge_id, tag)
+SELECT id, 'Финансы'
+FROM knowledges
+WHERE name LIKE '%Лекция%Финансы%' AND name LIKE '%Формула Будущего%';
 
 INSERT INTO knowledge_tags (knowledge_id, tag)
-VALUES (
-  (SELECT id FROM knowledges WHERE name LIKE '%Консультация%Группа 3%' AND name LIKE '%Формула Будущего%'),
-  'Консультации'
-);
+SELECT id, 'Финансирование'
+FROM knowledges
+WHERE name LIKE '%Лекция%Финансы%' AND name LIKE '%Формула Будущего%';
+
+-- Теги для лекций по менеджменту
+INSERT INTO knowledge_tags (knowledge_id, tag)
+SELECT id, 'Менеджмент'
+FROM knowledges
+WHERE name LIKE '%Лекция%Менеджмент%' AND name LIKE '%Формула Будущего%';
 
 INSERT INTO knowledge_tags (knowledge_id, tag)
-VALUES (
-  (SELECT id FROM knowledges WHERE name LIKE '%Лекция%Финансы%' AND name LIKE '%Формула Будущего%'),
-  'Финансы'
-);
+SELECT id, 'Управление НКО'
+FROM knowledges
+WHERE name LIKE '%Лекция%Менеджмент%' AND name LIKE '%Формула Будущего%';
+
+-- Теги для лекций по PR
+INSERT INTO knowledge_tags (knowledge_id, tag)
+SELECT id, 'PR'
+FROM knowledges
+WHERE name LIKE '%Лекция%PR%' AND name LIKE '%Формула Будущего%';
 
 INSERT INTO knowledge_tags (knowledge_id, tag)
-VALUES (
-  (SELECT id FROM knowledges WHERE name LIKE '%Лекция%Финансы%' AND name LIKE '%Формула Будущего%'),
-  'Финансирование'
-);
-
-INSERT INTO knowledge_tags (knowledge_id, tag)
-VALUES (
-  (SELECT id FROM knowledges WHERE name LIKE '%Лекция%Менеджмент%' AND name LIKE '%Формула Будущего%'),
-  'Менеджмент'
-);
-
-INSERT INTO knowledge_tags (knowledge_id, tag)
-VALUES (
-  (SELECT id FROM knowledges WHERE name LIKE '%Лекция%Менеджмент%' AND name LIKE '%Формула Будущего%'),
-  'Управление НКО'
-);
-
-INSERT INTO knowledge_tags (knowledge_id, tag)
-VALUES (
-  (SELECT id FROM knowledges WHERE name LIKE '%Лекция%PR%' AND name LIKE '%Формула Будущего%'),
-  'PR'
-);
-
-INSERT INTO knowledge_tags (knowledge_id, tag)
-VALUES (
-  (SELECT id FROM knowledges WHERE name LIKE '%Лекция%PR%' AND name LIKE '%Формула Будущего%'),
-  'Коммуникации'
-);
+SELECT id, 'Коммуникации'
+FROM knowledges
+WHERE name LIKE '%Лекция%PR%' AND name LIKE '%Формула Будущего%';
 
 INSERT INTO knowledge_tags (knowledge_id, tag)
 VALUES (
