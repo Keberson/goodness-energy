@@ -3,6 +3,7 @@ import { createApi, fetchBaseQuery } from "@reduxjs/toolkit/query/react";
 import type { IKnowledge } from "@app-types/knowledges.types";
 import { getApiBaseUrl } from "@utils/apiUrl";
 import { prepareHeaders } from "./utils/prepareHeaders";
+import { newsApi } from "./news.api";
 
 export const knowledgesApi = createApi({
     reducerPath: "knowledgesApi",
@@ -42,6 +43,20 @@ export const knowledgesApi = createApi({
                 body,
             }),
             invalidatesTags: [{ type: "Knowledge", id: "LIST" }],
+            async onQueryStarted(_arg, { dispatch, queryFulfilled }) {
+                try {
+                    await queryFulfilled;
+                    // Инвалидируем кэш новостей, так как при создании материала автоматически создается системная новость
+                    dispatch(
+                        newsApi.util.invalidateTags([
+                            { type: "News", id: "LIST" },
+                            { type: "News", id: "MY_LIST" },
+                        ])
+                    );
+                } catch {
+                    // Ошибка при создании материала - ничего не делаем
+                }
+            },
         }),
         updateKnowledge: builder.mutation<
             IKnowledge,
