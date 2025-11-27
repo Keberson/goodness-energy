@@ -703,41 +703,16 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = D
     """
     vk_access_token = vk_data.access_token
     id_token = vk_data.id_token
-    user_data = vk_data.user_data  # Данные пользователя, полученные на фронтенде
     
-    logger.info(f"VK ID auth: получен access_token, id_token и user_data, начинаем получение данных пользователя")
+    logger.info(f"VK ID auth: получен access_token и id_token, получаем vk_id из id_token")
     
     vk_user_id = None
-    first_name = None
-    last_name = None
-    email = None
-    bdate = None
-    sex = None
-    city_name = None
-    phone = None
     
-    # Сначала используем данные, полученные на фронтенде (если есть)
-    if user_data:
-        vk_user_id = user_data.get("id") or user_data.get("user_id")
-        if isinstance(vk_user_id, str):
-            try:
-                vk_user_id = int(vk_user_id)
-            except ValueError:
-                pass
-        first_name = user_data.get("first_name")
-        last_name = user_data.get("last_name")
-        email = user_data.get("email")
-        bdate = user_data.get("bdate")
-        sex = user_data.get("sex")
-        city_name = user_data.get("city")
-        phone = user_data.get("phone")
-        logger.info(f"Получены данные из user_data (фронтенд): user_id={vk_user_id}, first_name={first_name}, last_name={last_name}, email={email}, bdate={bdate}, sex={sex}, city={city_name}, phone={phone}")
-    
-    # Сначала пытаемся получить данные из id_token (JWT) - это не требует запросов к VK API
+    # Получаем vk_id из id_token (JWT)
+    # Данные пользователя пользователь заполнит сам при регистрации
     if id_token:
         try:
             # Декодируем id_token без проверки подписи
-            # Используем алгоритм None, чтобы не требовать ключ
             id_token_parts = id_token.split('.')
             if len(id_token_parts) == 3:
                 import base64
@@ -751,121 +726,15 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = D
                 payload_decoded = base64.urlsafe_b64decode(payload)
                 id_token_data = json.loads(payload_decoded)
                 
-                # Логируем все данные из id_token для отладки
-                logger.info(f"id_token data keys: {list(id_token_data.keys())}")
-                logger.info(f"id_token data: {id_token_data}")
-                
                 vk_user_id = id_token_data.get("sub") or id_token_data.get("user_id") or id_token_data.get("id")
                 if isinstance(vk_user_id, str):
                     try:
                         vk_user_id = int(vk_user_id)
                     except ValueError:
                         pass
-                email = id_token_data.get("email")
-                first_name = id_token_data.get("given_name") or id_token_data.get("first_name") or id_token_data.get("name")
-                last_name = id_token_data.get("family_name") or id_token_data.get("last_name")
-                bdate = id_token_data.get("birthdate") or id_token_data.get("bdate")
-                # В id_token обычно нет пола, города и телефона, они доступны только через API
-                logger.info(f"Получены данные из id_token: user_id={vk_user_id}, email={email}, first_name={first_name}, last_name={last_name}, bdate={bdate}")
+                logger.info(f"Получен vk_id из id_token: {vk_user_id}")
         except Exception as e:
             logger.warning(f"Не удалось декодировать id_token: {e}", exc_info=True)
-    
-    # Всегда делаем запрос к VK API для получения полных данных пользователя
-    # Даже если получили user_id из id_token, нужны расширенные данные (first_name, last_name, email, bdate, sex, city, phone)
-    # Используем заголовки от клиента, чтобы VK видел правильный IP
-    api_data_received = False
-    async with httpx.AsyncClient() as client:
-        try:
-            # Получаем информацию о пользователе через VK API
-            # Передаем заголовки от клиента, чтобы VK видел правильный источник запроса
-            headers = {}
-            if request:
-                # Передаем User-Agent и другие заголовки от клиента
-                if "user-agent" in request.headers:
-                    headers["User-Agent"] = request.headers["user-agent"]
-                if "x-forwarded-for" in request.headers:
-                    headers["X-Forwarded-For"] = request.headers["x-forwarded-for"]
-            
-            # Если получили user_id из id_token, используем его в запросе
-            params = {
-                "access_token": vk_access_token,
-                "v": VK_API_VERSION,
-                "fields": "email,bdate,sex,city,contacts"  # Получаем расширенные данные
-            }
-            if vk_user_id:
-                params["user_ids"] = vk_user_id
-            
-            user_info_response = await client.get(
-                "https://api.vk.com/method/users.get",
-                params=params,
-                headers=headers
-            )
-            
-            if user_info_response.status_code == 200:
-                user_info_data = user_info_response.json()
-                logger.info(f"VK API response: {user_info_data}")
-                
-                if "error" in user_info_data:
-                    error_msg = user_info_data.get('error', {}).get('error_msg', 'Unknown error')
-                    error_code = user_info_data.get('error', {}).get('error_code', 'Unknown')
-                    logger.error(f"VK API error: {error_msg} (code: {error_code})")
-                    
-                    # Если ошибка связана с IP (error_code 5), но у нас есть данные из id_token, используем их
-                    if error_code == 5 and vk_user_id:
-                        logger.warning(f"VK API вернул ошибку IP, но используем данные из id_token: user_id={vk_user_id}")
-                        # Оставляем данные из id_token, которые уже есть
-                    else:
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Ошибка VK API: {error_msg}"
-                        )
-                elif "response" in user_info_data and len(user_info_data["response"]) > 0:
-                    user_info = user_info_data["response"][0]
-                    api_data_received = True
-                    
-                    # Обновляем vk_user_id, если его не было из id_token
-                    if not vk_user_id:
-                        vk_user_id = user_info.get("id")
-                    
-                    # Получаем основные данные (перезаписываем, если были из id_token, так как API более актуальные)
-                    first_name = user_info.get("first_name") or first_name
-                    last_name = user_info.get("last_name") or last_name
-                    email = user_info.get("email") or email
-                    
-                    # Дополнительные поля из VK API
-                    bdate = user_info.get("bdate")  # Дата рождения в формате "DD.MM.YYYY" или "DD.MM"
-                    sex = user_info.get("sex")  # 1 - женский, 2 - мужской, 0 - не указан
-                    city_info = user_info.get("city")
-                    city_name = city_info.get("title") if isinstance(city_info, dict) else None
-                    # Телефон может быть в contacts, но обычно не доступен через users.get
-                    # Для получения телефона нужны специальные права
-                    phone = user_info.get("mobile_phone") or user_info.get("phone")
-                    
-                    logger.info(f"Получены данные через VK API: user_id={vk_user_id}, first_name={first_name}, last_name={last_name}, email={email}, bdate={bdate}, sex={sex}, city={city_name}, phone={phone}")
-                else:
-                    logger.warning(f"VK API response не содержит данных пользователя: {user_info_data}")
-                    if not vk_user_id:
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail="Не удалось получить данные пользователя от VK API"
-                        )
-            else:
-                error_text = user_info_response.text
-                logger.error(f"VK API HTTP error: {error_text}")
-                if not vk_user_id:
-                    raise HTTPException(
-                        status_code=status.HTTP_400_BAD_REQUEST,
-                        detail=f"Ошибка при запросе к VK API: {error_text[:200]}"
-                    )
-        except HTTPException:
-            raise
-        except Exception as e:
-            logger.error(f"Не удалось получить данные через VK API: {e}", exc_info=True)
-            if not vk_user_id:
-                raise HTTPException(
-                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail=f"Внутренняя ошибка при получении данных от VK: {str(e)}"
-                )
     
     if not vk_user_id:
         raise HTTPException(
@@ -877,19 +746,12 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = D
     user = db.query(User).filter(User.vk_id == vk_user_id).first()
     
     if not user:
-        # Пользователя нет - возвращаем данные для регистрации
+        # Пользователя нет - возвращаем только vk_id для регистрации
+        # Пользователь сам заполнит все данные
         return VKIDAuthResponse(
             user_exists=False,
             vk_id=vk_user_id,
-            vk_data={
-                "first_name": first_name or "",
-                "last_name": last_name or "",
-                "email": email,
-                "bdate": bdate,
-                "sex": sex,  # 1 - женский, 2 - мужской, 0 - не указан
-                "city": city_name,
-                "phone": phone,
-            }
+            vk_data=None  # Данные пользователь заполнит сам
         )
     
     # Пользователь существует - авторизуем

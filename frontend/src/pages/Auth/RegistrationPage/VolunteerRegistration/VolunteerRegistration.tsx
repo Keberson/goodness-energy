@@ -15,49 +15,10 @@ const VolunteerRegistration = () => {
     const navigate = useNavigate();
     const [form] = Form.useForm();
 
-    // Получаем данные VK из URL параметров
+    // Получаем vk_id из URL параметров
     const vkId = searchParams.get("vk_id");
-    const vkFirstName = searchParams.get("first_name");
-    const vkLastName = searchParams.get("last_name");
-    const vkEmail = searchParams.get("email");
-    const vkBdate = searchParams.get("bdate");
-    const vkSex = searchParams.get("sex");
-    const vkCity = searchParams.get("city");
-    const vkPhone = searchParams.get("phone");
 
-    // Предзаполняем форму данными из VK
-    useEffect(() => {
-        if (vkId) {
-            // Преобразуем пол из VK формата (1 - женский, 2 - мужской) в формат приложения
-            let sex = undefined;
-            if (vkSex === "1") sex = "female";
-            else if (vkSex === "2") sex = "male";
-            
-            // Преобразуем дату рождения из формата "DD.MM.YYYY" или "DD.MM"
-            let birthday = undefined;
-            if (vkBdate) {
-                // Если формат "DD.MM.YYYY", преобразуем в "YYYY-MM-DD"
-                const parts = vkBdate.split(".");
-                if (parts.length === 3) {
-                    birthday = `${parts[2]}-${parts[1]}-${parts[0]}`;
-                } else if (parts.length === 2) {
-                    // Если только "DD.MM", используем текущий год
-                    const year = new Date().getFullYear();
-                    birthday = `${year}-${parts[1]}-${parts[0]}`;
-                }
-            }
-            
-            form.setFieldsValue({
-                firstName: vkFirstName || "",
-                secondName: vkLastName || "",
-                email: vkEmail || "",
-                birthday: birthday,
-                sex: sex,
-                city: vkCity || "",
-                phone: vkPhone || "",
-            });
-        }
-    }, [vkId, vkFirstName, vkLastName, vkEmail, vkBdate, vkSex, vkCity, vkPhone, form]);
+    // При регистрации через VK просто сохраняем vk_id, пользователь заполнит данные сам
 
     const onFinish = async (values: IRegVolunteerRequest) => {
         try {

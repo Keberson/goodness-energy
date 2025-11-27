@@ -186,29 +186,10 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
                                 })
                             );
                             navigate("/");
-                        } else if (response.vk_id && response.vk_data) {
-                            // Пользователя нет - редиректим на регистрацию с данными VK
-                            const params = new URLSearchParams({
-                                vk_id: String(response.vk_id),
-                                first_name: response.vk_data.first_name || "",
-                                last_name: response.vk_data.last_name || "",
-                            });
-                            if (response.vk_data.email) {
-                                params.append("email", response.vk_data.email);
-                            }
-                            if (response.vk_data.bdate) {
-                                params.append("bdate", response.vk_data.bdate);
-                            }
-                            if (response.vk_data.sex !== undefined) {
-                                params.append("sex", String(response.vk_data.sex));
-                            }
-                            if (response.vk_data.city) {
-                                params.append("city", response.vk_data.city);
-                            }
-                            if (response.vk_data.phone) {
-                                params.append("phone", response.vk_data.phone);
-                            }
-                            navigate(`/reg?${params.toString()}`);
+                        } else if (response.vk_id) {
+                            // Пользователя нет - редиректим на регистрацию с vk_id
+                            // Пользователь сам заполнит все данные
+                            navigate(`/reg?vk_id=${response.vk_id}`);
                         } else {
                             throw new Error("Неожиданный формат ответа от сервера");
                         }
