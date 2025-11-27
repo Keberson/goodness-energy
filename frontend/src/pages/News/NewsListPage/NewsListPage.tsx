@@ -22,7 +22,7 @@ interface NewsListPageProps {
 const NewsListPage = ({ section }: NewsListPageProps) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { currentCity } = useCity();
+    const { currentCity, availableCities } = useCity();
     
     // Определяем активный раздел из пропсов или из URL
     const getInitialSection = (): "posts" | "news" => {
@@ -415,7 +415,7 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                             onChange={(value) => setFilterCity(value)}
                             style={{ width: 200 }}
                         >
-                            {availableCities.map((cityName) => (
+                            {availableCities.map((cityName: string) => (
                                 <Option key={cityName} value={cityName}>
                                     {cityName}
                                 </Option>

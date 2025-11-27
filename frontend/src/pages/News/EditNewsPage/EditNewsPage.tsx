@@ -715,7 +715,7 @@ const EditNewsPage = () => {
                                                 size="large"
                                                 showSearch
                                                 filterOption={(input, option) =>
-                                                    (option?.children as string)?.toLowerCase().includes(input.toLowerCase())
+                                                    String(option?.label ?? option?.children ?? "").toLowerCase().includes(input.toLowerCase())
                                                 }
                                             >
                                                 {npos.map((npo) => (
