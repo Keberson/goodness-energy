@@ -99,14 +99,24 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
                     const deviceId = payload.device_id;
 
                     try {
-                        // Отправляем код, device_id и redirect_uri на бэкенд для обмена на токен
-                        // Обмен происходит на сервере, чтобы избежать проблем с IP адресами
-                        // ВАЖНО: redirect_uri должен точно совпадать с тем, что использовался при инициализации
+                        // Обмениваем код на токен через VK ID SDK на фронтенде
+                        // Это необходимо, так как SDK использует PKCE и code_verifier доступен только на клиенте
+                        console.log("VK ID: обмениваем код на токен через SDK...");
+                        const vkTokens = await VKID.Auth.exchangeCode(code, deviceId);
+                        console.log("VK ID: получены токены от SDK", {
+                            has_access_token: !!vkTokens.access_token,
+                            has_id_token: !!vkTokens.id_token,
+                        });
+
+                        // Отправляем access_token на бэкенд для валидации и получения информации о пользователе
+                        console.log("VK ID: отправляем токены на бэкенд...");
                         const response = await vkIdAuth({
-                            code: code,
-                            device_id: deviceId,
-                            redirect_uri: redirectUrl, // Передаем тот же redirect_uri, что использовался в SDK
+                            access_token: vkTokens.access_token,
+                            id_token: vkTokens.id_token,
                         }).unwrap();
+                        console.log("VK ID: получен ответ от бэкенда", {
+                            user_exists: response.user_exists,
+                        });
 
                         if (response.user_exists && response.token) {
                             // Пользователь существует - авторизуем
