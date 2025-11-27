@@ -401,7 +401,7 @@ const ManageEventsPage = () => {
                                     >
                                         Отмена
                                     </Button>
-                                    <Button type="primary" onClick={handleSubmit}>
+                                    <Button type="primary" onClick={() => handleSubmit()}>
                                         Сохранить
                                     </Button>
                                 </Space>

@@ -1,5 +1,4 @@
 import { Card, Row, Col, Typography, Button, Flex, Calendar, Badge, Tooltip, Empty, List, Tag, Space } from "antd";
-import type { BadgeProps } from "antd";
 import {
     EnvironmentOutlined,
     TeamOutlined,
@@ -103,7 +102,7 @@ const HomePage = () => {
         });
         
         // Сортируем события внутри каждой даты по дате создания (новые первыми)
-        map.forEach((eventList, dateKey) => {
+        map.forEach((eventList) => {
             eventList.sort((a, b) => {
                 const dateA = dayjs(a.created_at).valueOf();
                 const dateB = dayjs(b.created_at).valueOf();
@@ -167,16 +166,6 @@ const HomePage = () => {
         return colors[index];
     };
 
-    // Функция для получения текстового статуса события (используется в списке событий)
-    const getStatusLabel = (status: string): string => {
-        const labels: Record<string, string> = {
-            published: "Опубликовано",
-            draft: "Черновик",
-            cancelled: "Отменено",
-            completed: "Завершено",
-        };
-        return labels[status] || status;
-    };
 
     // Кастомный заголовок календаря
     const headerRender = ({ value, onChange }: any) => {

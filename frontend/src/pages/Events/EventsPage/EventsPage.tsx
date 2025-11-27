@@ -267,16 +267,6 @@ const EventsPage = () => {
         return colorMap[colorName] || colorMap["default"];
     };
 
-    // Функция для получения текстового статуса события (используется в списке событий)
-    const getStatusLabel = (status: string): string => {
-        const labels: Record<string, string> = {
-            published: "Опубликовано",
-            draft: "Черновик",
-            cancelled: "Отменено",
-            completed: "Завершено",
-        };
-        return labels[status] || status;
-    };
 
     const handleRespondToEvent = async (eventId: number) => {
         if (!isVolunteer) {
