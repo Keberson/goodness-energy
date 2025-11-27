@@ -5,6 +5,7 @@ export interface INews {
     name: string;
     annotation?: string;
     text: string;
+    city?: string;
     attachedIds: number[];
     tags: string[];
     type: NewsType;
@@ -17,6 +18,7 @@ export interface INewsCreate {
     name: string;
     annotation?: string;
     text: string;
+    city?: string;
     attachedIds?: number[];
     tags?: string[];
     type: NewsType;
@@ -26,6 +28,7 @@ export interface INewsUpdate {
     name?: string;
     annotation?: string;
     text?: string;
+    city?: string;
     attachedIds?: number[];
     tags?: string[];
     type?: NewsType;

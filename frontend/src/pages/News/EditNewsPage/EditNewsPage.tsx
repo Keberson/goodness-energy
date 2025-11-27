@@ -26,6 +26,7 @@ import {
     useUpdateNewsMutation,
     useGetNewsByIdQuery,
 } from "@services/api/news.api";
+import { useCity } from "@hooks/useCity";
 import NewsToolbar from "./components/NewsToolbar/NewsToolbar";
 import NewsWorkspace from "./components/NewsWorkspace/NewsWorkspace";
 import { convertElementsToNewsData, convertNewsDataToElements } from "./utils/newsConverter";
@@ -47,6 +48,7 @@ const EditNewsPage = () => {
     const [title, setTitle] = useState("");
     const [annotation, setAnnotation] = useState("");
     const [type, setType] = useState<NewsType>("blog");
+    const [city, setCity] = useState<string | undefined>(undefined);
     const [saving, setSaving] = useState(false);
     const [isLoadingNews, setIsLoadingNews] = useState(false);
     const dragOffsetRef = useRef<{ x: number; y: number } | null>(null);
@@ -63,6 +65,7 @@ const EditNewsPage = () => {
     } = useGetNewsByIdQuery(newsId, {
         skip: !isEditing || isNaN(newsId),
     });
+    const { currentCity, availableCities } = useCity();
 
     const typeMapping: Record<string, NewsType> = {
         Блог: "blog",
@@ -99,6 +102,7 @@ const EditNewsPage = () => {
             setTitle(existingNews.name || "");
             setAnnotation(existingNews.annotation || "");
             setType(existingNews.type || "blog");
+            setCity(existingNews.city || undefined);
 
             // Конвертируем HTML в элементы редактора
             try {
@@ -111,7 +115,14 @@ const EditNewsPage = () => {
                 setIsLoadingNews(false);
             }
         }
-    }, [isEditing, existingNews, isLoadingNews]);
+    }, [isEditing, existingNews, isLoadingNews, message]);
+
+    // Для создания новости по умолчанию подставляем текущий выбранный город
+    useEffect(() => {
+        if (!isEditing && !city && currentCity) {
+            setCity(currentCity);
+        }
+    }, [isEditing, city, currentCity]);
 
     // Модификатор для корректировки позиции курсора при перетаскивании
     // Сохраняет относительное положение курсора к элементу
@@ -374,6 +385,7 @@ const EditNewsPage = () => {
                         name: title.trim(),
                         annotation: annotation.trim() || undefined,
                         text: html,
+                        city: city || undefined,
                         type,
                         attachedIds: attachedIds.length > 0 ? attachedIds : undefined,
                         tags: [],
@@ -388,6 +400,7 @@ const EditNewsPage = () => {
                     name: title.trim(),
                     annotation: annotation.trim() || undefined,
                     text: html,
+                    city: city || undefined,
                     type,
                     attachedIds: attachedIds.length > 0 ? attachedIds : undefined,
                     tags: [],
@@ -570,6 +583,25 @@ const EditNewsPage = () => {
                                                 </Option>
                                             );
                                         })}
+                                    </Select>
+                                </div>
+                                <div>
+                                    <Title level={5} style={{ marginBottom: 8 }}>
+                                        Город новости (необязательно)
+                                    </Title>
+                                    <Select
+                                        allowClear
+                                        placeholder="Выберите город"
+                                        value={city}
+                                        onChange={(value) => setCity(value)}
+                                        style={{ width: 260 }}
+                                        size="large"
+                                    >
+                                        {availableCities.map((cityName) => (
+                                            <Option key={cityName} value={cityName}>
+                                                {cityName}
+                                            </Option>
+                                        ))}
                                     </Select>
                                 </div>
                                 <Button

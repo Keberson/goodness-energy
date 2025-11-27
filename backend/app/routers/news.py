@@ -65,25 +65,39 @@ async def get_all_news(
     city: Optional[str] = Query(None, description="Фильтр по городу"),
     db: Session = Depends(get_db)
 ):
-    """Получение всех новостей/База знаний с опциональной фильтрацией по городу"""
+    """
+    Получение всех новостей с опциональной фильтрацией по городу.
+
+    Логика фильтрации по городу:
+    - если у новости явно указан city, то используется именно это поле;
+    - если city у новости не указан (None), для обратной совместимости
+      используется город НКО/волонтёра, создавшего новость;
+    - новости администраторов всегда отображаются (глобальные).
+    """
     from sqlalchemy import or_, and_
-    
+
     query = db.query(News)
-    
+
     if city:
-        # Фильтруем новости по городу НКО или волонтера, или показываем новости от админов (глобальные)
-        # Используем подзапросы для более эффективной фильтрации
+        # Сначала используем явное поле города у новости.
+        # Для старых новостей без города fallback на город НКО/волонтёра.
         npo_ids_subquery = db.query(NPO.id).filter(NPO.city == city)
         volunteer_ids_subquery = db.query(Volunteer.id).filter(Volunteer.city == city)
-        
+
         query = query.filter(
             or_(
-                and_(News.npo_id.isnot(None), News.npo_id.in_(npo_ids_subquery)),
-                and_(News.volunteer_id.isnot(None), News.volunteer_id.in_(volunteer_ids_subquery)),
-                News.admin_id.isnot(None)  # Новости от админов показываем всегда
+                News.city == city,
+                and_(
+                    News.city.is_(None),
+                    or_(
+                        and_(News.npo_id.isnot(None), News.npo_id.in_(npo_ids_subquery)),
+                        and_(News.volunteer_id.isnot(None), News.volunteer_id.in_(volunteer_ids_subquery)),
+                        News.admin_id.isnot(None),  # Новости от админов показываем всегда
+                    ),
+                ),
             )
         )
-    
+
     news_list = query.order_by(News.created_at.desc()).all()
     result = []
     
@@ -97,6 +111,7 @@ async def get_all_news(
             name=news.name,
             annotation=news.annotation,
             text=news.text,
+            city=news.city,
             attachedIds=attached_ids,
             tags=tags,
             type=news.type,
@@ -149,6 +164,7 @@ async def get_my_news(
             name=news.name,
             annotation=news.annotation,
             text=news.text,
+            city=news.city,
             attachedIds=attached_ids,
             tags=tags,
             type=news.type,
@@ -178,6 +194,7 @@ async def get_news_by_id(news_id: int, db: Session = Depends(get_db)):
         name=news.name,
         annotation=news.annotation,
         text=news.text,
+        city=news.city,
         attachedIds=attached_ids,
         tags=tags,
         type=news.type,
@@ -225,6 +242,7 @@ async def create_news(
     
     news = News(
         user_id=current_user.id,  # Сохраняем ID пользователя, создавшего новость
+        city=news_data.city,
         npo_id=npo_id,
         volunteer_id=volunteer_id,
         admin_id=admin_id,
@@ -252,15 +270,17 @@ async def create_news(
     db.refresh(news)
     
     # Определяем город новости для отправки уведомлений
-    news_city = None
-    if npo_id:
-        npo = db.query(NPO).filter(NPO.id == npo_id).first()
-        if npo:
-            news_city = npo.city
-    elif volunteer_id:
-        volunteer = db.query(Volunteer).filter(Volunteer.id == volunteer_id).first()
-        if volunteer:
-            news_city = volunteer.city
+    # Приоритет: явный город новости, затем город НКО/волонтёра
+    news_city = news.city
+    if not news_city:
+        if npo_id:
+            npo = db.query(NPO).filter(NPO.id == npo_id).first()
+            if npo:
+                news_city = npo.city
+        elif volunteer_id:
+            volunteer = db.query(Volunteer).filter(Volunteer.id == volunteer_id).first()
+            if volunteer:
+                news_city = volunteer.city
     
     # Отправка уведомлений о новости из города (асинхронно, не блокируем ответ)
     if news_city:
@@ -319,6 +339,8 @@ async def update_news(
         news.annotation = news_update.annotation
     if news_update.text is not None:
         news.text = news_update.text
+    if news_update.city is not None:
+        news.city = news_update.city
     if news_update.type is not None:
         # Проверка для волонтёров: они могут создавать только blog
         if news.volunteer_id and news_update.type != news.type:

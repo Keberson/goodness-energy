@@ -213,6 +213,9 @@ class News(Base):
     annotation = Column(String, nullable=True)  # Краткое описание для списка новостей
     text = Column(Text, nullable=False)
     type = Column(SQLEnum(NewsType), nullable=False)
+    # Опциональное поле города. Если указано, новость будет фильтроваться по этому городу.
+    # Если не указано, для обратной совместимости может использоваться город НКО/волонтёра.
+    city = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
     

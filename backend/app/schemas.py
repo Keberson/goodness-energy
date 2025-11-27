@@ -197,6 +197,7 @@ class NewsCreate(BaseModel):
     name: str
     annotation: Optional[str] = None  # Краткое описание для списка новостей
     text: str
+    city: Optional[str] = None  # Опциональное поле города новости
     attachedIds: Optional[List[int]] = None
     tags: Optional[List[str]] = None
     type: NewsType
@@ -205,6 +206,7 @@ class NewsUpdate(BaseModel):
     name: Optional[str] = None
     annotation: Optional[str] = None
     text: Optional[str] = None
+    city: Optional[str] = None  # Опциональное поле города новости
     attachedIds: Optional[List[int]] = None
     tags: Optional[List[str]] = None
     type: Optional[NewsType] = None
@@ -214,6 +216,7 @@ class NewsResponse(BaseModel):
     name: str
     annotation: Optional[str] = None
     text: str
+    city: Optional[str] = None  # Город новости (если указан)
     attachedIds: List[int]
     tags: List[str]
     type: NewsType
