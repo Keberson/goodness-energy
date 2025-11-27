@@ -1,4 +1,4 @@
-import { Card, Typography, Tag, Space, Button } from "antd";
+import { Card, Typography, Tag, Space, Button, Flex } from "antd";
 import { CalendarOutlined, ArrowLeftOutlined, EditOutlined, UserOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetNewsByIdQuery } from "@services/api/news.api";
@@ -65,34 +65,31 @@ const NewsPage = () => {
     return (
         <div style={{ padding: 24, minHeight: "calc(100vh - 48px)" }} className="news-page">
             <Card>
-                <Button
-                    type="link"
-                    icon={<ArrowLeftOutlined />}
-                    onClick={() => navigate("/news")}
-                    style={{ marginBottom: 16, padding: 0 }}
-                >
-                    Назад к списку новостей
-                </Button>
-                <Space
-                    align="center"
-                    wrap
-                    size="middle"
-                    style={{ marginBottom: 8 }}
-                >
-                    <Title level={2} style={{ marginBottom: 0 }}>
-                        {data.name}
-                    </Title>
-                    <FavoriteButton itemType="news" itemId={data.id} />
-                    {canEdit && (
-                        <Button
-                            type="primary"
-                            icon={<EditOutlined />}
-                            onClick={() => navigate(`/news/edit/${data.id}`)}
-                        >
-                            Редактировать
-                        </Button>
-                    )}
-                </Space>
+                <Flex justify="space-between" align="flex-start" style={{ marginBottom: 16 }}>
+                    <Button
+                        type="link"
+                        icon={<ArrowLeftOutlined />}
+                        onClick={() => navigate("/news")}
+                        style={{ padding: 0 }}
+                    >
+                        Назад к списку новостей
+                    </Button>
+                    <Space>
+                        <FavoriteButton itemType="news" itemId={data.id} />
+                        {canEdit && (
+                            <Button
+                                type="primary"
+                                icon={<EditOutlined />}
+                                onClick={() => navigate(`/news/edit/${data.id}`)}
+                            >
+                                Редактировать
+                            </Button>
+                        )}
+                    </Space>
+                </Flex>
+                <Title level={2} style={{ marginBottom: 16 }}>
+                    {data.name}
+                </Title>
                 <div style={{ marginBottom: 24, padding: "8px 0", borderBottom: "1px solid #f0f0f0" }}>
                     <Space direction="vertical" size="small" style={{ width: "100%" }}>
                         <Space>

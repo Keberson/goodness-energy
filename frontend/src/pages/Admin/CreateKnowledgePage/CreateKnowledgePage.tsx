@@ -163,7 +163,7 @@ const CreateKnowledgePage = () => {
                     form={form}
                     layout="vertical"
                     onFinish={onFinish}
-                    initialValues={{ title: "", description: "", videoLinks: [""], fileIds: [] }}
+                    initialValues={{ title: "", description: "", videoLinks: [], fileIds: [] }}
                 >
                     <Form.Item
                         name="title"
@@ -193,12 +193,6 @@ const CreateKnowledgePage = () => {
                                         <Form.Item
                                             {...restField}
                                             name={name}
-                                            rules={[
-                                                {
-                                                    required: true,
-                                                    message: "Введите ссылку на видео",
-                                                },
-                                            ]}
                                             style={{ flex: 1, minWidth: 0 }}
                                         >
                                             <Input

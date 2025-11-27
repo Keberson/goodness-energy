@@ -537,6 +537,7 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                                 value={tempFilterCity}
                                 onChange={(value) => setTempFilterCity(value)}
                                 style={{ width: "100%", marginTop: 8 }}
+                                disabled={activeTab === "city"}
                             >
                                 {availableCities.map((cityName: string) => (
                                     <Option key={cityName} value={cityName}>
@@ -603,6 +604,7 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                                 value={tempFilterNewsCity}
                                 onChange={(value) => setTempFilterNewsCity(value)}
                                 style={{ width: "100%", marginTop: 8 }}
+                                disabled={activeTab === "city"}
                             >
                                 {availableCities.map((cityName: string) => (
                                     <Option key={cityName} value={cityName}>
