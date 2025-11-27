@@ -1,4 +1,4 @@
-export type NewsType = "theme" | "docs"; // theme - тематика (было "edu"), docs - документы
+export type NewsType = "theme" | "docs" | "system"; // theme - публикация, docs - документы, system - системный
 
 export interface INews {
     id: number;

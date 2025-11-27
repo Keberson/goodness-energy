@@ -35,7 +35,7 @@ export const volunteerPostsApi = createApi({
                 }
                 const queryString = searchParams.toString();
                 return {
-                    url: `/volunteer-posts${queryString ? `?${queryString}` : ""}`,
+                    url: `${queryString ? `?${queryString}` : ""}`,
                     method: "GET",
                 };
             },
@@ -43,34 +43,34 @@ export const volunteerPostsApi = createApi({
         }),
         getMyPosts: builder.query<IVolunteerPost[], void>({
             query: () => ({
-                url: "/volunteer-posts/my",
+                url: "/my",
                 method: "GET",
             }),
             providesTags: ["VolunteerPost"],
         }),
         getPendingPosts: builder.query<IVolunteerPost[], void>({
             query: () => ({
-                url: "/volunteer-posts/pending",
+                url: "/pending",
                 method: "GET",
             }),
             providesTags: ["VolunteerPost"],
         }),
         getPostById: builder.query<IVolunteerPost, number>({
             query: (id) => ({
-                url: `/volunteer-posts/${id}`,
+                url: `/${id}`,
                 method: "GET",
             }),
             providesTags: ["VolunteerPost"],
         }),
         getAvailableThemes: builder.query<string[], void>({
             query: () => ({
-                url: "/volunteer-posts/themes",
+                url: "/themes",
                 method: "GET",
             }),
         }),
         createPost: builder.mutation<IVolunteerPost, IVolunteerPostCreate>({
             query: (data) => ({
-                url: "/volunteer-posts",
+                url: "",
                 method: "POST",
                 body: data,
             }),
@@ -78,7 +78,7 @@ export const volunteerPostsApi = createApi({
         }),
         updatePost: builder.mutation<IVolunteerPost, { id: number; data: IVolunteerPostUpdate }>({
             query: ({ id, data }) => ({
-                url: `/volunteer-posts/${id}`,
+                url: `/${id}`,
                 method: "PUT",
                 body: data,
             }),
@@ -86,7 +86,7 @@ export const volunteerPostsApi = createApi({
         }),
         moderatePost: builder.mutation<IVolunteerPost, { id: number; data: IVolunteerPostModeration }>({
             query: ({ id, data }) => ({
-                url: `/volunteer-posts/${id}/moderate`,
+                url: `/${id}/moderate`,
                 method: "POST",
                 body: data,
             }),
@@ -94,7 +94,7 @@ export const volunteerPostsApi = createApi({
         }),
         deletePost: builder.mutation<void, number>({
             query: (id) => ({
-                url: `/volunteer-posts/${id}`,
+                url: `/${id}`,
                 method: "DELETE",
             }),
             invalidatesTags: ["VolunteerPost"],

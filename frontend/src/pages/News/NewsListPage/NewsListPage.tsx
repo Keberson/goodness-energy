@@ -1,8 +1,8 @@
 import { useState, useEffect } from "react";
-import { Card, List, Typography, Tag, Space, Button, Empty, Flex, Tabs, Popconfirm, App, Select } from "antd";
-import { EyeOutlined, CalendarOutlined, PlusOutlined, UserOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
+import { Card, List, Typography, Tag, Space, Button, Empty, Flex, Tabs, Popconfirm, App, Select, Drawer } from "antd";
+import { EyeOutlined, CalendarOutlined, PlusOutlined, UserOutlined, EditOutlined, DeleteOutlined, FilterOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useGetNewsQuery, useGetMyNewsQuery, useDeleteNewsMutation } from "@services/api/news.api";
+import { useGetNewsQuery, useGetMyNewsQuery, useDeleteNewsMutation, useGetNewsTypesQuery } from "@services/api/news.api";
 import { useGetVolunteerPostsQuery, useGetMyPostsQuery, useDeletePostMutation, useGetAvailableThemesQuery } from "@services/api/volunteer-posts.api";
 import { useGetNPOByIdQuery } from "@services/api/npo.api";
 import type { INews } from "@app-types/news.types";
@@ -43,6 +43,14 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
     const [activeTab, setActiveTab] = useState("all");
     const [filterCity, setFilterCity] = useState<string | undefined>(undefined);
     const [filterTheme, setFilterTheme] = useState<string | undefined>(undefined);
+    const [filterNewsCity, setFilterNewsCity] = useState<string | undefined>(undefined);
+    const [filterNewsType, setFilterNewsType] = useState<string | undefined>(undefined);
+    const [filterDrawerOpen, setFilterDrawerOpen] = useState(false);
+    const [newsFilterDrawerOpen, setNewsFilterDrawerOpen] = useState(false);
+    const [tempFilterCity, setTempFilterCity] = useState<string | undefined>(undefined);
+    const [tempFilterTheme, setTempFilterTheme] = useState<string | undefined>(undefined);
+    const [tempFilterNewsCity, setTempFilterNewsCity] = useState<string | undefined>(undefined);
+    const [tempFilterNewsType, setTempFilterNewsType] = useState<string | undefined>(undefined);
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
     const userType = useAppSelector((state) => state.auth.userType);
     const userId = useAppSelector((state) => state.auth.userId);
@@ -51,6 +59,9 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
     
     const { data: availableThemes = [] } = useGetAvailableThemesQuery(undefined, {
         skip: activeSection !== "posts",
+    });
+    const { data: newsTypes = [] } = useGetNewsTypesQuery(undefined, {
+        skip: activeSection !== "news",
     });
 
     // Блоги волонтеров (посты)
@@ -68,12 +79,15 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
     const [deletePost] = useDeletePostMutation();
 
     // Новости от НКО и админов
-    const { data: allNews, isLoading: isLoadingAll } = useGetNewsQuery(undefined, {
-        skip: activeSection !== "news",
+    const { data: allNews, isLoading: isLoadingAll } = useGetNewsQuery(filterNewsCity, {
+        skip: activeSection !== "news" || activeTab !== "all",
     });
-    const { data: cityNews, isLoading: isLoadingCity } = useGetNewsQuery(currentCity, {
-        skip: !currentCity || activeSection !== "news" || activeTab !== "city",
-    });
+    const { data: cityNews, isLoading: isLoadingCity } = useGetNewsQuery(
+        activeTab === "city" ? (currentCity || filterNewsCity) : filterNewsCity,
+        {
+            skip: (!currentCity && !filterNewsCity) || activeSection !== "news" || activeTab !== "city",
+        }
+    );
     const { data: myNews, isLoading: isLoadingMy } = useGetMyNewsQuery(undefined, {
         skip: !isAuthenticated || activeSection !== "news" || activeTab !== "my",
     });
@@ -97,8 +111,15 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
             ? isLoadingCityPosts
             : isLoadingAllPosts;
     
-    const newsData =
-        activeTab === "my" ? myNews : activeTab === "city" ? cityNews : allNews;
+    // Фильтрация новостей по типу на фронтенде
+    const getFilteredNews = (news: INews[] | undefined) => {
+        if (!news) return undefined;
+        if (!filterNewsType) return news;
+        return news.filter((item) => item.type === filterNewsType);
+    };
+
+    const newsDataRaw = activeTab === "my" ? myNews : activeTab === "city" ? cityNews : allNews;
+    const newsData = getFilteredNews(newsDataRaw);
     const newsLoading =
         activeTab === "my"
             ? isLoadingMy
@@ -108,8 +129,9 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            theme: "Тематика",
+            theme: "Публикация",
             docs: "Документы",
+            system: "Системный",
         };
         return labels[type] || type;
     };
@@ -386,6 +408,30 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                         {activeSection === "posts" ? "Истории волонтеров" : "Новости"}
                     </Title>
                     <Space>
+                        {activeSection === "posts" && activeTab !== "my" && (
+                            <Button
+                                icon={<FilterOutlined />}
+                                onClick={() => {
+                                    setTempFilterCity(filterCity);
+                                    setTempFilterTheme(filterTheme);
+                                    setFilterDrawerOpen(true);
+                                }}
+                            >
+                                Фильтр
+                            </Button>
+                        )}
+                        {activeSection === "news" && activeTab !== "my" && (
+                            <Button
+                                icon={<FilterOutlined />}
+                                onClick={() => {
+                                    setTempFilterNewsCity(filterNewsCity);
+                                    setTempFilterNewsType(filterNewsType);
+                                    setNewsFilterDrawerOpen(true);
+                                }}
+                            >
+                                Фильтр
+                            </Button>
+                        )}
                         {activeSection === "posts" && canCreatePost && (
                             <Button
                                 type="primary"
@@ -406,36 +452,6 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                         )}
                     </Space>
                 </Flex>
-                {activeSection === "posts" && activeTab !== "my" && (
-                    <Flex gap="middle" style={{ marginBottom: 16 }}>
-                        <Select
-                            allowClear
-                            placeholder="Фильтр по городу"
-                            value={filterCity}
-                            onChange={(value) => setFilterCity(value)}
-                            style={{ width: 200 }}
-                        >
-                            {availableCities.map((cityName: string) => (
-                                <Option key={cityName} value={cityName}>
-                                    {cityName}
-                                </Option>
-                            ))}
-                        </Select>
-                        <Select
-                            allowClear
-                            placeholder="Фильтр по тематике"
-                            value={filterTheme}
-                            onChange={(value) => setFilterTheme(value)}
-                            style={{ width: 200 }}
-                        >
-                            {availableThemes.map((theme) => (
-                                <Option key={theme} value={theme}>
-                                    {theme}
-                                </Option>
-                            ))}
-                        </Select>
-                    </Flex>
-                )}
                 <Tabs
                     activeKey={activeTab}
                     onChange={setActiveTab}
@@ -485,6 +501,136 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                     )
                 )}
             </Card>
+            {activeSection === "posts" && activeTab !== "my" && (
+                <Drawer
+                    title="Фильтры"
+                    placement="right"
+                    onClose={() => setFilterDrawerOpen(false)}
+                    open={filterDrawerOpen}
+                    width={300}
+                    footer={
+                        <Space style={{ width: "100%", justifyContent: "flex-end" }}>
+                            <Button
+                                onClick={() => {
+                                    setTempFilterCity(undefined);
+                                    setTempFilterTheme(undefined);
+                                }}
+                            >
+                                Сбросить
+                            </Button>
+                            <Button
+                                type="primary"
+                                onClick={() => {
+                                    setFilterCity(tempFilterCity);
+                                    setFilterTheme(tempFilterTheme);
+                                    setFilterDrawerOpen(false);
+                                }}
+                            >
+                                Применить
+                            </Button>
+                        </Space>
+                    }
+                >
+                    <Space direction="vertical" style={{ width: "100%" }} size="large">
+                        <div>
+                            <Typography.Text strong>Город</Typography.Text>
+                            <Select
+                                allowClear
+                                placeholder="Выберите город"
+                                value={tempFilterCity}
+                                onChange={(value) => setTempFilterCity(value)}
+                                style={{ width: "100%", marginTop: 8 }}
+                            >
+                                {availableCities.map((cityName: string) => (
+                                    <Option key={cityName} value={cityName}>
+                                        {cityName}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </div>
+                        <div>
+                            <Typography.Text strong>Тематика</Typography.Text>
+                            <Select
+                                allowClear
+                                placeholder="Выберите тематику"
+                                value={tempFilterTheme}
+                                onChange={(value) => setTempFilterTheme(value)}
+                                style={{ width: "100%", marginTop: 8 }}
+                            >
+                                {availableThemes.map((theme) => (
+                                    <Option key={theme} value={theme}>
+                                        {theme}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </div>
+                    </Space>
+                </Drawer>
+            )}
+            {activeSection === "news" && activeTab !== "my" && (
+                <Drawer
+                    title="Фильтры"
+                    placement="right"
+                    onClose={() => setNewsFilterDrawerOpen(false)}
+                    open={newsFilterDrawerOpen}
+                    width={300}
+                    footer={
+                        <Space style={{ width: "100%", justifyContent: "flex-end" }}>
+                            <Button
+                                onClick={() => {
+                                    setTempFilterNewsCity(undefined);
+                                    setTempFilterNewsType(undefined);
+                                }}
+                            >
+                                Сбросить
+                            </Button>
+                            <Button
+                                type="primary"
+                                onClick={() => {
+                                    setFilterNewsCity(tempFilterNewsCity);
+                                    setFilterNewsType(tempFilterNewsType);
+                                    setNewsFilterDrawerOpen(false);
+                                }}
+                            >
+                                Применить
+                            </Button>
+                        </Space>
+                    }
+                >
+                    <Space direction="vertical" style={{ width: "100%" }} size="large">
+                        <div>
+                            <Typography.Text strong>Город</Typography.Text>
+                            <Select
+                                allowClear
+                                placeholder="Выберите город"
+                                value={tempFilterNewsCity}
+                                onChange={(value) => setTempFilterNewsCity(value)}
+                                style={{ width: "100%", marginTop: 8 }}
+                            >
+                                {availableCities.map((cityName: string) => (
+                                    <Option key={cityName} value={cityName}>
+                                        {cityName}
+                                    </Option>
+                                ))}
+                            </Select>
+                        </div>
+                        <div>
+                            <Typography.Text strong>Тип новости</Typography.Text>
+                            <Select
+                                allowClear
+                                placeholder="Выберите тип"
+                                value={tempFilterNewsType}
+                                onChange={(value) => setTempFilterNewsType(value)}
+                                style={{ width: "100%", marginTop: 8 }}
+                            >
+                                <Option value="theme">Публикация</Option>
+                                <Option value="docs">Документы</Option>
+                                <Option value="system">Системный</Option>
+                            </Select>
+                        </div>
+                    </Space>
+                </Drawer>
+            )}
         </div>
     );
 };

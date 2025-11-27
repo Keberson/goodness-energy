@@ -261,8 +261,9 @@ const ModerationPage = () => {
             width: 100,
             render: (type: string) => {
                 const typeMap: Record<string, { color: string; label: string }> = {
-                    theme: { color: "green", label: "Тематика" },
+                    theme: { color: "green", label: "Публикация" },
                     docs: { color: "orange", label: "Документы" },
+                    system: { color: "blue", label: "Системный" },
                 };
                 const typeInfo = typeMap[type] || { color: "default", label: type };
                 return <Tag color={typeInfo.color}>{typeInfo.label}</Tag>;

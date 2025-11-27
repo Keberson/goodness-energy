@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from typing import List
 from app.database import get_db
-from app.models import Knowledge, KnowledgeTag, KnowledgeAttachment, File as FileModel
+from app.models import Knowledge, KnowledgeTag, KnowledgeAttachment, File as FileModel, News, NewsType, UserRole, User
 from app.schemas import KnowledgeCreate, KnowledgeUpdate, KnowledgeResponse
 from app.auth import get_current_admin_user
 from app.minio_client import get_file_from_minio
@@ -10,6 +10,7 @@ from urllib.parse import quote
 import logging
 import zipfile
 import io
+import os
 
 logger = logging.getLogger(__name__)
 
@@ -104,6 +105,45 @@ async def create_knowledge(
     
     db.commit()
     db.refresh(knowledge)
+    
+    # Создаем системную новость о новом материале в базе знаний
+    try:
+        # Получаем базовый URL фронтенда
+        FRONTEND_BASE_URL_ENV = os.getenv("FRONTEND_BASE_URL", "").strip()
+        if FRONTEND_BASE_URL_ENV:
+            frontend_url = FRONTEND_BASE_URL_ENV.rstrip("/")
+        else:
+            # Пытаемся извлечь из VITE_API_PROD_BASE_URL
+            API_PROD_URL = os.getenv("VITE_API_PROD_BASE_URL", "").strip()
+            if API_PROD_URL:
+                if API_PROD_URL.endswith("/api"):
+                    frontend_url = API_PROD_URL[:-4].rstrip("/")
+                elif API_PROD_URL.endswith("/api/"):
+                    frontend_url = API_PROD_URL[:-5].rstrip("/")
+                else:
+                    frontend_url = API_PROD_URL.rstrip("/")
+            else:
+                frontend_url = "http://localhost:5173"
+        
+        # Создаем ссылку на материал
+        knowledge_link = f"{frontend_url}/knowledges/{knowledge.id}"
+        
+        # Создаем системную новость
+        system_news = News(
+            user_id=current_user.id,
+            admin_id=current_user.id,
+            name=f"Создан новый материал: {knowledge.name}",
+            annotation=f"В базе знаний появился новый материал: {knowledge.name}",
+            text=f'<p>Создан новый материал в базе знаний: <strong>{knowledge.name}</strong></p><p><a href="{knowledge_link}">Перейти к материалу</a></p>',
+            type=NewsType.SYSTEM,
+            city=None  # Системные новости не привязаны к городу
+        )
+        db.add(system_news)
+        db.commit()
+        logger.info(f"Создана системная новость о материале {knowledge.id}")
+    except Exception as e:
+        logger.error(f"Ошибка при создании системной новости: {e}")
+        # Не прерываем выполнение, если не удалось создать новость
     
     tags = [t.tag for t in knowledge.tags]
     attached_ids = [a.file_id for a in knowledge.attachments]

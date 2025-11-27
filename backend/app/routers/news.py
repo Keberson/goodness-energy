@@ -41,16 +41,17 @@ async def get_news_types(
     """
     # Маппинг типов новостей на русские названия
     type_mapping = {
-        "theme": "Тематика",
-        "docs": "Документы"
+        "theme": "Публикация",
+        "docs": "Документы",
+        "system": "Системный"
     }
     
     # Определяем доступные типы в зависимости от роли
     if current_user.role == UserRole.ADMIN:
-        # Админы могут создавать только Тематику
+        # Админы могут создавать только Публикации
         return [type_mapping["theme"]]
     elif current_user.role == UserRole.NPO:
-        # НКО могут создавать Тематику и Документы
+        # НКО могут создавать Публикации и Документы
         return [type_mapping["theme"], type_mapping["docs"]]
     elif current_user.role == UserRole.VOLUNTEER:
         # Волонтеры не могут создавать новости (только блоги через отдельный endpoint)

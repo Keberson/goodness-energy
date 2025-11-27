@@ -98,13 +98,15 @@ const EditNewsPage = () => {
     });
 
     const typeMapping: Record<string, NewsType> = {
-        Тематика: "theme",
+        Публикация: "theme",
         Документы: "docs",
+        Системный: "system",
     };
 
     const reverseTypeMapping: Record<NewsType, string> = {
-        theme: "Тематика",
+        theme: "Публикация",
         docs: "Документы",
+        system: "Системный",
     };
 
     useEffect(() => {

@@ -10,8 +10,9 @@ class UserRole(str, enum.Enum):
     ADMIN = "admin"
 
 class NewsType(str, enum.Enum):
-    THEME = "theme"  # Тематика (было "edu")
+    THEME = "theme"  # Публикация (было "edu", потом "Тематика")
     DOCS = "docs"  # Документы
+    SYSTEM = "system"  # Системный
 
 class VolunteerPostStatus(str, enum.Enum):
     PENDING = "pending"  # Ожидает модерации
