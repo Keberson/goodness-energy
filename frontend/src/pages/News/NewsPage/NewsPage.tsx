@@ -1,4 +1,4 @@
-import { Card, Typography, Tag, Space, Button, Flex } from "antd";
+import { Card, Typography, Tag, Space, Button } from "antd";
 import { CalendarOutlined, ArrowLeftOutlined, EditOutlined, UserOutlined } from "@ant-design/icons";
 import { useParams, useNavigate } from "react-router-dom";
 import { useGetNewsByIdQuery } from "@services/api/news.api";
@@ -73,29 +73,26 @@ const NewsPage = () => {
                 >
                     Назад к списку новостей
                 </Button>
-                <Flex
-                    justify="space-between"
+                <Space
                     align="center"
+                    wrap
+                    size="middle"
                     style={{ marginBottom: 8 }}
-                    wrap="wrap"
-                    gap={8}
                 >
                     <Title level={2} style={{ marginBottom: 0 }}>
                         {data.name}
                     </Title>
-                    <Space>
-                        {canEdit && (
-                            <Button
-                                type="primary"
-                                icon={<EditOutlined />}
-                                onClick={() => navigate(`/news/edit/${data.id}`)}
-                            >
-                                Редактировать
-                            </Button>
-                        )}
-                        <FavoriteButton itemType="news" itemId={data.id} />
-                    </Space>
-                </Flex>
+                    <FavoriteButton itemType="news" itemId={data.id} />
+                    {canEdit && (
+                        <Button
+                            type="primary"
+                            icon={<EditOutlined />}
+                            onClick={() => navigate(`/news/edit/${data.id}`)}
+                        >
+                            Редактировать
+                        </Button>
+                    )}
+                </Space>
                 <Space 
                     wrap 
                     size="large" 

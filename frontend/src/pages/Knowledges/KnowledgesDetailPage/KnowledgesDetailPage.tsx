@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, Typography, Space, Tag, Carousel, Button, App, Flex } from "antd";
+import { Card, Typography, Space, Tag, Carousel, Button, App } from "antd";
 import { DeleteOutlined, ArrowLeftOutlined, DownloadOutlined } from "@ant-design/icons";
 
 import "./styles.scss";
@@ -114,23 +114,7 @@ const KnowledgeDetailPage = () => {
     return (
         <div style={{ padding: 24 }}>
             {data && (
-                <Card
-                    extra={
-                        <Flex gap={8}>
-                            <FavoriteButton itemType="knowledge" itemId={data.id} />
-                            {isAdmin && (
-                                <Button
-                                    danger
-                                    icon={<DeleteOutlined />}
-                                    onClick={handleDelete}
-                                    loading={isDeleting}
-                                >
-                                    Удалить материал
-                                </Button>
-                            )}
-                        </Flex>
-                    }
-                >
+                <Card>
                     <Button
                         type="link"
                         icon={<ArrowLeftOutlined />}
@@ -141,7 +125,20 @@ const KnowledgeDetailPage = () => {
                     </Button>
                     <Space direction="vertical" size="large" style={{ width: "100%" }}>
                         <div>
-                            <Title level={2}>{data.name}</Title>
+                            <Space align="center" wrap style={{ marginBottom: 8 }}>
+                                <Title level={2} style={{ margin: 0 }}>{data.name}</Title>
+                                <FavoriteButton itemType="knowledge" itemId={data.id} />
+                                {isAdmin && (
+                                    <Button
+                                        danger
+                                        icon={<DeleteOutlined />}
+                                        onClick={handleDelete}
+                                        loading={isDeleting}
+                                    >
+                                        Удалить материал
+                                    </Button>
+                                )}
+                            </Space>
                             <Space wrap>
                                 {data.tags.map((tag) => (
                                     <Tag key={tag} color="blue">

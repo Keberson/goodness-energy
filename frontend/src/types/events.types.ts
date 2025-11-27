@@ -14,7 +14,12 @@ export interface IEvent {
     free_spots?: number | null; // Количество свободных мест (null если quantity не указано)
     status: EventStatus;
     tags: string[];
-    city: string | null; // Город НКО, создавшего событие
+    /**
+     * Адрес проведения события, если он известен.
+     * Если адрес не указан, на фронтенде показываем только город.
+     */
+    address?: string | null;
+    city: string | null; // Город проведения события
     attachedIds: number[]; // ID файлов (изображений)
     created_at: string;
 }
