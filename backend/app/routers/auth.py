@@ -43,6 +43,9 @@ else:
             FRONTEND_URL = "http://localhost:5173"
 
 # Определяем VK_REDIRECT_URI
+# redirect_uri - это URL фронтенда, на который VK перенаправит пользователя после авторизации
+# ВАЖНО: Этот URL должен ТОЧНО совпадать с тем, что указано в настройках VK приложения!
+# Формат: https://your-domain.com/auth/vk/callback
 # Приоритет: явно указанный VK_REDIRECT_URI > автоматически сформированный из FRONTEND_URL
 VK_REDIRECT_URI_ENV = os.getenv("VK_REDIRECT_URI", "").strip()
 if VK_REDIRECT_URI_ENV:
@@ -273,17 +276,28 @@ async def vk_login(request: Request):
     # Получаем redirect_uri из запроса или используем дефолтный
     redirect_uri = request.query_params.get("redirect_uri", VK_REDIRECT_URI)
     
+    # Нормализуем redirect_uri (убираем trailing slash, если есть)
+    redirect_uri = redirect_uri.rstrip("/")
+    
+    # Логируем для отладки
+    logger.info(f"VK OAuth login: client_id={VK_CLIENT_ID[:5]}..., redirect_uri={redirect_uri}")
+    
     # Параметры для VK OAuth
+    # Важно: не указываем scope, если он не нужен, или используем минимальные права
     params = {
         "client_id": VK_CLIENT_ID,
         "redirect_uri": redirect_uri,
         "display": "page",
-        "scope": "email",  # Запрашиваем email
         "response_type": "code",
         "v": VK_API_VERSION
     }
     
+    # Добавляем scope только если нужно получить email
+    # Но для начала попробуем без scope
+    # Если нужен email, можно добавить: params["scope"] = "email"
+    
     vk_auth_url = f"https://oauth.vk.com/authorize?{urlencode(params)}"
+    logger.info(f"VK OAuth URL: {vk_auth_url[:150]}...")
     return RedirectResponse(url=vk_auth_url)
 
 @router.get("/vk/callback")
@@ -314,6 +328,10 @@ async def vk_callback(
     
     # Получаем redirect_uri из запроса
     redirect_uri = request.query_params.get("redirect_uri", VK_REDIRECT_URI) if request else VK_REDIRECT_URI
+    # Нормализуем redirect_uri (убираем trailing slash)
+    redirect_uri = redirect_uri.rstrip("/")
+    
+    logger.info(f"VK OAuth callback: redirect_uri={redirect_uri}, code={'получен' if code else 'не получен'}")
     
     # Обмениваем код на access token
     async with httpx.AsyncClient() as client:
