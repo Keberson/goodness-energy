@@ -22,7 +22,7 @@ interface NewsListPageProps {
 const NewsListPage = ({ section }: NewsListPageProps) => {
     const navigate = useNavigate();
     const location = useLocation();
-    const { currentCity, availableCities } = useCity();
+    const { availableCities } = useCity();
     
     // Определяем активный раздел из пропсов или из URL
     const getInitialSection = (): "posts" | "news" => {
@@ -61,9 +61,9 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
         skip: activeSection !== "posts",
     });
 
-    // Блоги волонтеров (посты)
+    // Блоги волонтеров (посты) - получаем все, включая неподтвержденные
     const { data: allPosts, isLoading: isLoadingAllPosts } = useGetVolunteerPostsQuery(
-        { status: "approved", city: filterCity, theme_tag: filterTheme },
+        { city: filterCity, theme_tag: filterTheme },
         { skip: activeSection !== "posts" || activeTab !== "all" }
     );
     const { data: myPosts, isLoading: isLoadingMyPosts } = useGetMyPostsQuery(undefined, {
@@ -138,6 +138,24 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
         }
     };
 
+    const getStatusLabel = (status: string) => {
+        const labels: Record<string, string> = {
+            approved: "Одобрено",
+            pending: "На модерации",
+            rejected: "Отклонено",
+        };
+        return labels[status] || status;
+    };
+    
+    const getStatusColor = (status: string) => {
+        const colors: Record<string, string> = {
+            approved: "green",
+            pending: "orange",
+            rejected: "red",
+        };
+        return colors[status] || "default";
+    };
+
     const renderPostItem = (item: IVolunteerPost) => {
         const isMyPost = activeTab === "my" && isVolunteer;
         const actions = [];
@@ -190,6 +208,9 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                             <Title level={4} style={{ margin: 0 }}>
                                 {item.name}
                             </Title>
+                            {item.status && item.status !== "approved" && (
+                                <Tag color={getStatusColor(item.status)}>{getStatusLabel(item.status)}</Tag>
+                            )}
                             {item.theme_tag && (
                                 <Tag color="blue">{item.theme_tag}</Tag>
                             )}

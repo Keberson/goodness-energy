@@ -195,7 +195,7 @@ const ModerationPage = () => {
             dataIndex: "name",
             key: "name",
             width: 200,
-            render: (name: string, record: IEvent) => (
+            render: (name: string) => (
                 <Text
                     strong
                     style={{
