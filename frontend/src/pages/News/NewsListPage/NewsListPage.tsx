@@ -16,14 +16,22 @@ const NewsListPage = () => {
     const navigate = useNavigate();
     const { currentCity } = useCity();
     const [activeTab, setActiveTab] = useState("all");
-    const { data: allNews, isLoading: isLoadingAll } = useGetNewsQuery(currentCity);
-    const { data: myNews, isLoading: isLoadingMy } = useGetMyNewsQuery(undefined, { skip: activeTab !== "my" });
-    const [deleteNews] = useDeleteNewsMutation();
-    const { message } = App.useApp();
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
     const userType = useAppSelector((state) => state.auth.userType);
     const userId = useAppSelector((state) => state.auth.userId);
     const isNPO = isAuthenticated && userType === "npo";
+
+    // Все новости без фильтра по городу
+    const { data: allNews, isLoading: isLoadingAll } = useGetNewsQuery(undefined);
+    // Новости, отфильтрованные по текущему городу
+    const { data: cityNews, isLoading: isLoadingCity } = useGetNewsQuery(currentCity, {
+        skip: !currentCity,
+    });
+    const { data: myNews, isLoading: isLoadingMy } = useGetMyNewsQuery(undefined, {
+        skip: !isAuthenticated || activeTab !== "my",
+    });
+    const [deleteNews] = useDeleteNewsMutation();
+    const { message } = App.useApp();
     
     // Получаем данные НКО для проверки статуса
     const { data: npoData } = useGetNPOByIdQuery(isNPO && userId ? userId : skipToken);
@@ -31,8 +39,14 @@ const NewsListPage = () => {
     // Волонтёры и админы могут создавать новости, НКО - только подтверждённые
     const canCreateNews = isAuthenticated && (!isNPO || isNPOConfirmed);
     
-    const data = activeTab === "my" ? myNews : allNews;
-    const isLoading = activeTab === "my" ? isLoadingMy : isLoadingAll;
+    const data =
+        activeTab === "my" ? myNews : activeTab === "city" ? cityNews : allNews;
+    const isLoading =
+        activeTab === "my"
+            ? isLoadingMy
+            : activeTab === "city"
+            ? isLoadingCity
+            : isLoadingAll;
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
@@ -196,23 +210,29 @@ const NewsListPage = () => {
                         </Button>
                     )}
                 </Flex>
-                {isAuthenticated && (
-                    <Tabs
-                        activeKey={activeTab}
-                        onChange={setActiveTab}
-                        items={[
-                            {
-                                key: "all",
-                                label: "Все новости",
-                            },
-                            {
-                                key: "my",
-                                label: "Мои новости",
-                            },
-                        ]}
-                        style={{ marginBottom: 24 }}
-                    />
-                )}
+                <Tabs
+                    activeKey={activeTab}
+                    onChange={setActiveTab}
+                    items={[
+                        {
+                            key: "all",
+                            label: "Все новости",
+                        },
+                        {
+                            key: "city",
+                            label: `Новости города ${currentCity || ""}`.trim(),
+                        },
+                        ...(isAuthenticated
+                            ? [
+                                  {
+                                      key: "my",
+                                      label: "Мои новости",
+                                  },
+                              ]
+                            : []),
+                    ]}
+                    style={{ marginBottom: 24 }}
+                />
                 {isLoading ? (
                     <List loading={isLoading} />
                 ) : !data || data.length === 0 ? (
