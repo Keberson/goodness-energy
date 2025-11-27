@@ -698,40 +698,40 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, db: Session = Depends(get_db)):
     
     # Ищем существующего пользователя по VK ID
     user = db.query(User).filter(User.vk_id == vk_user_id).first()
-        
-        if not user:
-            # Пользователя нет - возвращаем данные для регистрации
-            return VKIDAuthResponse(
-                user_exists=False,
-                vk_id=vk_user_id,
-                vk_data={
-                    "first_name": first_name,
-                    "last_name": last_name,
-                    "email": email,
-                }
-            )
-        
-        # Пользователь существует - авторизуем
-        user_id = user.id
-        if user.role == UserRole.NPO:
-            npo = db.query(NPO).filter(NPO.user_id == user.id).first()
-            if npo:
-                user_id = npo.id
-        elif user.role == UserRole.VOLUNTEER:
-            volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
-            if volunteer:
-                user_id = volunteer.id
-        
-        access_token_jwt = create_access_token(data={"sub": str(user.id)})
-        token = Token(
-            access_token=access_token_jwt,
-            token_type="bearer",
-            user_type=user.role.value,
-            id=user_id
-        )
-        
+    
+    if not user:
+        # Пользователя нет - возвращаем данные для регистрации
         return VKIDAuthResponse(
-            user_exists=True,
-            token=token
+            user_exists=False,
+            vk_id=vk_user_id,
+            vk_data={
+                "first_name": first_name,
+                "last_name": last_name,
+                "email": email,
+            }
         )
+    
+    # Пользователь существует - авторизуем
+    user_id = user.id
+    if user.role == UserRole.NPO:
+        npo = db.query(NPO).filter(NPO.user_id == user.id).first()
+        if npo:
+            user_id = npo.id
+    elif user.role == UserRole.VOLUNTEER:
+        volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
+        if volunteer:
+            user_id = volunteer.id
+    
+    access_token_jwt = create_access_token(data={"sub": str(user.id)})
+    token = Token(
+        access_token=access_token_jwt,
+        token_type="bearer",
+        user_type=user.role.value,
+        id=user_id
+    )
+    
+    return VKIDAuthResponse(
+        user_exists=True,
+        token=token
+    )
 
