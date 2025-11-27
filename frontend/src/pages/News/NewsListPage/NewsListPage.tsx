@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Card, List, Typography, Tag, Space, Button, Empty, Flex, Tabs, Popconfirm, App, Select, Drawer } from "antd";
 import { EyeOutlined, CalendarOutlined, PlusOutlined, UserOutlined, EditOutlined, DeleteOutlined, FilterOutlined } from "@ant-design/icons";
 import { useNavigate, useLocation } from "react-router-dom";
-import { useGetNewsQuery, useGetMyNewsQuery, useDeleteNewsMutation, useGetNewsTypesQuery } from "@services/api/news.api";
+import { useGetNewsQuery, useGetMyNewsQuery, useDeleteNewsMutation } from "@services/api/news.api";
 import { useGetVolunteerPostsQuery, useGetMyPostsQuery, useDeletePostMutation, useGetAvailableThemesQuery } from "@services/api/volunteer-posts.api";
 import { useGetNPOByIdQuery } from "@services/api/npo.api";
 import type { INews } from "@app-types/news.types";
@@ -59,9 +59,6 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
     
     const { data: availableThemes = [] } = useGetAvailableThemesQuery(undefined, {
         skip: activeSection !== "posts",
-    });
-    const { data: newsTypes = [] } = useGetNewsTypesQuery(undefined, {
-        skip: activeSection !== "news",
     });
 
     // Блоги волонтеров (посты)
