@@ -20,8 +20,36 @@ router = APIRouter()
 # VK OAuth настройки
 VK_CLIENT_ID = os.getenv("VK_CLIENT_ID", "")
 VK_CLIENT_SECRET = os.getenv("VK_CLIENT_SECRET", "")
-VK_REDIRECT_URI = os.getenv("VK_REDIRECT_URI", "http://localhost:5173/auth/vk/callback")
 VK_API_VERSION = "5.131"
+
+# Определяем FRONTEND URL для redirect
+# Приоритет: FRONTEND_URL > FRONTEND_BASE_URL > извлечение из VITE_API_PROD_BASE_URL > localhost
+FRONTEND_URL_ENV = os.getenv("FRONTEND_URL", "").strip()
+if FRONTEND_URL_ENV:
+    FRONTEND_URL = FRONTEND_URL_ENV.rstrip("/")
+else:
+    # Используем FRONTEND_BASE_URL, если он есть
+    FRONTEND_BASE_URL_ENV = os.getenv("FRONTEND_BASE_URL", "").strip()
+    if FRONTEND_BASE_URL_ENV:
+        FRONTEND_URL = FRONTEND_BASE_URL_ENV.rstrip("/")
+    else:
+        # Пытаемся извлечь базовый URL из переменной VITE_API_PROD_BASE_URL
+        API_PROD_URL = os.getenv("VITE_API_PROD_BASE_URL", "").strip()
+        if API_PROD_URL:
+            # Убираем /api из конца, если есть
+            FRONTEND_URL = API_PROD_URL.replace("/api", "").rstrip("/")
+        else:
+            # Fallback на localhost для разработки
+            FRONTEND_URL = "http://localhost:5173"
+
+# Определяем VK_REDIRECT_URI
+# Приоритет: явно указанный VK_REDIRECT_URI > автоматически сформированный из FRONTEND_URL
+VK_REDIRECT_URI_ENV = os.getenv("VK_REDIRECT_URI", "").strip()
+if VK_REDIRECT_URI_ENV:
+    VK_REDIRECT_URI = VK_REDIRECT_URI_ENV
+else:
+    # Автоматически формируем из FRONTEND_URL
+    VK_REDIRECT_URI = f"{FRONTEND_URL}/auth/vk/callback"
 
 @router.post("/reg/npo", response_model=Token)
 async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db)):
@@ -402,8 +430,7 @@ async def vk_callback(
             access_token_jwt = create_access_token(data={"sub": str(user.id)})
             
             # Возвращаем токен через redirect с параметрами
-            frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-            redirect_url = f"{frontend_url}/auth/vk/success?token={access_token_jwt}&user_type={user.role.value}&id={volunteer.id}"
+            redirect_url = f"{FRONTEND_URL}/auth/vk/success?token={access_token_jwt}&user_type={user.role.value}&id={volunteer.id}"
             return RedirectResponse(url=redirect_url)
         
         # Если пользователь существует, создаем токен и перенаправляем
@@ -422,8 +449,7 @@ async def vk_callback(
         
         access_token_jwt = create_access_token(data={"sub": str(user.id)})
         
-        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
-        redirect_url = f"{frontend_url}/auth/vk/success?token={access_token_jwt}&user_type={user.role.value}&id={user_id}"
+        redirect_url = f"{FRONTEND_URL}/auth/vk/success?token={access_token_jwt}&user_type={user.role.value}&id={user_id}"
         return RedirectResponse(url=redirect_url)
 
 @router.post("/vk/auth", response_model=Token)
