@@ -77,7 +77,7 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
                 redirectUrl: redirectUrl,
                 responseMode: VKID.ConfigResponseMode.Callback,
                 source: VKID.ConfigSource.LOWCODE,
-                scope: "", // Можно добавить нужные права при необходимости
+                scope: "vkid.personal_info email phone",
             });
 
             // Создание OneTap виджета
@@ -111,7 +111,9 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
                         // Отправляем access_token и id_token на бэкенд
                         // Бэкенд попытается получить данные из id_token (JWT), что не требует запросов к VK API
                         // Если это не сработает, бэкенд сделает запрос к VK API
-                        console.log("VK ID: отправляем токены на бэкенд для получения данных пользователя...");
+                        console.log(
+                            "VK ID: отправляем токены на бэкенд для получения данных пользователя..."
+                        );
                         const response = await vkIdAuth({
                             access_token: vkTokens.access_token,
                             id_token: vkTokens.id_token,
