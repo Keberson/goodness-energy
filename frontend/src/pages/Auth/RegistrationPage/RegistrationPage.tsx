@@ -9,13 +9,12 @@ import VKIDButton from "@components/VKIDButton/VKIDButton";
 
 import "./styles.scss";
 import AuthLayout from "../AuthLayout/AuthLayout";
-import { NavLink, useNavigate } from "react-router-dom";
+import { NavLink } from "react-router-dom";
 
 const { Title } = Typography;
 
 const RegistrationPage = () => {
     const [searchParams] = useSearchParams();
-    const navigate = useNavigate();
     const [activeTab, setActiveTab] = useState<string>("volunteer");
     
     // Если есть vk_id в параметрах, автоматически переключаемся на соответствующую вкладку
