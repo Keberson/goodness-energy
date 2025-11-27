@@ -5,6 +5,8 @@ from app.database import get_db
 from app.models import News, NewsTag, NewsAttachment, NPO, Volunteer, UserRole, User
 from app.schemas import NewsCreate, NewsResponse, NewsUpdate
 from app.auth import get_current_user
+from app.moderation_service import moderate_content
+from datetime import datetime, timezone
 import logging
 import asyncio
 
@@ -117,7 +119,9 @@ async def get_all_news(
             type=news.type,
             created_at=news.created_at,
             user_id=news.user_id,
-            author=author
+            author=author,
+            is_auto_moderated=news.is_auto_moderated,
+            auto_moderated_at=news.auto_moderated_at
         ))
     
     return result
@@ -170,7 +174,9 @@ async def get_my_news(
             type=news.type,
             created_at=news.created_at,
             user_id=news.user_id,
-            author=author
+            author=author,
+            is_auto_moderated=news.is_auto_moderated,
+            auto_moderated_at=news.auto_moderated_at
         ))
     
     return result
@@ -261,6 +267,55 @@ async def create_news(
     db.commit()
     db.refresh(news)
     
+    # Автоматическая модерация через LLM (асинхронно, не блокируем ответ)
+    async def auto_moderate_news(news_id: int, title: str, text: str, annotation: Optional[str]):
+        """Асинхронная функция для автоматической модерации новости"""
+        try:
+            # Получаем новую сессию БД для фоновой задачи
+            from app.database import SessionLocal
+            db_session = SessionLocal()
+            try:
+                news_item = db_session.query(News).filter(News.id == news_id).first()
+                if not news_item:
+                    logger.warning(f"Новость {news_id} не найдена для модерации")
+                    return
+                
+                # Выполняем модерацию
+                moderation_result = await moderate_content(
+                    title=title,
+                    text=text,
+                    annotation=annotation
+                )
+                
+                # Обновляем новость с результатами модерации
+                # Помечаем как проверенное независимо от результата (админ может пересмотреть)
+                news_item.is_auto_moderated = True
+                news_item.auto_moderated_at = datetime.now(timezone.utc)
+                db_session.commit()
+                
+                if moderation_result.get("approved", False):
+                    logger.info(f"Новость {news_id} автоматически одобрена")
+                else:
+                    logger.warning(
+                        f"Новость {news_id} не прошла автоматическую модерацию: {moderation_result.get('reason')}"
+                    )
+            finally:
+                db_session.close()
+        except Exception as e:
+            logger.error(f"Ошибка при автоматической модерации новости {news_id}: {e}", exc_info=True)
+    
+    # Запускаем модерацию в фоне
+    task = asyncio.create_task(auto_moderate_news(
+        news_id=news.id,
+        title=news.name,
+        text=news.text,
+        annotation=news.annotation
+    ))
+    task.add_done_callback(
+        lambda t: logger.error(f"Ошибка в задаче модерации: {t.exception()}") 
+        if t.exception() else None
+    )
+    
     # Определяем город новости для отправки уведомлений
     # Приоритет: явный город новости, затем город НКО/волонтёра
     news_city = news.city
@@ -296,7 +351,9 @@ async def create_news(
         type=news.type,
         created_at=news.created_at,
         user_id=news.user_id,
-        author=author
+        author=author,
+        is_auto_moderated=news.is_auto_moderated,
+        auto_moderated_at=news.auto_moderated_at
     )
 
 @router.put("/{news_id}", response_model=NewsResponse)
@@ -373,7 +430,9 @@ async def update_news(
         type=news.type,
         created_at=news.created_at,
         user_id=news.user_id,
-        author=author
+        author=author,
+        is_auto_moderated=news.is_auto_moderated,
+        auto_moderated_at=news.auto_moderated_at
     )
 
 @router.delete("/{news_id}")

@@ -225,6 +225,8 @@ class NewsResponse(BaseModel):
     created_at: datetime
     user_id: int  # ID пользователя, создавшего новость
     author: str  # Имя автора: для волонтёра - имя и фамилия, для НКО - название НКО, для админа - "Администратор"
+    is_auto_moderated: bool = False  # Проверено ли автоматически
+    auto_moderated_at: Optional[datetime] = None  # Дата автоматической модерации
     
     class Config:
         from_attributes = True

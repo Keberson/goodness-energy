@@ -224,6 +224,9 @@ class News(Base):
     city = Column(String, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    # Поля для автоматической модерации
+    is_auto_moderated = Column(Boolean, default=False, server_default='false', nullable=False)  # Проверено ли автоматически
+    auto_moderated_at = Column(DateTime(timezone=True), nullable=True)  # Дата автоматической модерации
     
     user = relationship("User", foreign_keys=[user_id])
     npo = relationship("NPO", back_populates="news")

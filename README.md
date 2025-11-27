@@ -164,6 +164,14 @@ goodness-energy/
     VK_CLIENT_SECRET=your-vk-secret-key
     # VK_REDIRECT_URI - опционально (автоматически формируется из FRONTEND_URL или FRONTEND_BASE_URL)
     # VK_REDIRECT_URI=http://localhost:5173/auth/vk/callback
+
+    # OpenRouter API (для автоматической модерации новостей через LLM)
+    # Получить API ключ можно на https://openrouter.ai/
+    OPENROUTER_API_KEY=your-openrouter-api-key
+    # Модель для модерации (по умолчанию: google/gemini-flash-1.5)
+    # OPENROUTER_MODEL=google/gemini-flash-1.5
+    # URL вашего сайта для OpenRouter (по умолчанию: https://goodness-energy.ru)
+    # OPENROUTER_REFERER=https://goodness-energy.ru
     ```
 
     **Примечание по настройке VK OAuth:**
