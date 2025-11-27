@@ -18,9 +18,6 @@ class VKAuthCallback(BaseModel):
     code: str
     redirect_uri: Optional[str] = None
 
-class VKUserDataRequest(BaseModel):
-    access_token: str
-
 class VKIDAuthRequest(BaseModel):
     # Принимаем access_token, id_token и данные пользователя, полученные на фронтенде
     # Данные получаются на фронтенде, так как access_token привязан к IP клиента
