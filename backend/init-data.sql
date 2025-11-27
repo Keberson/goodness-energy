@@ -2183,65 +2183,65 @@ VALUES (
 -- Теги новостей
 -- ============================================
 
-INSERT INTO news_tags (news_id, tag)
-VALUES (
-  (SELECT id FROM news WHERE name = 'Новая программа поддержки волонтёров'),
-  'Волонтёрство'
-);
+-- INSERT INTO news_tags (news_id, tag)
+-- VALUES (
+--   (SELECT id FROM news WHERE name = 'Новая программа поддержки волонтёров'),
+--   'Волонтёрство'
+-- );
 
-INSERT INTO news_tags (news_id, tag)
-VALUES (
-  (SELECT id FROM news WHERE name = 'Итоги акции помощи пожилым людям'),
-  'Социальная помощь'
-);
+-- INSERT INTO news_tags (news_id, tag)
+-- VALUES (
+--   (SELECT id FROM news WHERE name = 'Итоги акции помощи пожилым людям'),
+--   'Социальная помощь'
+-- );
 
-INSERT INTO news_tags (news_id, tag)
-VALUES (
-  (SELECT id FROM news WHERE name = 'Открыта регистрация на Школу волонтеров'),
-  'Обучение'
-);
+-- INSERT INTO news_tags (news_id, tag)
+-- VALUES (
+--   (SELECT id FROM news WHERE name = 'Открыта регистрация на Школу волонтеров'),
+--   'Обучение'
+-- );
 
-INSERT INTO news_tags (news_id, tag)
-VALUES (
-  (SELECT id FROM news WHERE name = 'Мой опыт волонтёрства'),
-  'Экология'
-);
+-- INSERT INTO news_tags (news_id, tag)
+-- VALUES (
+--   (SELECT id FROM news WHERE name = 'Мой опыт волонтёрства'),
+--   'Экология'
+-- );
 
-INSERT INTO news_tags (news_id, tag)
-VALUES (
-  (SELECT id FROM news WHERE name LIKE '%Добро без галстуков%'),
-  'Подкаст'
-);
+-- INSERT INTO news_tags (news_id, tag)
+-- VALUES (
+--   (SELECT id FROM news WHERE name LIKE '%Добро без галстуков%'),
+--   'Подкаст'
+-- );
 
-INSERT INTO news_tags (news_id, tag)
-VALUES (
-  (SELECT id FROM news WHERE name LIKE '%Добро без галстуков%'),
-  'Корпоративное волонтерство'
-);
+-- INSERT INTO news_tags (news_id, tag)
+-- VALUES (
+--   (SELECT id FROM news WHERE name LIKE '%Добро без галстуков%'),
+--   'Корпоративное волонтерство'
+-- );
 
-INSERT INTO news_tags (news_id, tag)
-VALUES (
-  (SELECT id FROM news WHERE name LIKE '%Добро без галстуков%'),
-  'Волонтёрство'
-);
+-- INSERT INTO news_tags (news_id, tag)
+-- VALUES (
+--   (SELECT id FROM news WHERE name LIKE '%Добро без галстуков%'),
+--   'Волонтёрство'
+-- );
 
-INSERT INTO news_tags (news_id, tag)
-VALUES (
-  (SELECT id FROM news WHERE name LIKE '%Как наука помогает развивать устойчивый туризм%'),
-  'Туризм'
-);
+-- INSERT INTO news_tags (news_id, tag)
+-- VALUES (
+--   (SELECT id FROM news WHERE name LIKE '%Как наука помогает развивать устойчивый туризм%'),
+--   'Туризм'
+-- );
 
-INSERT INTO news_tags (news_id, tag)
-VALUES (
-  (SELECT id FROM news WHERE name LIKE '%Как наука помогает развивать устойчивый туризм%'),
-  'Устойчивое развитие'
-);
+-- INSERT INTO news_tags (news_id, tag)
+-- VALUES (
+--   (SELECT id FROM news WHERE name LIKE '%Как наука помогает развивать устойчивый туризм%'),
+--   'Устойчивое развитие'
+-- );
 
-INSERT INTO news_tags (news_id, tag)
-VALUES (
-  (SELECT id FROM news WHERE name LIKE '%Как наука помогает развивать устойчивый туризм%'),
-  'Событие'
-);
+-- INSERT INTO news_tags (news_id, tag)
+-- VALUES (
+--   (SELECT id FROM news WHERE name LIKE '%Как наука помогает развивать устойчивый туризм%'),
+--   'Событие'
+-- );
 
 -- ============================================
 -- База знаний
