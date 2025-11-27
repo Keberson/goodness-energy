@@ -1,15 +1,15 @@
-import { Form, Input, Button, Flex, Typography, Divider } from "antd";
+import { Form, Input, Button, Flex, Typography, Divider, message } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
 import { NavLink, useNavigate } from "react-router-dom";
 
 import "./styles.scss";
 
 import AuthLayout from "../AuthLayout/AuthLayout";
+import VKIDButton from "@components/VKIDButton/VKIDButton";
 
 import { useLoginMutation } from "@services/api/auth.api";
 import { login } from "@services/slices/auth.slice";
 import useAppDispatch from "@hooks/useAppDispatch";
-import { getApiBaseUrl } from "@utils/apiUrl";
 
 const { Title } = Typography;
 
@@ -33,12 +33,9 @@ const LoginPage = () => {
         } catch (error) {}
     };
 
-    const handleVKLogin = () => {
-        // Получаем текущий URL для redirect
-        const redirectUri = `${window.location.origin}/auth/vk/callback`;
-        const apiBaseUrl = getApiBaseUrl();
-        const vkLoginUrl = `${apiBaseUrl}/auth/vk/login?redirect_uri=${encodeURIComponent(redirectUri)}`;
-        window.location.href = vkLoginUrl;
+    const handleVKError = (error: any) => {
+        console.error("VK ID Error:", error);
+        message.error("Ошибка авторизации через VK. Попробуйте позже.");
     };
 
     return (
@@ -94,15 +91,11 @@ const LoginPage = () => {
 
             <Divider>или</Divider>
 
-            <Button
-                type="default"
-                size="large"
-                block
-                className="login-page__vk-btn"
-                onClick={handleVKLogin}
-            >
-                Войти через VK
-            </Button>
+            <VKIDButton
+                appId={Number(import.meta.env.VITE_VK_APP_ID || "54342802")}
+                redirectUrl={`${window.location.origin}/auth/vk/callback`}
+                onError={handleVKError}
+            />
 
             <Flex gap="small" vertical style={{ marginTop: 16 }}>
                 <NavLink to="/reg">

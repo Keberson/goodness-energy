@@ -7,6 +7,7 @@ import type {
     IRegNPORequest,
     INotificationSettings,
     INotificationSettingsUpdate,
+    IVKIDAuthResponse,
 } from "@app-types/auth.types";
 import { getApiBaseUrl } from "@utils/apiUrl";
 
@@ -86,6 +87,13 @@ export const authApi = createApi({
                 body,
             }),
         }),
+        vkIdAuth: builder.mutation<IVKIDAuthResponse, { code: string; device_id: string }>({
+            query: (body) => ({
+                url: `/vk/id`,
+                method: "POST",
+                body,
+            }),
+        }),
     }),
 });
 
@@ -98,4 +106,5 @@ export const {
     useGetNotificationSettingsQuery,
     useUpdateNotificationSettingsMutation,
     useVkAuthMutation,
+    useVkIdAuthMutation,
 } = authApi;
