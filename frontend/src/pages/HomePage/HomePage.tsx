@@ -1,4 +1,4 @@
-import { Card, Row, Col, Typography, Button, Flex, Calendar, Badge, Tooltip, Empty, List, Tag, Space } from "antd";
+import { Card, Row, Col, Typography, Button, Flex, Empty, List, Tag, Space } from "antd";
 import {
     EnvironmentOutlined,
     TeamOutlined,
@@ -7,27 +7,28 @@ import {
     ArrowRightOutlined,
     NotificationOutlined,
     PlayCircleOutlined,
-    LeftOutlined,
-    RightOutlined,
     ClockCircleOutlined,
 } from "@ant-design/icons";
-import type { Dayjs } from "dayjs";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import { useGetEventsQuery } from "@services/api/events.api";
 import { useRegisterEventViewMutation } from "@services/api/npo.api";
 import type { IEvent } from "@app-types/events.types";
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useEffect } from "react";
 import { useCity } from "@hooks/useCity";
 import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
+import useAppSelector from "@hooks/useAppSelector";
 
 const { Title, Paragraph, Text } = Typography;
 
 import "./styles.scss";
 
 const HomePage = () => {
+    const navigate = useNavigate();
     const { currentCity } = useCity();
+    const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
+    const userType = useAppSelector((state) => state.auth.userType);
     const { data: allEvents } = useGetEventsQuery(currentCity);
     // Фильтруем события: показываем только опубликованные и завершённые
     // Сортируем по дате создания (новые первыми)
@@ -43,8 +44,6 @@ const HomePage = () => {
             return dateB - dateA; // По убыванию (новые первыми)
         });
     }, [allEvents]);
-    const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
-    const [mode, setMode] = useState<"month" | "year">("month");
     const [registerEventView] = useRegisterEventViewMutation();
     const features = [
         {
@@ -62,83 +61,44 @@ const HomePage = () => {
         {
             icon: <CalendarOutlined />,
             title: "Календарь",
-            description: "Отметьте интересные события, чтобы ничего не пропустить",
+            description: "Просмотреть интересные события, чтобы ничего не пропустить",
             link: "events",
         },
         {
             icon: <ReadOutlined />,
             title: "База знаний",
-            description: "Просматривайте видео и материалы для скачивания",
+            description: "Узнать что-то новое",
             link: "knowledges",
         },
         {
             icon: <NotificationOutlined />,
             title: "Новости",
-            description: "Будьте в курсе последних инициатив и грантов",
+            description: "Увидеть последние новости",
             link: "news",
         },
     ];
 
-    // Группируем события по датам (событие отображается на каждый день от start до end)
-    // Фильтрация по городу теперь происходит на бэкенде
-    const eventsByDate = useMemo(() => {
-        if (!events) return new Map<string, IEvent[]>();
+    // События на ближайшую неделю
+    const upcomingWeekEvents = useMemo(() => {
+        const now = dayjs();
+        const weekEnd = now.add(7, "day").endOf("day");
 
-        const map = new Map<string, IEvent[]>();
-        events.forEach((event) => {
-            const startDate = dayjs(event.start).startOf("day");
-            const endDate = dayjs(event.end).startOf("day");
-            
-            // Добавляем событие на каждый день от начала до конца включительно
-            let currentDate = startDate;
-            while (currentDate.isBefore(endDate, "day") || currentDate.isSame(endDate, "day")) {
-                const dateKey = currentDate.format("YYYY-MM-DD");
-                if (!map.has(dateKey)) {
-                    map.set(dateKey, []);
-                }
-                map.get(dateKey)!.push(event);
-                currentDate = currentDate.add(1, "day");
-            }
-        });
-        
-        // Сортируем события внутри каждой даты по дате создания (новые первыми)
-        map.forEach((eventList) => {
-            eventList.sort((a, b) => {
-                const dateA = dayjs(a.created_at).valueOf();
-                const dateB = dayjs(b.created_at).valueOf();
-                return dateB - dateA; // По убыванию (новые первыми)
+        return (events || [])
+            .filter((event) => {
+                const start = dayjs(event.start);
+                return start.isAfter(now) && start.isBefore(weekEnd);
+            })
+            .sort((a, b) => {
+                const startA = dayjs(a.start).valueOf();
+                const startB = dayjs(b.start).valueOf();
+                return startA - startB; // По возрастанию времени начала
             });
-        });
-        
-        return map;
     }, [events]);
 
-    // Получаем события для выбранной даты (события, которые идут в этот день)
-    const selectedDateEvents = useMemo(() => {
-        const dateStart = selectedDate.startOf("day");
-        const dateEnd = selectedDate.endOf("day");
-        
-        // Фильтруем события, которые пересекаются с выбранной датой
-        const filtered = (events || []).filter((event) => {
-            const eventStart = dayjs(event.start);
-            const eventEnd = dayjs(event.end);
-            // Событие попадает в выбранный день, если оно начинается до конца дня и заканчивается после начала дня
-            return (eventStart.isBefore(dateEnd) || eventStart.isSame(dateEnd)) && 
-                   (eventEnd.isAfter(dateStart) || eventEnd.isSame(dateStart));
-        });
-        
-        // Сортируем по дате создания (новые первыми)
-        return filtered.sort((a, b) => {
-            const dateA = dayjs(a.created_at).valueOf();
-            const dateB = dayjs(b.created_at).valueOf();
-            return dateB - dateA; // По убыванию (новые первыми)
-        });
-    }, [selectedDate, events]);
-
-    // Регистрируем просмотры для всех событий выбранной даты
+    // Регистрируем просмотры для всех событий ближайшей недели
     useEffect(() => {
-        if (selectedDateEvents.length > 0) {
-            selectedDateEvents.forEach((event) => {
+        if (upcomingWeekEvents.length > 0) {
+            upcomingWeekEvents.forEach((event) => {
                 registerEventView({
                     npoId: event.npo_id,
                     eventId: event.id,
@@ -147,7 +107,7 @@ const HomePage = () => {
                 });
             });
         }
-    }, [selectedDate, selectedDateEvents, registerEventView]);
+    }, [upcomingWeekEvents, registerEventView]);
 
     // Функция для получения цвета тега
     const getTagColor = (tag: string): string => {
@@ -166,114 +126,6 @@ const HomePage = () => {
         return colors[index];
     };
 
-
-    // Кастомный заголовок календаря
-    const headerRender = ({ value, onChange }: any) => {
-        const monthName = value.locale("ru").format("MMMM YYYY");
-
-        const onPrev = () => {
-            const newValue = value.subtract(1, "month");
-            onChange(newValue);
-        };
-
-        const onNext = () => {
-            const newValue = value.add(1, "month");
-            onChange(newValue);
-        };
-
-        const onToday = () => {
-            onChange(dayjs());
-        };
-
-        return (
-            <div className="events-calendar__header">
-                <Button
-                    type="text"
-                    icon={<LeftOutlined />}
-                    onClick={onPrev}
-                    className="events-calendar__header-button"
-                />
-                <Button type="text" onClick={onToday} className="events-calendar__header-title">
-                    {monthName}
-                </Button>
-                <Button
-                    type="text"
-                    icon={<RightOutlined />}
-                    onClick={onNext}
-                    className="events-calendar__header-button"
-                />
-            </div>
-        );
-    };
-
-    // Функция для рендеринга ячеек календаря
-    const cellRender = (value: Dayjs, info: any) => {
-        // Рендерим только для ячеек дат, не для месяцев
-        if (info?.type !== 'date') {
-            return null;
-        }
-
-        const dateKey = value.format("YYYY-MM-DD");
-        const dayEvents = eventsByDate.get(dateKey) || [];
-
-        if (dayEvents.length === 0) {
-            return null;
-        }
-
-        return (
-            <div className="events-calendar__events-indicators">
-                {dayEvents.slice(0, 3).map((event) => {
-                    // Берем первый тег события для отображения цвета
-                    const firstTag = event.tags && event.tags.length > 0 ? event.tags[0] : null;
-                    const tagColor = firstTag ? getTagColor(firstTag) : "default";
-                    
-                    return (
-                        <Tooltip
-                            key={event.id}
-                            title={
-                                <div>
-                                    <div style={{ fontWeight: "bold", marginBottom: 4 }}>
-                                        {event.name}
-                                    </div>
-                                    {event.description && (
-                                        <div style={{ fontSize: "12px" }}>{event.description}</div>
-                                    )}
-                                    <div style={{ fontSize: "11px", marginTop: 4 }}>
-                                        {dayjs(event.start).format("DD.MM.YYYY HH:mm")} -{" "}
-                                        {dayjs(event.end).format("DD.MM.YYYY HH:mm")}
-                                    </div>
-                                    {event.tags && event.tags.length > 0 && (
-                                        <div style={{ fontSize: "11px", marginTop: 4 }}>
-                                            <Space wrap size={[4, 4]}>
-                                                {event.tags.map((tag) => (
-                                                    <Tag key={tag} color={getTagColor(tag)} style={{ margin: 0 }}>
-                                                        {tag}
-                                                    </Tag>
-                                                ))}
-                                            </Space>
-                                        </div>
-                                    )}
-                                </div>
-                            }
-                            placement="top"
-                        >
-                            <Badge
-                                color={tagColor}
-                                className="events-calendar__event-indicator"
-                            />
-                        </Tooltip>
-                    );
-                })}
-                {dayEvents.length > 3 && (
-                    <Tooltip title={`Еще ${dayEvents.length - 3} событий`} placement="top">
-                        <span className="events-calendar__more-indicator">
-                            +{dayEvents.length - 3}
-                        </span>
-                    </Tooltip>
-                )}
-            </div>
-        );
-    };
 
     return (
         <div className="home__container">
@@ -305,8 +157,80 @@ const HomePage = () => {
                 </Row>
             </Card>
 
-            <Title level={2} className="home__section-title" style={{ textAlign: "center", marginBottom: 32 }}>
-                Здесь вы сможете:
+            <Card
+                title={
+                    <Flex align="center" gap={8}>
+                        <PlayCircleOutlined />
+                        Быстрый старт
+                    </Flex>
+                }
+            >
+                <Paragraph strong>Начните делать добрые дела уже сегодня!</Paragraph>
+                <Paragraph>
+                    Выберите подходящий способ участия и присоединяйтесь к сообществу волонтёров и
+                    активистов вашего города.
+                </Paragraph>
+
+                <Flex vertical gap={12} className="home__quick-actions">
+                    {isAuthenticated ? (
+                        <Button
+                            type="primary"
+                            size="large"
+                            block
+                            onClick={() => {
+                                if (userType === "volunteer") {
+                                    navigate("/profile");
+                                } else if (userType === "npo") {
+                                    navigate("/org");
+                                } else if (userType === "admin") {
+                                    navigate("/moderation");
+                                } else {
+                                    navigate("/profile");
+                                }
+                            }}
+                        >
+                            Войти в личный кабинет
+                        </Button>
+                    ) : (
+                        <Flex gap={12}>
+                            <Button
+                                type="primary"
+                                size="large"
+                                block
+                                style={{ flex: 1 }}
+                                onClick={() => navigate("/login")}
+                            >
+                                Авторизоваться
+                            </Button>
+                            <Button
+                                size="large"
+                                block
+                                style={{ flex: 1 }}
+                                onClick={() => navigate("/reg")}
+                            >
+                                Зарегистрироваться
+                            </Button>
+                        </Flex>
+                    )}
+                    <NavLink to="/map">
+                        <Button size="large" icon={<EnvironmentOutlined />} block>
+                            Найти организации на карте
+                        </Button>
+                    </NavLink>
+                    <NavLink to="/knowledges">
+                        <Button size="large" icon={<ReadOutlined />} block>
+                            Изучить материалы
+                        </Button>
+                    </NavLink>
+                </Flex>
+            </Card>
+
+            <Title
+                level={2}
+                className="home__section-title"
+                style={{ textAlign: "center", marginTop: 32, marginBottom: 32 }}
+            >
+                Функционал сайта
             </Title>
 
             <Row gutter={[16, 16]} className="home__features">
@@ -342,137 +266,84 @@ const HomePage = () => {
                 }
                 className="home__events"
             >
-                <Row gutter={[24, 24]}>
-                    <Col xs={24} md={14} lg={15}>
-                        <Calendar
-                            value={selectedDate}
-                            onChange={setSelectedDate}
-                            mode={mode}
-                            onPanelChange={(date, newMode) => {
-                                if (newMode === "month") {
-                                    setMode("month");
-                                    setSelectedDate(date);
-                                }
-                            }}
-                            headerRender={headerRender}
-                            cellRender={cellRender}
-                            className="events-calendar"
+                <div className="home__events-panel">
+                    <Title level={4} className="home__events-title">
+                        События на ближайшую неделю в городе {currentCity || "вашем городе"}
+                    </Title>
+                    {upcomingWeekEvents.length === 0 ? (
+                        <Empty
+                            description="В ближайшую неделю событий нет"
+                            image={Empty.PRESENTED_IMAGE_SIMPLE}
                         />
-                    </Col>
-                    <Col xs={24} md={10} lg={9}>
-                        <div className="home__events-panel">
-                            <Title level={4} className="home__events-title">
-                                События на {selectedDate.locale("ru").format("D MMMM YYYY")}
-                            </Title>
-                            {selectedDateEvents.length === 0 ? (
-                                <Empty
-                                    description="На эту дату событий нет"
-                                    image={Empty.PRESENTED_IMAGE_SIMPLE}
-                                />
-                            ) : (
-                                <List
-                                    dataSource={selectedDateEvents}
-                                    renderItem={(event: IEvent) => (
-                                        <List.Item className="home__event-item">
-                                            <Card size="small" className="home__event-card" styles={{ body: { padding: 12 } }}>
-                                                <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                                                    <Flex justify="space-between" align="flex-start">
-                                                        <div style={{ flex: 1 }}>
-                                                            <Title level={5} style={{ margin: 0 }}>
-                                                                {event.name}
-                                                            </Title>
-                                                            {event.tags && event.tags.length > 0 && (
-                                                                <Space wrap size={[4, 4]} style={{ marginTop: 4 }}>
-                                                                    {event.tags.map((tag) => (
-                                                                        <Tag key={tag} color={getTagColor(tag)}>
-                                                                            {tag}
-                                                                        </Tag>
-                                                                    ))}
-                                                                </Space>
-                                                            )}
-                                                        </div>
-                                                        <FavoriteButton itemType="event" itemId={event.id} size="small" />
-                                                    </Flex>
-
-                                                    {event.description && (
-                                                        <Paragraph
-                                                            ellipsis={{ rows: 2, expandable: "collapsible" }}
-                                                            style={{ margin: 0 }}
-                                                        >
-                                                            {event.description}
-                                                        </Paragraph>
-                                                    )}
-
-                                                    <Space wrap>
-                                                        <Space>
-                                                            <ClockCircleOutlined />
-                                                            <Text type="secondary">
-                                                                {dayjs(event.start).format("DD.MM.YYYY HH:mm")} -{" "}
-                                                                {dayjs(event.end).format("DD.MM.YYYY HH:mm")}
-                                                            </Text>
+                    ) : (
+                        <List
+                            dataSource={upcomingWeekEvents}
+                            renderItem={(event: IEvent) => (
+                                <List.Item className="home__event-item">
+                                    <Card size="small" className="home__event-card" styles={{ body: { padding: 12 } }}>
+                                        <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                                            <Flex justify="space-between" align="flex-start">
+                                                <div style={{ flex: 1 }}>
+                                                    <Title level={5} style={{ margin: 0 }}>
+                                                        {event.name}
+                                                    </Title>
+                                                    {event.tags && event.tags.length > 0 && (
+                                                        <Space wrap size={[4, 4]} style={{ marginTop: 4 }}>
+                                                            {event.tags.map((tag) => (
+                                                                <Tag key={tag} color={getTagColor(tag)}>
+                                                                    {tag}
+                                                                </Tag>
+                                                            ))}
                                                         </Space>
-                                                        {event.coordinates && (
-                                                            <Space>
-                                                                <EnvironmentOutlined />
-                                                                <Text type="secondary">
-                                                                    {event.coordinates[0].toFixed(4)},{" "}
-                                                                    {event.coordinates[1].toFixed(4)}
-                                                                </Text>
-                                                            </Space>
-                                                        )}
-                                                        {event.quantity !== null && event.quantity !== undefined && (
-                                                            <Text type="secondary">
-                                                                Свободно {event.free_spots ?? event.quantity}/{event.quantity} мест
-                                                            </Text>
-                                                        )}
-                                                    </Space>
+                                                    )}
+                                                </div>
+                                                <FavoriteButton itemType="event" itemId={event.id} size="small" />
+                                            </Flex>
+
+                                            {event.description && (
+                                                <Paragraph
+                                                    ellipsis={{ rows: 2, expandable: "collapsible" }}
+                                                    style={{ margin: 0 }}
+                                                >
+                                                    {event.description}
+                                                </Paragraph>
+                                            )}
+
+                                            <Space wrap>
+                                                <Space>
+                                                    <ClockCircleOutlined />
+                                                    <Text type="secondary">
+                                                        {dayjs(event.start).format("DD.MM.YYYY HH:mm")} -{" "}
+                                                        {dayjs(event.end).format("DD.MM.YYYY HH:mm")}
+                                                    </Text>
                                                 </Space>
-                                            </Card>
-                                        </List.Item>
-                                    )}
-                                />
+                                                {event.coordinates && (
+                                                    <Space>
+                                                        <EnvironmentOutlined />
+                                                        <Text type="secondary">
+                                                            {event.coordinates[0].toFixed(4)},{" "}
+                                                            {event.coordinates[1].toFixed(4)}
+                                                        </Text>
+                                                    </Space>
+                                                )}
+                                                {event.quantity !== null && event.quantity !== undefined && (
+                                                    <Text type="secondary">
+                                                        Свободно {event.free_spots ?? event.quantity}/{event.quantity} мест
+                                                    </Text>
+                                                )}
+                                            </Space>
+                                        </Space>
+                                    </Card>
+                                </List.Item>
                             )}
-                        </div>
-                    </Col>
-                </Row>
+                        />
+                    )}
+                </div>
                 <NavLink to="/events">
                     <Button type="primary" className="home__events__view-all" block>
                         Смотреть все события
                     </Button>
                 </NavLink>
-            </Card>
-
-            <Card
-                title={
-                    <Flex align="center" gap={8}>
-                        <PlayCircleOutlined />
-                        Быстрый старт
-                    </Flex>
-                }
-            >
-                <Paragraph strong>Начните делать добрые дела уже сегодня!</Paragraph>
-                <Paragraph>
-                    Выберите подходящий способ участия и присоединяйтесь к сообществу волонтёров и
-                    активистов вашего города.
-                </Paragraph>
-
-                <Flex vertical gap={12} className="home__quick-actions">
-                    <NavLink to="/npo">
-                        <Button type="primary" size="large" icon={<TeamOutlined />} block>
-                            Стать волонтёром
-                        </Button>
-                    </NavLink>
-                    <NavLink to="/map">
-                        <Button size="large" icon={<EnvironmentOutlined />} block>
-                            Найти организации на карте
-                        </Button>
-                    </NavLink>
-                    <NavLink to="/knowledges">
-                        <Button size="large" icon={<ReadOutlined />} block>
-                            Изучить материалы
-                        </Button>
-                    </NavLink>
-                </Flex>
             </Card>
         </div>
     );
