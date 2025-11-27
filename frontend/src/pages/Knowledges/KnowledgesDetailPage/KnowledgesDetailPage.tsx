@@ -1,5 +1,5 @@
 import { useParams, useNavigate } from "react-router-dom";
-import { Card, Typography, Space, Tag, Carousel, Button, App, Flex } from "antd";
+import { Card, Typography, Space, Tag, Carousel, Button, App } from "antd";
 import { DeleteOutlined, ArrowLeftOutlined, DownloadOutlined } from "@ant-design/icons";
 
 import "./styles.scss";

@@ -5,7 +5,6 @@ import {
     EnvironmentOutlined, 
     LeftOutlined, 
     RightOutlined, 
-    CheckCircleOutlined, 
     PlusOutlined, 
     AppstoreOutlined, 
     UploadOutlined, 
