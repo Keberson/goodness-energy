@@ -282,23 +282,21 @@ const HomePage = () => {
                                 <List.Item className="home__event-item">
                                     <Card size="small" className="home__event-card" styles={{ body: { padding: 12 } }}>
                                         <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                                            <Flex justify="space-between" align="flex-start">
-                                                <div style={{ flex: 1 }}>
-                                                    <Title level={5} style={{ margin: 0 }}>
-                                                        {event.name}
-                                                    </Title>
-                                                    {event.tags && event.tags.length > 0 && (
-                                                        <Space wrap size={[4, 4]} style={{ marginTop: 4 }}>
-                                                            {event.tags.map((tag) => (
-                                                                <Tag key={tag} color={getTagColor(tag)}>
-                                                                    {tag}
-                                                                </Tag>
-                                                            ))}
-                                                        </Space>
-                                                    )}
-                                                </div>
+                                            <Space align="center" wrap>
+                                                <Title level={5} style={{ margin: 0 }}>
+                                                    {event.name}
+                                                </Title>
                                                 <FavoriteButton itemType="event" itemId={event.id} size="small" />
-                                            </Flex>
+                                            </Space>
+                                            {event.tags && event.tags.length > 0 && (
+                                                <Space wrap size={[4, 4]} style={{ marginTop: 4 }}>
+                                                    {event.tags.map((tag) => (
+                                                        <Tag key={tag} color={getTagColor(tag)}>
+                                                            {tag}
+                                                        </Tag>
+                                                    ))}
+                                                </Space>
+                                            )}
 
                                             {event.description && (
                                                 <Paragraph
@@ -317,12 +315,11 @@ const HomePage = () => {
                                                         {dayjs(event.end).format("DD.MM.YYYY HH:mm")}
                                                     </Text>
                                                 </Space>
-                                                {event.coordinates && (
+                                                {(event.address || event.city) && (
                                                     <Space>
                                                         <EnvironmentOutlined />
                                                         <Text type="secondary">
-                                                            {event.coordinates[0].toFixed(4)},{" "}
-                                                            {event.coordinates[1].toFixed(4)}
+                                                            {event.address || event.city}
                                                         </Text>
                                                     </Space>
                                                 )}

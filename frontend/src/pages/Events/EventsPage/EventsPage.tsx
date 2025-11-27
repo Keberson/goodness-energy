@@ -30,7 +30,7 @@ import dayjs from "dayjs";
 import "dayjs/locale/ru";
 import { useGetEventsQuery, useGetEventTagsQuery } from "@services/api/events.api";
 import { useRegisterEventViewMutation, useGetNPOByIdQuery, useCreateEventMutation } from "@services/api/npo.api";
-import { useGetVolunteerEventsQuery, useRespondToEventMutation } from "@services/api/volunteer.api";
+import { useGetVolunteerEventsQuery, useRespondToEventMutation, useDeleteEventResponseMutation } from "@services/api/volunteer.api";
 import { useLazyGeodecodeQuery } from "@services/api/geodecode.api";
 import { useUploadFileMutation } from "@services/api/files.api";
 import type { IEvent } from "@app-types/events.types";
@@ -132,6 +132,7 @@ const EventsPage = () => {
         isVolunteer && userId ? userId : skipToken
     );
     const [respondToEvent] = useRespondToEventMutation();
+    const [deleteEventResponse] = useDeleteEventResponseMutation();
     
     // Создаём Set для быстрой проверки, откликнулся ли волонтёр на событие
     const respondedEventIds = useMemo(() => {
@@ -277,11 +278,30 @@ const EventsPage = () => {
         try {
             await respondToEvent(eventId).unwrap();
             message.success("Вы успешно откликнулись на событие!");
+
+            // После отклика обновляем список событий, чтобы количество свободных мест
+            // и статус события сразу обновились без перезагрузки страницы
+            refetchEvents();
         } catch (error: any) {
             if (error?.data?.detail) {
                 message.error(error.data.detail);
             } else {
                 message.error("Не удалось откликнуться на событие");
+            }
+        }
+    };
+
+    const handleCancelResponse = async (eventId: number) => {
+        try {
+            await deleteEventResponse(eventId).unwrap();
+            message.success("Участие в событии отменено");
+            // Обновляем список событий, чтобы сразу обновились свободные места и состояние кнопки
+            refetchEvents();
+        } catch (error: any) {
+            if (error?.data?.detail) {
+                message.error(error.data.detail);
+            } else {
+                message.error("Не удалось отменить участие в событии");
             }
         }
     };
@@ -587,23 +607,21 @@ const EventsPage = () => {
                                                 styles={{ body: { padding: 12 } }}
                                             >
                                                 <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                                                    <Flex justify="space-between" align="flex-start">
-                                                        <div style={{ flex: 1 }}>
-                                                            <Title level={5} style={{ margin: 0 }}>
-                                                                {event.name}
-                                                            </Title>
-                                                            {event.tags && event.tags.length > 0 && (
-                                                                <Space wrap size={[4, 4]} style={{ marginTop: 4 }}>
-                                                                    {event.tags.map((tag) => (
-                                                                        <Tag key={tag} color={getTagColor(tag)}>
-                                                                            {tag}
-                                                                        </Tag>
-                                                                    ))}
-                                                                </Space>
-                                                            )}
-                                                        </div>
+                                                    <Space align="center" wrap>
+                                                        <Title level={5} style={{ margin: 0 }}>
+                                                            {event.name}
+                                                        </Title>
                                                         <FavoriteButton itemType="event" itemId={event.id} size="small" />
-                                                    </Flex>
+                                                    </Space>
+                                                    {event.tags && event.tags.length > 0 && (
+                                                        <Space wrap size={[4, 4]} style={{ marginTop: 4 }}>
+                                                            {event.tags.map((tag) => (
+                                                                <Tag key={tag} color={getTagColor(tag)}>
+                                                                    {tag}
+                                                                </Tag>
+                                                            ))}
+                                                        </Space>
+                                                    )}
 
                                                     {event.description && (
                                                         <Paragraph
@@ -615,22 +633,21 @@ const EventsPage = () => {
                                                     )}
 
                                                     <Space wrap>
+                                                    <Space>
+                                                        <ClockCircleOutlined />
+                                                        <Text type="secondary">
+                                                            {dayjs(event.start).format("DD.MM.YYYY HH:mm")} -{" "}
+                                                            {dayjs(event.end).format("DD.MM.YYYY HH:mm")}
+                                                        </Text>
+                                                    </Space>
+                                                    {(event.address || event.city) && (
                                                         <Space>
-                                                            <ClockCircleOutlined />
+                                                            <EnvironmentOutlined />
                                                             <Text type="secondary">
-                                                                {dayjs(event.start).format("DD.MM.YYYY HH:mm")} -{" "}
-                                                                {dayjs(event.end).format("DD.MM.YYYY HH:mm")}
+                                                                {event.address || event.city}
                                                             </Text>
                                                         </Space>
-                                                        {event.coordinates && (
-                                                            <Space>
-                                                                <EnvironmentOutlined />
-                                                                <Text type="secondary">
-                                                                    {event.coordinates[0].toFixed(4)},{" "}
-                                                                    {event.coordinates[1].toFixed(4)}
-                                                                </Text>
-                                                            </Space>
-                                                        )}
+                                                    )}
                                                         {event.quantity !== null && event.quantity !== undefined && (
                                                             <Text type="secondary">
                                                                 Свободно {event.free_spots ?? event.quantity}/{event.quantity} мест
@@ -640,22 +657,22 @@ const EventsPage = () => {
 
                                                     {isVolunteer && event.status === "published" && (
                                                         <div style={{ marginTop: 8 }}>
-                                                            {isEventResponded(event.id) ? (
-                                                                <Button
-                                                                    type="default"
-                                                                    icon={<CheckCircleOutlined />}
-                                                                    disabled
-                                                                    style={{ width: "100%" }}
-                                                                >
-                                                                    Вы уже откликнулись
-                                                                </Button>
-                                                            ) : isEventPast(event) ? (
+                                                            {isEventPast(event) ? (
                                                                 <Button
                                                                     type="default"
                                                                     disabled
                                                                     style={{ width: "100%" }}
                                                                 >
                                                                     Событие завершено
+                                                                </Button>
+                                                            ) : isEventResponded(event.id) ? (
+                                                                <Button
+                                                                    type="default"
+                                                                    danger
+                                                                    onClick={() => handleCancelResponse(event.id)}
+                                                                    style={{ width: "100%" }}
+                                                                >
+                                                                    Отменить участие
                                                                 </Button>
                                                             ) : (event.free_spots !== undefined && event.free_spots === 0) ? (
                                                                 <Button

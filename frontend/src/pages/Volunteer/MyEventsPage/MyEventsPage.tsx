@@ -1,4 +1,4 @@
-import { Card, Typography, Tag, Space, List, Empty, Button, Popconfirm, App } from "antd";
+import { Card, Typography, Tag, Space, List, Empty, Button, Popconfirm, App, Tabs } from "antd";
 import { ClockCircleOutlined, EnvironmentOutlined, CloseOutlined, ArrowLeftOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 import "dayjs/locale/ru";
@@ -8,6 +8,7 @@ import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import useAppSelector from "@hooks/useAppSelector";
 import { skipToken } from "@reduxjs/toolkit/query";
+import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
 import "./styles.scss";
 
 const { Title, Paragraph, Text } = Typography;
@@ -19,17 +20,22 @@ const MyEventsPage = () => {
     const [deleteEventResponse] = useDeleteEventResponseMutation();
     const { message } = App.useApp();
 
-    // Сортируем события: сначала предстоящие, потом прошедшие
-    const sortedEvents = useMemo(() => {
-        if (!events) return [];
+    // Делим события на предстоящие и прошедшие
+    const { upcomingEvents, pastEvents } = useMemo(() => {
+        if (!events) {
+            return { upcomingEvents: [] as IEvent[], pastEvents: [] as IEvent[] };
+        }
+
         const now = dayjs();
-        const upcoming = events.filter((event) => dayjs(event.end).isAfter(now));
-        const past = events.filter((event) => dayjs(event.end).isBefore(now) || dayjs(event.end).isSame(now));
-        
-        return [
-            ...upcoming.sort((a, b) => dayjs(a.start).valueOf() - dayjs(b.start).valueOf()),
-            ...past.sort((a, b) => dayjs(b.start).valueOf() - dayjs(a.start).valueOf()),
-        ];
+        const upcoming = events
+            .filter((event) => dayjs(event.end).isAfter(now))
+            .sort((a, b) => dayjs(a.start).valueOf() - dayjs(b.start).valueOf());
+
+        const past = events
+            .filter((event) => dayjs(event.end).isBefore(now) || dayjs(event.end).isSame(now))
+            .sort((a, b) => dayjs(b.start).valueOf() - dayjs(a.start).valueOf());
+
+        return { upcomingEvents: upcoming, pastEvents: past };
     }, [events]);
 
     const handleDeleteEvent = async (eventId: number) => {
@@ -41,29 +47,149 @@ const MyEventsPage = () => {
         }
     };
 
-    // Функция для получения статуса события
-    const getStatusColor = (status: string): string => {
-        const statusMap: Record<string, string> = {
-            published: "green",
-            draft: "default",
-            cancelled: "red",
-            completed: "blue",
-        };
-        return statusMap[status] || "default";
-    };
-
-    const getStatusLabel = (status: string): string => {
-        const labels: Record<string, string> = {
-            published: "Опубликовано",
-            draft: "Черновик",
-            cancelled: "Отменено",
-            completed: "Завершено",
-        };
-        return labels[status] || status;
-    };
-
     const isEventPast = (event: IEvent): boolean => {
         return dayjs(event.end).isBefore(dayjs());
+    };
+
+    // Функция для получения цвета тега (как на главной и в календаре)
+    const getTagColor = (tag: string): string => {
+        const colors = [
+            "red",
+            "orange",
+            "gold",
+            "lime",
+            "green",
+            "cyan",
+            "blue",
+            "geekblue",
+            "purple",
+            "magenta",
+            "volcano",
+            "geekblue",
+            "cyan",
+            "blue",
+            "purple",
+            "magenta",
+            "red",
+            "orange",
+            "gold",
+            "lime",
+        ];
+
+        let hash = 0;
+        for (let i = 0; i < tag.length; i++) {
+            hash = tag.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash) % colors.length;
+        return colors[index];
+    };
+
+    const renderEventsList = (list: IEvent[], isPastTab: boolean) => {
+        if (list.length === 0) {
+            return (
+                <Empty
+                    description={isPastTab ? "Прошедших событий пока нет" : "Предстоящих событий пока нет"}
+                    image={Empty.PRESENTED_IMAGE_SIMPLE}
+                />
+            );
+        }
+
+        return (
+            <List
+                dataSource={list}
+                renderItem={(event: IEvent) => (
+                    <List.Item className="my-events-page__event-item">
+                        <Card
+                            size="small"
+                            className="my-events-page__event-card"
+                            style={{
+                                opacity: isEventPast(event) ? 0.7 : 1,
+                            }}
+                        >
+                            <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                                <Space direction="vertical" size={4} style={{ width: "100%" }}>
+                                    <Space align="center" wrap>
+                                        <Title level={5} style={{ margin: 0 }}>
+                                            {event.name}
+                                        </Title>
+                                        <FavoriteButton itemType="event" itemId={event.id} size="small" />
+                                    </Space>
+                                    <Space align="center" wrap>
+                                        {isEventPast(event) && (
+                                            <Tag color="default">
+                                                Завершено
+                                            </Tag>
+                                        )}
+                                        {!isEventPast(event) && (
+                                            <Popconfirm
+                                                title="Отменить участие в событии?"
+                                                description="Вы уверены, что хотите отменить участие в этом событии?"
+                                                onConfirm={() => handleDeleteEvent(event.id)}
+                                                okText="Да"
+                                                cancelText="Нет"
+                                            >
+                                                <Button
+                                                    type="text"
+                                                    danger
+                                                    icon={<CloseOutlined />}
+                                                    size="small"
+                                                >
+                                                    Отменить участие
+                                                </Button>
+                                            </Popconfirm>
+                                        )}
+                                    </Space>
+                                </Space>
+
+                                {event.description && (
+                                    <Paragraph
+                                        ellipsis={{ rows: 2, expandable: "collapsible" }}
+                                        style={{ margin: 0 }}
+                                    >
+                                        {event.description}
+                                    </Paragraph>
+                                )}
+
+                                <Space wrap>
+                                    <Space>
+                                        <ClockCircleOutlined />
+                                        <Text type="secondary">
+                                            {dayjs(event.start).locale("ru").format("DD MMMM YYYY HH:mm")} -{" "}
+                                            {dayjs(event.end).locale("ru").format("DD MMMM YYYY HH:mm")}
+                                        </Text>
+                                    </Space>
+                                    {(event.address || event.city) && (
+                                        <Space>
+                                            <EnvironmentOutlined />
+                                            <Text type="secondary">
+                                                {event.address || event.city}
+                                            </Text>
+                                        </Space>
+                                    )}
+                                    {!isEventPast(event) &&
+                                        event.quantity !== null &&
+                                        event.quantity !== undefined && (
+                                            <Text type="secondary">
+                                                Свободно {event.free_spots ?? event.quantity}/{event.quantity} мест
+                                            </Text>
+                                        )}
+                                </Space>
+
+                                {event.tags && event.tags.length > 0 && (
+                                    <Space wrap>
+                                        {event.tags.map((tag) => (
+                                            <Tag key={tag} color={getTagColor(tag)}>
+                                                {tag}
+                                            </Tag>
+                                        ))}
+                                    </Space>
+                                )}
+                            </Space>
+                        </Card>
+                    </List.Item>
+                )}
+            />
+        );
     };
 
     return (
@@ -82,105 +208,26 @@ const MyEventsPage = () => {
                         Мои события
                     </Title>
 
-                    {sortedEvents.length === 0 ? (
+                    {!events || events.length === 0 ? (
                         <Empty
                             description="Вы пока не участвуете ни в одном событии"
                             image={Empty.PRESENTED_IMAGE_SIMPLE}
                         />
                     ) : (
-                        <List
-                            dataSource={sortedEvents}
-                            renderItem={(event: IEvent) => (
-                                <List.Item className="my-events-page__event-item">
-                                    <Card
-                                        size="small"
-                                        className="my-events-page__event-card"
-                                        style={{
-                                            opacity: isEventPast(event) ? 0.7 : 1,
-                                        }}
-                                    >
-                                        <Space direction="vertical" size="small" style={{ width: "100%" }}>
-                                            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
-                                                <div style={{ flex: 1 }}>
-                                                    <Title level={5} style={{ margin: 0 }}>
-                                                        {event.name}
-                                                    </Title>
-                                                    <Tag
-                                                        color={getStatusColor(event.status)}
-                                                        style={{ marginTop: 4 }}
-                                                    >
-                                                        {getStatusLabel(event.status)}
-                                                    </Tag>
-                                                    {isEventPast(event) && (
-                                                        <Tag color="default" style={{ marginTop: 4 }}>
-                                                            Завершено
-                                                        </Tag>
-                                                    )}
-                                                </div>
-                                                {!isEventPast(event) && (
-                                                    <Popconfirm
-                                                        title="Отменить участие в событии?"
-                                                        description="Вы уверены, что хотите отменить участие в этом событии?"
-                                                        onConfirm={() => handleDeleteEvent(event.id)}
-                                                        okText="Да"
-                                                        cancelText="Нет"
-                                                    >
-                                                        <Button
-                                                            type="text"
-                                                            danger
-                                                            icon={<CloseOutlined />}
-                                                            size="small"
-                                                        >
-                                                            Отменить участие
-                                                        </Button>
-                                                    </Popconfirm>
-                                                )}
-                                            </div>
-
-                                            {event.description && (
-                                                <Paragraph
-                                                    ellipsis={{ rows: 2, expandable: "collapsible" }}
-                                                    style={{ margin: 0 }}
-                                                >
-                                                    {event.description}
-                                                </Paragraph>
-                                            )}
-
-                                            <Space wrap>
-                                                <Space>
-                                                    <ClockCircleOutlined />
-                                                    <Text type="secondary">
-                                                        {dayjs(event.start).locale("ru").format("DD MMMM YYYY HH:mm")} -{" "}
-                                                        {dayjs(event.end).locale("ru").format("DD MMMM YYYY HH:mm")}
-                                                    </Text>
-                                                </Space>
-                                                {event.coordinates && (
-                                                    <Space>
-                                                        <EnvironmentOutlined />
-                                                        <Text type="secondary">
-                                                            {event.coordinates[0].toFixed(4)},{" "}
-                                                            {event.coordinates[1].toFixed(4)}
-                                                        </Text>
-                                                    </Space>
-                                                )}
-                                                {event.quantity !== null && event.quantity !== undefined && (
-                                                    <Text type="secondary">
-                                                        Свободно {event.free_spots ?? event.quantity}/{event.quantity} мест
-                                                    </Text>
-                                                )}
-                                            </Space>
-
-                                            {event.tags && event.tags.length > 0 && (
-                                                <Space wrap>
-                                                    {event.tags.map((tag) => (
-                                                        <Tag key={tag}>{tag}</Tag>
-                                                    ))}
-                                                </Space>
-                                            )}
-                                        </Space>
-                                    </Card>
-                                </List.Item>
-                            )}
+                        <Tabs
+                            defaultActiveKey="upcoming"
+                            items={[
+                                {
+                                    key: "upcoming",
+                                    label: "Предстоящие",
+                                    children: renderEventsList(upcomingEvents, false),
+                                },
+                                {
+                                    key: "past",
+                                    label: "Прошедшие",
+                                    children: renderEventsList(pastEvents, true),
+                                },
+                            ]}
                         />
                     )}
                 </Card>

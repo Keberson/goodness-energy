@@ -63,14 +63,7 @@ const NewsListPage = () => {
 
     const renderNewsItem = (item: INews) => {
         const isMyNews = activeTab === "my";
-        const actions = [
-            <FavoriteButton
-                key="favorite"
-                itemType="news"
-                itemId={item.id}
-                size="small"
-            />,
-        ];
+        const actions = [];
 
         if (isMyNews) {
             actions.push(
@@ -116,10 +109,16 @@ const NewsListPage = () => {
             <List.Item key={item.id} actions={actions}>
                 <List.Item.Meta
                     title={
-                        <Space>
+                        <Space align="center" wrap>
                             <Title level={4} style={{ margin: 0 }}>
                                 {item.name}
                             </Title>
+                            <FavoriteButton
+                                key="favorite"
+                                itemType="news"
+                                itemId={item.id}
+                                size="small"
+                            />
                             <Tag color={getTypeColor(item.type)}>
                                 {getTypeLabel(item.type)}
                             </Tag>
