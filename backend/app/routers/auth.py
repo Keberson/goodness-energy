@@ -629,87 +629,17 @@ async def vk_auth(vk_data: VKAuthCallback, db: Session = Depends(get_db)):
 @router.post("/vk/id", response_model=VKIDAuthResponse)
 async def vk_id_auth(vk_data: VKIDAuthRequest, db: Session = Depends(get_db)):
     """Авторизация через VK ID SDK (новый метод)
-    Принимает уже обменянные токены от VK ID SDK (обмен происходит на фронтенде)
+    Принимает данные пользователя, полученные на фронтенде через VK API
+    (access_token привязан к IP клиента и не может использоваться на сервере)
     Если пользователь существует - возвращает токен
     Если пользователя нет - возвращает данные VK для регистрации
     """
-    if not VK_CLIENT_ID:
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="VK OAuth не настроен. Установите VK_CLIENT_ID"
-        )
+    vk_user_id = vk_data.vk_user_id
+    first_name = vk_data.first_name
+    last_name = vk_data.last_name
+    email = vk_data.email
     
-    vk_access_token = vk_data.access_token
-    id_token = vk_data.id_token
-    
-    logger.info(f"VK ID auth: получен access_token, начинаем получение информации о пользователе")
-    
-    # Получаем информацию о пользователе из id_token или через VK API
-    vk_user_id = None
-    email = None
-    first_name = None
-    last_name = None
-    
-    # Сначала пытаемся получить данные из id_token (JWT)
-    if id_token:
-        try:
-            # Декодируем id_token без проверки подписи (для получения данных)
-            # В production лучше проверять подпись
-            # jose_jwt.decode требует key, даже если не проверяем подпись
-            id_token_data = jose_jwt.decode(id_token, key="", options={"verify_signature": False})
-            vk_user_id = id_token_data.get("sub") or id_token_data.get("user_id")
-            email = id_token_data.get("email")
-            first_name = id_token_data.get("given_name") or id_token_data.get("first_name")
-            last_name = id_token_data.get("family_name") or id_token_data.get("last_name")
-            logger.info(f"Получены данные из id_token: user_id={vk_user_id}, email={email}, first_name={first_name}, last_name={last_name}")
-        except Exception as e:
-            logger.warning(f"Не удалось декодировать id_token: {e}")
-    
-    # Если user_id не получен из id_token, получаем через VK API
-    if not vk_user_id:
-        async with httpx.AsyncClient() as client:
-            try:
-                # Получаем информацию о пользователе через VK API
-                user_info_response = await client.get(
-                    "https://api.vk.com/method/users.get",
-                    params={
-                        "access_token": vk_access_token,
-                        "v": VK_API_VERSION,
-                        "fields": "email"
-                    }
-                )
-                
-                if user_info_response.status_code == 200:
-                    user_info_data = user_info_response.json()
-                    logger.info(f"VK API response: {user_info_data}")
-                    
-                    if "error" in user_info_data:
-                        error_msg = user_info_data.get('error', {}).get('error_msg', 'Unknown error')
-                        logger.error(f"VK API error: {error_msg}")
-                        raise HTTPException(
-                            status_code=status.HTTP_400_BAD_REQUEST,
-                            detail=f"Ошибка VK API: {error_msg}"
-                        )
-                    
-                    if "response" in user_info_data and len(user_info_data["response"]) > 0:
-                        user_info = user_info_data["response"][0]
-                        vk_user_id = user_info.get("id")
-                        first_name = user_info.get("first_name")
-                        last_name = user_info.get("last_name")
-                        email = user_info.get("email") or email
-                        logger.info(f"Получены данные через VK API: user_id={vk_user_id}, first_name={first_name}, last_name={last_name}, email={email}")
-                    else:
-                        logger.warning(f"VK API response не содержит данных пользователя: {user_info_data}")
-            except HTTPException:
-                raise
-            except Exception as e:
-                logger.error(f"Не удалось получить данные через VK API: {e}", exc_info=True)
-    
-    if not vk_user_id:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Не удалось получить user_id от VK ID"
-        )
+    logger.info(f"VK ID auth: получены данные пользователя vk_user_id={vk_user_id}, first_name={first_name}, last_name={last_name}")
     
     # Ищем существующего пользователя по VK ID
     user = db.query(User).filter(User.vk_id == vk_user_id).first()

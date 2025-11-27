@@ -19,9 +19,12 @@ class VKAuthCallback(BaseModel):
     redirect_uri: Optional[str] = None
 
 class VKIDAuthRequest(BaseModel):
-    # Вместо code/device_id теперь принимаем уже обменянные токены от VK ID SDK
-    access_token: str  # Access token от VK ID
-    id_token: Optional[str] = None  # ID token (JWT) от VK ID, содержит информацию о пользователе
+    # Принимаем данные пользователя, полученные на фронтенде через VK API
+    # Это необходимо, так как access_token привязан к IP клиента и не может использоваться на сервере
+    vk_user_id: int  # ID пользователя VK
+    first_name: Optional[str] = None
+    last_name: Optional[str] = None
+    email: Optional[str] = None
 
 class VKIDAuthResponse(BaseModel):
     user_exists: bool

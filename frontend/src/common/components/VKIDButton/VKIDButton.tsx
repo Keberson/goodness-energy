@@ -108,11 +108,31 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
                             has_id_token: !!vkTokens.id_token,
                         });
 
-                        // Отправляем access_token на бэкенд для валидации и получения информации о пользователе
-                        console.log("VK ID: отправляем токены на бэкенд...");
+                        // Получаем данные пользователя через VK API на фронтенде
+                        // Это необходимо, так как access_token привязан к IP клиента
+                        console.log("VK ID: получаем данные пользователя через VK API...");
+                        const userInfoResponse = await fetch(
+                            `https://api.vk.com/method/users.get?access_token=${vkTokens.access_token}&v=5.131&fields=email`
+                        );
+                        const userInfoData = await userInfoResponse.json();
+                        console.log("VK ID: получены данные пользователя", userInfoData);
+
+                        if (userInfoData.error) {
+                            throw new Error(`VK API error: ${userInfoData.error.error_msg}`);
+                        }
+
+                        const userInfo = userInfoData.response?.[0];
+                        if (!userInfo) {
+                            throw new Error("Не удалось получить данные пользователя от VK");
+                        }
+
+                        // Отправляем данные пользователя на бэкенд
+                        console.log("VK ID: отправляем данные пользователя на бэкенд...");
                         const response = await vkIdAuth({
-                            access_token: vkTokens.access_token,
-                            id_token: vkTokens.id_token,
+                            vk_user_id: userInfo.id,
+                            first_name: userInfo.first_name,
+                            last_name: userInfo.last_name,
+                            email: userInfo.email,
                         }).unwrap();
                         console.log("VK ID: получен ответ от бэкенда", {
                             user_exists: response.user_exists,
