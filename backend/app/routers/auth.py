@@ -1,18 +1,27 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, status, Request
+from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, UserRole, NPO, Volunteer, NPOStatus
-from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse
+from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse, VKAuthCallback
 from app.auth import verify_password, get_password_hash, create_access_token, get_current_user
 import json
 import logging
 import httpx
 import os
 import asyncio
+import random
+from urllib.parse import urlencode
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+# VK OAuth настройки
+VK_CLIENT_ID = os.getenv("VK_CLIENT_ID", "")
+VK_CLIENT_SECRET = os.getenv("VK_CLIENT_SECRET", "")
+VK_REDIRECT_URI = os.getenv("VK_REDIRECT_URI", "http://localhost:5173/auth/vk/callback")
+VK_API_VERSION = "5.131"
 
 @router.post("/reg/npo", response_model=Token)
 async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db)):
@@ -222,4 +231,324 @@ async def update_notification_settings(
         notify_registrations=current_user.notify_registrations,
         notify_events=current_user.notify_events
     )
+
+# VK OAuth endpoints
+@router.get("/vk/login")
+async def vk_login(request: Request):
+    """Перенаправление на страницу авторизации VK"""
+    if not VK_CLIENT_ID:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="VK OAuth не настроен. Установите VK_CLIENT_ID"
+        )
+    
+    # Получаем redirect_uri из запроса или используем дефолтный
+    redirect_uri = request.query_params.get("redirect_uri", VK_REDIRECT_URI)
+    
+    # Параметры для VK OAuth
+    params = {
+        "client_id": VK_CLIENT_ID,
+        "redirect_uri": redirect_uri,
+        "display": "page",
+        "scope": "email",  # Запрашиваем email
+        "response_type": "code",
+        "v": VK_API_VERSION
+    }
+    
+    vk_auth_url = f"https://oauth.vk.com/authorize?{urlencode(params)}"
+    return RedirectResponse(url=vk_auth_url)
+
+@router.get("/vk/callback")
+async def vk_callback(
+    code: str = None,
+    error: str = None,
+    request: Request = None,
+    db: Session = Depends(get_db)
+):
+    """Обработка callback от VK OAuth"""
+    if error:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"Ошибка авторизации VK: {error}"
+        )
+    
+    if not code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Код авторизации не получен"
+        )
+    
+    if not VK_CLIENT_ID or not VK_CLIENT_SECRET:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="VK OAuth не настроен"
+        )
+    
+    # Получаем redirect_uri из запроса
+    redirect_uri = request.query_params.get("redirect_uri", VK_REDIRECT_URI) if request else VK_REDIRECT_URI
+    
+    # Обмениваем код на access token
+    async with httpx.AsyncClient() as client:
+        token_response = await client.get(
+            "https://oauth.vk.com/access_token",
+            params={
+                "client_id": VK_CLIENT_ID,
+                "client_secret": VK_CLIENT_SECRET,
+                "redirect_uri": redirect_uri,
+                "code": code
+            }
+        )
+        
+        if token_response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Не удалось получить access token от VK"
+            )
+        
+        token_data = token_response.json()
+        
+        if "error" in token_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Ошибка VK: {token_data.get('error_description', token_data.get('error'))}"
+            )
+        
+        access_token = token_data.get("access_token")
+        vk_user_id = token_data.get("user_id")
+        email = token_data.get("email")
+        
+        if not access_token or not vk_user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Не удалось получить данные от VK"
+            )
+        
+        # Получаем информацию о пользователе из VK API
+        user_info_response = await client.get(
+            "https://api.vk.com/method/users.get",
+            params={
+                "user_ids": vk_user_id,
+                "fields": "first_name,last_name,photo_200",
+                "access_token": access_token,
+                "v": VK_API_VERSION
+            }
+        )
+        
+        if user_info_response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Не удалось получить информацию о пользователе от VK"
+            )
+        
+        user_info_data = user_info_response.json()
+        
+        if "error" in user_info_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Ошибка VK API: {user_info_data.get('error', {}).get('error_msg', 'Unknown error')}"
+            )
+        
+        vk_user = user_info_data.get("response", [{}])[0]
+        first_name = vk_user.get("first_name", "")
+        last_name = vk_user.get("last_name", "")
+        
+        # Ищем существующего пользователя по VK ID
+        user = db.query(User).filter(User.vk_id == vk_user_id).first()
+        
+        if user:
+            # Пользователь уже существует, обновляем данные если нужно
+            if email and not user.login:
+                # Если у пользователя нет логина, используем email
+                user.login = email
+        else:
+            # Создаем нового пользователя
+            # Генерируем логин на основе VK ID или email
+            login = email if email else f"vk_{vk_user_id}"
+            
+            # Проверяем, не занят ли логин
+            existing_user = db.query(User).filter(User.login == login).first()
+            if existing_user:
+                # Если логин занят, добавляем случайный суффикс
+                login = f"vk_{vk_user_id}_{random.randint(1000, 9999)}"
+            
+            # Создаем пользователя с пустым паролем (OAuth пользователи не используют пароль)
+            # Используем случайный хеш для пароля, так как он не будет использоваться
+            password_hash = get_password_hash(f"vk_oauth_{vk_user_id}_{os.urandom(16).hex()}")
+            
+            user = User(
+                login=login,
+                password_hash=password_hash,
+                role=UserRole.VOLUNTEER,  # По умолчанию создаем как волонтера
+                vk_id=vk_user_id,
+                notify_city_news=False,
+                notify_registrations=False,
+                notify_events=False
+            )
+            db.add(user)
+            db.flush()
+            
+            # Создаем профиль волонтера
+            volunteer = Volunteer(
+                user_id=user.id,
+                first_name=first_name,
+                second_name=last_name,
+                email=email if email else None
+            )
+            db.add(volunteer)
+            db.flush()
+            db.commit()
+            
+            # Создаем токен
+            access_token_jwt = create_access_token(data={"sub": str(user.id)})
+            
+            # Возвращаем токен через redirect с параметрами
+            frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+            redirect_url = f"{frontend_url}/auth/vk/success?token={access_token_jwt}&user_type={user.role.value}&id={volunteer.id}"
+            return RedirectResponse(url=redirect_url)
+        
+        # Если пользователь существует, создаем токен и перенаправляем
+        db.commit()
+        
+        # Определяем ID пользователя в зависимости от роли
+        user_id = user.id
+        if user.role == UserRole.NPO:
+            npo = db.query(NPO).filter(NPO.user_id == user.id).first()
+            if npo:
+                user_id = npo.id
+        elif user.role == UserRole.VOLUNTEER:
+            volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
+            if volunteer:
+                user_id = volunteer.id
+        
+        access_token_jwt = create_access_token(data={"sub": str(user.id)})
+        
+        frontend_url = os.getenv("FRONTEND_URL", "http://localhost:5173")
+        redirect_url = f"{frontend_url}/auth/vk/success?token={access_token_jwt}&user_type={user.role.value}&id={user_id}"
+        return RedirectResponse(url=redirect_url)
+
+@router.post("/vk/auth", response_model=Token)
+async def vk_auth(vk_data: VKAuthCallback, db: Session = Depends(get_db)):
+    """Альтернативный endpoint для VK авторизации через POST (для прямого вызова)"""
+    if not vk_data.code:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Код авторизации не предоставлен"
+        )
+    
+    # Используем ту же логику, что и в callback
+    # Это упрощенная версия для прямого вызова API
+    redirect_uri = vk_data.redirect_uri or VK_REDIRECT_URI
+    
+    async with httpx.AsyncClient() as client:
+        token_response = await client.get(
+            "https://oauth.vk.com/access_token",
+            params={
+                "client_id": VK_CLIENT_ID,
+                "client_secret": VK_CLIENT_SECRET,
+                "redirect_uri": redirect_uri,
+                "code": vk_data.code
+            }
+        )
+        
+        if token_response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Не удалось получить access token от VK"
+            )
+        
+        token_data = token_response.json()
+        
+        if "error" in token_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Ошибка VK: {token_data.get('error_description', token_data.get('error'))}"
+            )
+        
+        access_token = token_data.get("access_token")
+        vk_user_id = token_data.get("user_id")
+        email = token_data.get("email")
+        
+        if not access_token or not vk_user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Не удалось получить данные от VK"
+            )
+        
+        # Получаем информацию о пользователе
+        user_info_response = await client.get(
+            "https://api.vk.com/method/users.get",
+            params={
+                "user_ids": vk_user_id,
+                "fields": "first_name,last_name",
+                "access_token": access_token,
+                "v": VK_API_VERSION
+            }
+        )
+        
+        if user_info_response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Не удалось получить информацию о пользователе от VK"
+            )
+        
+        user_info_data = user_info_response.json()
+        
+        if "error" in user_info_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Ошибка VK API: {user_info_data.get('error', {}).get('error_msg', 'Unknown error')}"
+            )
+        
+        vk_user = user_info_data.get("response", [{}])[0]
+        first_name = vk_user.get("first_name", "")
+        last_name = vk_user.get("last_name", "")
+        
+        # Ищем или создаем пользователя
+        user = db.query(User).filter(User.vk_id == vk_user_id).first()
+        
+        if not user:
+            login = email if email else f"vk_{vk_user_id}"
+            existing_user = db.query(User).filter(User.login == login).first()
+            if existing_user:
+                login = f"vk_{vk_user_id}"
+            
+            password_hash = get_password_hash(f"vk_oauth_{vk_user_id}_{os.urandom(16).hex()}")
+            
+            user = User(
+                login=login,
+                password_hash=password_hash,
+                role=UserRole.VOLUNTEER,
+                vk_id=vk_user_id,
+                notify_city_news=False,
+                notify_registrations=False,
+                notify_events=False
+            )
+            db.add(user)
+            db.flush()
+            
+            volunteer = Volunteer(
+                user_id=user.id,
+                first_name=first_name,
+                second_name=last_name,
+                email=email if email else None
+            )
+            db.add(volunteer)
+            db.commit()
+            
+            access_token_jwt = create_access_token(data={"sub": str(user.id)})
+            return {"access_token": access_token_jwt, "token_type": "bearer", "user_type": user.role.value, "id": volunteer.id}
+        
+        # Пользователь существует
+        user_id = user.id
+        if user.role == UserRole.NPO:
+            npo = db.query(NPO).filter(NPO.user_id == user.id).first()
+            if npo:
+                user_id = npo.id
+        elif user.role == UserRole.VOLUNTEER:
+            volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
+            if volunteer:
+                user_id = volunteer.id
+        
+        access_token_jwt = create_access_token(data={"sub": str(user.id)})
+        return {"access_token": access_token_jwt, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
 

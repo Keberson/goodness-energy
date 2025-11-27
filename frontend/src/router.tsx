@@ -12,6 +12,7 @@ import Providers from "./common/Providers/Providers";
 
 import LoginPage from "./pages/Auth/LoginPage/LoginPage";
 import RegistrationPage from "./pages/Auth/RegistrationPage/RegistrationPage";
+import VKCallbackPage from "./pages/Auth/VKCallbackPage/VKCallbackPage";
 import ProfilePage from "./pages/Volunteer/ProfilePage/ProfilePage";
 import MyEventsPage from "./pages/Volunteer/MyEventsPage/MyEventsPage";
 import FavoritesPage from "./pages/Volunteer/FavoritesPage/FavoritesPage";
@@ -122,6 +123,14 @@ const router = createBrowserRouter([
                                 <RegistrationPage />
                             </AuthRoute>
                         ),
+                    },
+                    {
+                        path: "auth/vk/success",
+                        element: <VKCallbackPage />,
+                    },
+                    {
+                        path: "auth/vk/callback",
+                        element: <VKCallbackPage />,
                     },
                     {
                         path: "profile",

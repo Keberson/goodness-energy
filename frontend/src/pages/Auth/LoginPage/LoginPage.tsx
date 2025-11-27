@@ -1,6 +1,6 @@
-import { Form, Input, Button, Flex, Typography } from "antd";
+import { Form, Input, Button, Flex, Typography, Divider } from "antd";
 import { UserOutlined, LockOutlined } from "@ant-design/icons";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 
 import "./styles.scss";
 
@@ -9,6 +9,7 @@ import AuthLayout from "../AuthLayout/AuthLayout";
 import { useLoginMutation } from "@services/api/auth.api";
 import { login } from "@services/slices/auth.slice";
 import useAppDispatch from "@hooks/useAppDispatch";
+import { getApiBaseUrl } from "@utils/apiUrl";
 
 const { Title } = Typography;
 
@@ -20,6 +21,7 @@ type FormValues = {
 const LoginPage = () => {
     const [loginAPI] = useLoginMutation();
     const dispatch = useAppDispatch();
+    const navigate = useNavigate();
 
     const onFinish = async (values: FormValues) => {
         try {
@@ -27,7 +29,16 @@ const LoginPage = () => {
             dispatch(
                 login({ token: response.access_token, type: response.user_type, id: response.id })
             );
+            navigate("/");
         } catch (error) {}
+    };
+
+    const handleVKLogin = () => {
+        // Получаем текущий URL для redirect
+        const redirectUri = `${window.location.origin}/auth/vk/callback`;
+        const apiBaseUrl = getApiBaseUrl();
+        const vkLoginUrl = `${apiBaseUrl}/auth/vk/login?redirect_uri=${encodeURIComponent(redirectUri)}`;
+        window.location.href = vkLoginUrl;
     };
 
     return (
@@ -81,7 +92,19 @@ const LoginPage = () => {
                 </Form.Item>
             </Form>
 
-            <Flex gap="small" vertical>
+            <Divider>или</Divider>
+
+            <Button
+                type="default"
+                size="large"
+                block
+                className="login-page__vk-btn"
+                onClick={handleVKLogin}
+            >
+                Войти через VK
+            </Button>
+
+            <Flex gap="small" vertical style={{ marginTop: 16 }}>
                 <NavLink to="/reg">
                     <Button type="default" size="large" block className="login-page__register-btn">
                         Создать аккаунт

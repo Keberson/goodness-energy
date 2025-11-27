@@ -39,4 +39,17 @@
             color: #40a9ff;
         }
     }
+
+    &__vk-btn {
+        height: 45px;
+        border-color: #0077ff;
+        color: #0077ff;
+        background: #fff;
+
+        &:hover {
+            border-color: #0051cc;
+            color: #0051cc;
+            background: #f0f8ff;
+        }
+    }
 }

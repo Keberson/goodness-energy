@@ -14,6 +14,10 @@ class Token(BaseModel):
     user_type: str  # "volunteer" | "npo" | "admin"
     id: int  # ID из таблицы volunteers/npos/users (для admin)
 
+class VKAuthCallback(BaseModel):
+    code: str
+    redirect_uri: Optional[str] = None
+
 class SelectedCityUpdate(BaseModel):
     city: str  # Выбранный город пользователя
 

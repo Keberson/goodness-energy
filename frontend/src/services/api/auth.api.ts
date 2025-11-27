@@ -79,6 +79,13 @@ export const authApi = createApi({
             },
             invalidatesTags: [{ type: "NotificationSettings", id: "current" }],
         }),
+        vkAuth: builder.mutation<IAuthResponse, { code: string; redirect_uri?: string }>({
+            query: (body) => ({
+                url: `/vk/auth`,
+                method: "POST",
+                body,
+            }),
+        }),
     }),
 });
 
@@ -90,4 +97,5 @@ export const {
     useUpdateSelectedCityMutation,
     useGetNotificationSettingsQuery,
     useUpdateNotificationSettingsMutation,
+    useVkAuthMutation,
 } = authApi;
