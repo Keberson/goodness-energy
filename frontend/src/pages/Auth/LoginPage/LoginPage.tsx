@@ -5,7 +5,7 @@ import { NavLink, useNavigate } from "react-router-dom";
 import "./styles.scss";
 
 import AuthLayout from "../AuthLayout/AuthLayout";
-import VKIDButton from "../../common/components/VKIDButton/VKIDButton";
+import VKIDButton from "@components/VKIDButton/VKIDButton";
 
 import { useLoginMutation } from "@services/api/auth.api";
 import { login } from "@services/slices/auth.slice";
