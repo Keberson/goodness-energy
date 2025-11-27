@@ -93,7 +93,7 @@ const EditNewsPage = () => {
         skip: !isEditing || isNaN(newsId) || !isVolunteerPost,
     });
     const { currentCity, availableCities } = useCity();
-    const { data: npos = [] } = useGetNPOsQuery(undefined, {
+    const { data: npos = [] } = useGetNPOsQuery(city, {
         skip: !isVolunteerPost,
     });
 
@@ -438,9 +438,9 @@ const EditNewsPage = () => {
                             name: title.trim(),
                             annotation: annotation.trim() || undefined,
                             text: html,
-                            city: city || undefined,
-                            theme_tag: themeTag || undefined,
-                            npo_id: npoId || undefined,
+                            city: city ?? null,
+                            theme_tag: themeTag ?? null,
+                            npo_id: npoId ?? null,
                             attachedIds: attachedIds.length > 0 ? attachedIds : undefined,
                             tags: [],
                         },
@@ -453,9 +453,9 @@ const EditNewsPage = () => {
                         name: title.trim(),
                         annotation: annotation.trim() || undefined,
                         text: html,
-                        city: city || undefined,
-                        theme_tag: themeTag || undefined,
-                        npo_id: npoId || undefined,
+                        city: city ?? null,
+                        theme_tag: themeTag ?? null,
+                        npo_id: npoId ?? null,
                         attachedIds: attachedIds.length > 0 ? attachedIds : undefined,
                         tags: [],
                     }).unwrap();
@@ -684,20 +684,30 @@ const EditNewsPage = () => {
                                     <>
                                         <div>
                                             <Title level={5} style={{ marginBottom: 8 }}>
-                                                Тематика (необязательно)
+                                                Город (необязательно)
                                             </Title>
                                             <Select
                                                 allowClear
-                                                placeholder="Выберите тематику"
-                                                value={themeTag}
-                                                onChange={(value) => setThemeTag(value)}
+                                                placeholder="Не выбрано"
+                                                value={city}
+                                                onChange={(value) => {
+                                                    setCity(value || undefined);
+                                                    // При изменении города сбрасываем НКО, если оно не соответствует новому городу
+                                                    if (value && npoId) {
+                                                        const selectedNpo = npos.find(n => n.id === npoId);
+                                                        if (selectedNpo && selectedNpo.city !== value) {
+                                                            setNpoId(undefined);
+                                                        }
+                                                    } else if (!value) {
+                                                        setNpoId(undefined);
+                                                    }
+                                                }}
                                                 style={{ width: 260 }}
                                                 size="large"
-                                                loading={isLoadingThemes}
                                             >
-                                                {availableThemes.map((theme) => (
-                                                    <Option key={theme} value={theme}>
-                                                        {theme}
+                                                {availableCities.map((cityName) => (
+                                                    <Option key={cityName} value={cityName}>
+                                                        {cityName}
                                                     </Option>
                                                 ))}
                                             </Select>
@@ -708,12 +718,13 @@ const EditNewsPage = () => {
                                             </Title>
                                             <Select
                                                 allowClear
-                                                placeholder="Выберите НКО"
+                                                placeholder="Не выбрано"
                                                 value={npoId}
-                                                onChange={(value) => setNpoId(value)}
+                                                onChange={(value) => setNpoId(value || undefined)}
                                                 style={{ width: 260 }}
                                                 size="large"
                                                 showSearch
+                                                disabled={!city}
                                                 filterOption={(input, option) =>
                                                     String(option?.label ?? option?.children ?? "").toLowerCase().includes(input.toLowerCase())
                                                 }
@@ -725,27 +736,49 @@ const EditNewsPage = () => {
                                                 ))}
                                             </Select>
                                         </div>
+                                        <div>
+                                            <Title level={5} style={{ marginBottom: 8 }}>
+                                                Тематика (необязательно)
+                                            </Title>
+                                            <Select
+                                                allowClear
+                                                placeholder="Не выбрано"
+                                                value={themeTag}
+                                                onChange={(value) => setThemeTag(value || undefined)}
+                                                style={{ width: 260 }}
+                                                size="large"
+                                                loading={isLoadingThemes}
+                                            >
+                                                {availableThemes.map((theme) => (
+                                                    <Option key={theme} value={theme}>
+                                                        {theme}
+                                                    </Option>
+                                                ))}
+                                            </Select>
+                                        </div>
                                     </>
                                 )}
-                                <div>
-                                    <Title level={5} style={{ marginBottom: 8 }}>
-                                        Город {isVolunteerPost ? "истории" : "новости"} (необязательно)
-                                    </Title>
-                                    <Select
-                                        allowClear
-                                        placeholder="Выберите город"
-                                        value={city}
-                                        onChange={(value) => setCity(value)}
-                                        style={{ width: 260 }}
-                                        size="large"
-                                    >
-                                        {availableCities.map((cityName) => (
-                                            <Option key={cityName} value={cityName}>
-                                                {cityName}
-                                            </Option>
-                                        ))}
-                                    </Select>
-                                </div>
+                                {!isVolunteerPost && (
+                                    <div>
+                                        <Title level={5} style={{ marginBottom: 8 }}>
+                                            Город новости (необязательно)
+                                        </Title>
+                                        <Select
+                                            allowClear
+                                            placeholder="Выберите город"
+                                            value={city}
+                                            onChange={(value) => setCity(value || undefined)}
+                                            style={{ width: 260 }}
+                                            size="large"
+                                        >
+                                            {availableCities.map((cityName) => (
+                                                <Option key={cityName} value={cityName}>
+                                                    {cityName}
+                                                </Option>
+                                            ))}
+                                        </Select>
+                                    </div>
+                                )}
                                 <Button
                                     type="primary"
                                     icon={<SaveOutlined />}
