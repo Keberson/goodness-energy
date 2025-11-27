@@ -57,19 +57,40 @@ else:
 
 @router.post("/reg/npo", response_model=Token)
 async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db)):
-    # Проверка существования пользователя
-    if db.query(User).filter(User.login == npo_data.login).first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Логин уже зарегистрирован"
-        )
+    # Если регистрация через VK (есть vk_id), login и password не обязательны
+    if npo_data.vk_id:
+        # Проверяем, не зарегистрирован ли уже пользователь с таким vk_id
+        existing_user = db.query(User).filter(User.vk_id == npo_data.vk_id).first()
+        if existing_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Пользователь с таким VK ID уже зарегистрирован"
+            )
+        # Генерируем логин из email или vk_id, если не указан
+        login = npo_data.login or (npo_data.email or f"vk_{npo_data.vk_id}")
+        password_hash = None  # При регистрации через VK пароль не нужен
+    else:
+        # Обычная регистрация - login и password обязательны
+        if not npo_data.login or not npo_data.password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Логин и пароль обязательны при обычной регистрации"
+            )
+        # Проверка существования пользователя
+        if db.query(User).filter(User.login == npo_data.login).first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Логин уже зарегистрирован"
+            )
+        login = npo_data.login
+        password_hash = get_password_hash(npo_data.password)
     
     # Создание пользователя
-    password_hash = get_password_hash(npo_data.password)
     user = User(
-        login=npo_data.login,
+        login=login,
         password_hash=password_hash,
         role=UserRole.NPO,
+        vk_id=npo_data.vk_id,  # Привязываем VK ID если указан
         notify_city_news=False,
         notify_registrations=False,
         notify_events=False
@@ -642,6 +663,10 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = D
     first_name = None
     last_name = None
     email = None
+    bdate = None
+    sex = None
+    city_name = None
+    phone = None
     
     # Сначала пытаемся получить данные из id_token (JWT) - это не требует запросов к VK API
     if id_token:
@@ -670,7 +695,9 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = D
                 email = id_token_data.get("email")
                 first_name = id_token_data.get("given_name") or id_token_data.get("first_name")
                 last_name = id_token_data.get("family_name") or id_token_data.get("last_name")
-                logger.info(f"Получены данные из id_token: user_id={vk_user_id}, email={email}, first_name={first_name}, last_name={last_name}")
+                bdate = id_token_data.get("birthdate") or id_token_data.get("bdate")
+                # В id_token обычно нет пола, города и телефона, они доступны только через API
+                logger.info(f"Получены данные из id_token: user_id={vk_user_id}, email={email}, first_name={first_name}, last_name={last_name}, bdate={bdate}")
         except Exception as e:
             logger.warning(f"Не удалось декодировать id_token: {e}")
     
@@ -694,7 +721,7 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = D
                     params={
                         "access_token": vk_access_token,
                         "v": VK_API_VERSION,
-                        "fields": "email"
+                        "fields": "email,bdate,sex,city,contacts"  # Получаем расширенные данные
                     },
                     headers=headers
                 )
@@ -726,7 +753,17 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = D
                         first_name = user_info.get("first_name")
                         last_name = user_info.get("last_name")
                         email = user_info.get("email")
-                        logger.info(f"Получены данные через VK API: user_id={vk_user_id}, first_name={first_name}, last_name={last_name}, email={email}")
+                        
+                        # Дополнительные поля из VK API
+                        bdate = user_info.get("bdate")  # Дата рождения в формате "DD.MM.YYYY" или "DD.MM"
+                        sex = user_info.get("sex")  # 1 - женский, 2 - мужской, 0 - не указан
+                        city_info = user_info.get("city")
+                        city_name = city_info.get("title") if isinstance(city_info, dict) else None
+                        # Телефон может быть в contacts, но обычно не доступен через users.get
+                        # Для получения телефона нужны специальные права
+                        phone = user_info.get("mobile_phone") or user_info.get("phone")
+                        
+                        logger.info(f"Получены данные через VK API: user_id={vk_user_id}, first_name={first_name}, last_name={last_name}, email={email}, bdate={bdate}, sex={sex}, city={city_name}, phone={phone}")
                     else:
                         logger.warning(f"VK API response не содержит данных пользователя: {user_info_data}")
                         raise HTTPException(
@@ -764,9 +801,13 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = D
             user_exists=False,
             vk_id=vk_user_id,
             vk_data={
-                "first_name": first_name,
-                "last_name": last_name,
+                "first_name": first_name or "",
+                "last_name": last_name or "",
                 "email": email,
+                "bdate": bdate,
+                "sex": sex,  # 1 - женский, 2 - мужской, 0 - не указан
+                "city": city_name,
+                "phone": phone,
             }
         )
     

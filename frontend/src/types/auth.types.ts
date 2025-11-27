@@ -40,8 +40,8 @@ export interface IRegVolunteerRequest {
 }
 
 export interface IRegNPORequest {
-    login: string;
-    password: string;
+    login?: string;  // Опционально при регистрации через VK
+    password?: string;  // Опционально при регистрации через VK
     name: string;
     description: string;
     coordinates: [number, number];
@@ -49,6 +49,8 @@ export interface IRegNPORequest {
     tags: string[];
     links: Record<string, string>;
     timetable: string;
+    email?: string;  // Email для регистрации через VK
+    vk_id?: number;  // VK ID для привязки аккаунта
 }
 
 export interface IVKIDAuthResponse {
@@ -59,5 +61,9 @@ export interface IVKIDAuthResponse {
         first_name: string;
         last_name: string;
         email?: string;
+        bdate?: string;  // Дата рождения в формате "DD.MM.YYYY" или "DD.MM"
+        sex?: number;  // 1 - женский, 2 - мужской, 0 - не указан
+        city?: string;  // Название города
+        phone?: string;  // Телефон
     };
 }
