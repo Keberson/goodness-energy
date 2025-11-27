@@ -28,7 +28,7 @@ class VKIDAuthResponse(BaseModel):
     user_exists: bool
     token: Optional[Token] = None  # Только если user_exists = True
     vk_id: Optional[int] = None  # Только если user_exists = False
-    vk_data: Optional[dict] = None  # Данные VK для регистрации (first_name, last_name, email)
+    vk_data: Optional[dict] = None  # Данные VK для регистрации (first_name, last_name, email, bdate, sex, city, phone)
 
 class SelectedCityUpdate(BaseModel):
     city: str  # Выбранный город пользователя
@@ -49,8 +49,8 @@ class NotificationSettingsResponse(BaseModel):
 
 # Регистрация НКО
 class NPORegistration(BaseModel):
-    login: str
-    password: str
+    login: Optional[str] = None  # Опционально при регистрации через VK
+    password: Optional[str] = None  # Опционально при регистрации через VK
     name: str
     description: str
     coordinates: List[float]  # [lat, lon] - обязательное поле при регистрации
@@ -59,6 +59,8 @@ class NPORegistration(BaseModel):
     tags: List[str]  # хотя бы один тег (обязательно)
     links: Optional[dict] = None
     timetable: Optional[str] = None
+    email: Optional[str] = None  # Email для регистрации через VK
+    vk_id: Optional[int] = None  # VK ID для привязки аккаунта
 
 # Регистрация волонтера
 class VolunteerRegistration(BaseModel):
