@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, UserRole, NPO, Volunteer, NPOStatus
-from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse, VKAuthCallback, VKIDAuthRequest, VKIDAuthResponse
+from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse, VKAuthCallback, VKIDAuthRequest, VKIDAuthResponse, VKUserDataRequest
 from app.auth import verify_password, get_password_hash, create_access_token, get_current_user
 from jose import jwt as jose_jwt
 import json
@@ -646,6 +646,53 @@ async def vk_auth(vk_data: VKAuthCallback, db: Session = Depends(get_db)):
         
         access_token_jwt = create_access_token(data={"sub": str(user.id)})
         return {"access_token": access_token_jwt, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
+
+@router.post("/vk/user-data", response_model=dict)
+async def vk_get_user_data(
+    request_data: VKUserDataRequest,
+    request: Request,
+):
+    """Прокси-эндпоинт для получения данных пользователя через VK API
+    Используется на фронтенде для обхода CORS
+    """
+    async with httpx.AsyncClient() as client:
+        try:
+            # Передаем заголовки от клиента, чтобы VK видел правильный IP
+            headers = {}
+            if request:
+                if "user-agent" in request.headers:
+                    headers["User-Agent"] = request.headers["user-agent"]
+                if "x-forwarded-for" in request.headers:
+                    headers["X-Forwarded-For"] = request.headers["x-forwarded-for"]
+                elif "x-real-ip" in request.headers:
+                    headers["X-Forwarded-For"] = request.headers["x-real-ip"]
+            
+            user_info_response = await client.get(
+                "https://api.vk.com/method/users.get",
+                params={
+                    "access_token": request_data.access_token,
+                    "v": VK_API_VERSION,
+                    "fields": "email,bdate,sex,city,contacts"
+                },
+                headers=headers
+            )
+            
+            if user_info_response.status_code == 200:
+                user_info_data = user_info_response.json()
+                return user_info_data
+            else:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Ошибка при запросе к VK API: {user_info_response.text[:200]}"
+                )
+        except HTTPException:
+            raise
+        except Exception as e:
+            logger.error(f"Ошибка при получении данных пользователя через прокси: {e}", exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Внутренняя ошибка: {str(e)}"
+            )
 
 @router.post("/vk/id", response_model=VKIDAuthResponse)
 async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = Depends(get_db)):

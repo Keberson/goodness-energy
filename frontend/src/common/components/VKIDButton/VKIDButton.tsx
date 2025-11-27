@@ -108,18 +108,34 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
                             has_id_token: !!vkTokens.id_token,
                         });
 
-                        // Получаем данные пользователя через VK API на фронтенде
-                        // Это необходимо, так как access_token привязан к IP клиента и не работает на сервере
-                        console.log(
-                            "VK ID: получаем данные пользователя через VK API на фронтенде..."
-                        );
+                        // Получаем данные пользователя через прокси-эндпоинт на бэкенде
+                        // Это обходит проблему CORS и использует правильные заголовки от клиента
+                        console.log("VK ID: получаем данные пользователя через прокси бэкенда...");
                         let userData = null;
                         try {
-                            const userInfoResponse = await fetch(
-                                `https://api.vk.com/method/users.get?access_token=${vkTokens.access_token}&v=5.131&fields=email,bdate,sex,city,contacts`
+                            // Используем функцию getApiBaseUrl для получения правильного URL
+                            const { getApiBaseUrl } = await import("@utils/apiUrl");
+                            const apiBaseUrl = getApiBaseUrl();
+
+                            const proxyResponse = await fetch(`${apiBaseUrl}/auth/vk/user-data`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                    access_token: vkTokens.access_token,
+                                }),
+                            });
+
+                            if (!proxyResponse.ok) {
+                                throw new Error(`Прокси вернул ошибку: ${proxyResponse.status}`);
+                            }
+
+                            const userInfoData = await proxyResponse.json();
+                            console.log(
+                                "VK ID: получены данные пользователя через прокси",
+                                userInfoData
                             );
-                            const userInfoData = await userInfoResponse.json();
-                            console.log("VK ID: получены данные пользователя", userInfoData);
 
                             if (!userInfoData.error && userInfoData.response?.[0]) {
                                 const userInfo = userInfoData.response[0];
@@ -137,13 +153,13 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
                                 console.log("VK ID: обработанные данные пользователя", userData);
                             } else {
                                 console.warn(
-                                    "VK ID: не удалось получить данные пользователя через API",
+                                    "VK ID: не удалось получить данные пользователя через прокси",
                                     userInfoData
                                 );
                             }
                         } catch (error) {
                             console.error(
-                                "VK ID: ошибка при получении данных пользователя (CORS или другая)",
+                                "VK ID: ошибка при получении данных пользователя через прокси",
                                 error
                             );
                             // Продолжаем без данных пользователя, бэкенд попробует получить их сам
