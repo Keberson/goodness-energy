@@ -58,7 +58,7 @@ const VolunteerRegistration = () => {
                 />
             )}
             
-            <VolunteerForm hideAuthFields={!!vkId} />
+            <VolunteerForm hideAuthFields={false} optionalAuthFields={!!vkId} />
 
             <Form.Item>
                 <Button

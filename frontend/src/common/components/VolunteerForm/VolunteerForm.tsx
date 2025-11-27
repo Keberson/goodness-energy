@@ -9,10 +9,11 @@ const { Option } = Select;
 const { TextArea } = Input;
 
 interface VolunteerFormProps {
-    hideAuthFields?: boolean;
+    hideAuthFields?: boolean; // Если true - скрыть поля полностью
+    optionalAuthFields?: boolean; // Если true - показать поля, но сделать их необязательными
 }
 
-const VolunteerForm: React.FC<VolunteerFormProps> = ({ hideAuthFields = false }) => {
+const VolunteerForm: React.FC<VolunteerFormProps> = ({ hideAuthFields = false, optionalAuthFields = false }) => {
     return (
         <>
             {!hideAuthFields && (
@@ -20,14 +21,16 @@ const VolunteerForm: React.FC<VolunteerFormProps> = ({ hideAuthFields = false })
                     <Form.Item
                         label="Логин"
                         name="login"
-                        rules={[{ required: true, message: "Введите логин" }]}
+                        rules={optionalAuthFields ? [] : [{ required: true, message: "Введите логин" }]}
+                        tooltip={optionalAuthFields ? "Необязательно. Если не укажете, логин будет сгенерирован автоматически" : undefined}
                     >
                         <Input prefix={<UserOutlined />} placeholder="Логин" size="large" />
                     </Form.Item>
                     <Form.Item
                         label="Пароль"
                         name="password"
-                        rules={[{ required: true, message: "Введите пароль" }]}
+                        rules={optionalAuthFields ? [] : [{ required: true, message: "Введите пароль" }]}
+                        tooltip={optionalAuthFields ? "Необязательно. Если не укажете, пароль будет сгенерирован автоматически. Укажите пароль, если хотите входить не только через VK" : undefined}
                     >
                         <Input.Password
                             prefix={<LockOutlined />}

@@ -51,6 +51,11 @@ export const topMenuItems: MenuItem[] = [
         icon: <CalendarOutlined />,
     },
     {
+        key: "volunteer-posts",
+        label: "Истории волонтеров",
+        icon: <HistoryOutlined />,
+    },
+    {
         key: "news",
         label: "Новости",
         icon: <NotificationOutlined />,

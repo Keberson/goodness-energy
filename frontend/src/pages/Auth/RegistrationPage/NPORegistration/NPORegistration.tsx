@@ -76,7 +76,7 @@ const NPORegistration = () => {
             {vkId && (
                 <Alert
                     message="Регистрация через VK"
-                    description="Вы регистрируетесь через VK. Поля логин и пароль не требуются."
+                    description="Вы регистрируетесь через VK. Поля логин и пароль необязательны, но вы можете их указать, если хотите входить не только через VK."
                     type="info"
                     showIcon
                     style={{ marginBottom: 16 }}
@@ -89,29 +89,27 @@ const NPORegistration = () => {
                 </Form.Item>
             )}
             
-            {!vkId && (
-                <>
-                    <Form.Item
-                        label="Логин"
-                        name="login"
-                        rules={[{ required: true, message: "Введите логин" }]}
-                    >
-                        <Input prefix={<UserOutlined />} placeholder="Логин" size="large" />
-                    </Form.Item>
+            <Form.Item
+                label="Логин"
+                name="login"
+                rules={vkId ? [] : [{ required: true, message: "Введите логин" }]}
+                tooltip={vkId ? "Необязательно. Если не укажете, логин будет сгенерирован автоматически" : undefined}
+            >
+                <Input prefix={<UserOutlined />} placeholder="Логин" size="large" />
+            </Form.Item>
 
-                    <Form.Item
-                        label="Пароль"
-                        name="password"
-                        rules={[{ required: true, message: "Введите пароль" }]}
-                    >
-                        <Input.Password
-                            prefix={<LockOutlined />}
-                            placeholder="Придумайте пароль"
-                            size="large"
-                        />
-                    </Form.Item>
-                </>
-            )}
+            <Form.Item
+                label="Пароль"
+                name="password"
+                rules={vkId ? [] : [{ required: true, message: "Введите пароль" }]}
+                tooltip={vkId ? "Необязательно. Если не укажете, пароль будет сгенерирован автоматически. Укажите пароль, если хотите входить не только через VK" : undefined}
+            >
+                <Input.Password
+                    prefix={<LockOutlined />}
+                    placeholder="Придумайте пароль"
+                    size="large"
+                />
+            </Form.Item>
             
             <Form.Item
                 label="Email"

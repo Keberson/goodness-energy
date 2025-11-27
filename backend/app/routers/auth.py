@@ -66,9 +66,25 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Пользователь с таким VK ID уже зарегистрирован"
             )
-        # Генерируем логин из email или vk_id, если не указан
-        login = npo_data.login or (npo_data.email or f"vk_{npo_data.vk_id}")
-        password_hash = None  # При регистрации через VK пароль не нужен
+        
+        # Если пользователь указал login и password - используем их, иначе генерируем
+        if npo_data.login and npo_data.password:
+            # Пользователь указал логин и пароль - используем их
+            login = npo_data.login
+            password_hash = get_password_hash(npo_data.password)
+            # Проверяем, не занят ли логин
+            if db.query(User).filter(User.login == login).first():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Логин уже зарегистрирован"
+                )
+        else:
+            # Генерируем логин из email или vk_id, если не указан
+            login = npo_data.login or (npo_data.email or f"vk_{npo_data.vk_id}")
+            # Проверяем, не занят ли логин
+            if db.query(User).filter(User.login == login).first():
+                login = f"vk_{npo_data.vk_id}_{random.randint(1000, 9999)}"
+            password_hash = get_password_hash(npo_data.password or f"vk_oauth_{npo_data.vk_id}_{os.urandom(16).hex()}")
     else:
         # Обычная регистрация - login и password обязательны
         if not npo_data.login or not npo_data.password:
@@ -174,13 +190,25 @@ async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depe
                 detail="Этот VK аккаунт уже привязан к другому пользователю"
             )
         
-        # Генерируем login и password для VK пользователя
-        login = vol_data.login or (vol_data.email if vol_data.email else f"vk_{vol_data.vk_id}")
-        # Проверяем, не занят ли логин
-        if db.query(User).filter(User.login == login).first():
-            login = f"vk_{vol_data.vk_id}_{random.randint(1000, 9999)}"
-        
-        password = vol_data.password or f"vk_oauth_{vol_data.vk_id}_{os.urandom(16).hex()}"
+        # Если пользователь указал login и password - используем их, иначе генерируем
+        if vol_data.login and vol_data.password:
+            # Пользователь указал логин и пароль - используем их
+            login = vol_data.login
+            password = vol_data.password
+            # Проверяем, не занят ли логин
+            if db.query(User).filter(User.login == login).first():
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Логин уже зарегистрирован"
+                )
+        else:
+            # Генерируем login и password для VK пользователя
+            login = vol_data.login or (vol_data.email if vol_data.email else f"vk_{vol_data.vk_id}")
+            # Проверяем, не занят ли логин
+            if db.query(User).filter(User.login == login).first():
+                login = f"vk_{vol_data.vk_id}_{random.randint(1000, 9999)}"
+            
+            password = vol_data.password or f"vk_oauth_{vol_data.vk_id}_{os.urandom(16).hex()}"
     else:
         # Обычная регистрация - login и password обязательны
         if not vol_data.login or not vol_data.password:

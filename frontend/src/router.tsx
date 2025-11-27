@@ -63,11 +63,32 @@ const router = createBrowserRouter([
                         ],
                     },
                     {
+                        path: "volunteer-posts",
+                        children: [
+                            {
+                                index: true,
+                                element: <NewsListPage section="posts" />,
+                            },
+                            {
+                                path: "edit/:id?",
+                                element: (
+                                    <ProtectedRoute>
+                                        <EditNewsPage />
+                                    </ProtectedRoute>
+                                ),
+                            },
+                            {
+                                path: ":id",
+                                element: <NewsPage />,
+                            },
+                        ],
+                    },
+                    {
                         path: "news",
                         children: [
                             {
                                 index: true,
-                                element: <NewsListPage />,
+                                element: <NewsListPage section="news" />,
                             },
                             {
                                 path: "edit/:id?",

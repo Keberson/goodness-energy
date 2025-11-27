@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, List, Typography, Tag, Space, Button, Empty, Flex, Tabs, Popconfirm, App } from "antd";
 import { EyeOutlined, CalendarOutlined, PlusOutlined, UserOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useGetNewsQuery, useGetMyNewsQuery, useDeleteNewsMutation } from "@services/api/news.api";
 import { useGetVolunteerPostsQuery, useGetMyPostsQuery, useDeletePostMutation } from "@services/api/volunteer-posts.api";
 import { useGetNPOByIdQuery } from "@services/api/npo.api";
@@ -14,10 +14,31 @@ import { skipToken } from "@reduxjs/toolkit/query";
 
 const { Title } = Typography;
 
-const NewsListPage = () => {
+interface NewsListPageProps {
+    section?: "posts" | "news";
+}
+
+const NewsListPage = ({ section }: NewsListPageProps) => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { currentCity } = useCity();
-    const [activeSection, setActiveSection] = useState<"posts" | "news">("posts"); // Раздел: посты волонтеров или новости
+    
+    // Определяем активный раздел из пропсов или из URL
+    const getInitialSection = (): "posts" | "news" => {
+        if (section) return section;
+        if (location.pathname.startsWith("/volunteer-posts")) return "posts";
+        return "news";
+    };
+    
+    const [activeSection, setActiveSection] = useState<"posts" | "news">(getInitialSection());
+    
+    // Обновляем раздел при изменении URL
+    useEffect(() => {
+        const newSection = getInitialSection();
+        if (newSection !== activeSection) {
+            setActiveSection(newSection);
+        }
+    }, [location.pathname]);
     const [activeTab, setActiveTab] = useState("all");
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
     const userType = useAppSelector((state) => state.auth.userType);
@@ -378,24 +399,6 @@ const NewsListPage = () => {
                         )}
                     </Space>
                 </Flex>
-                <Tabs
-                    activeKey={activeSection}
-                    onChange={(key) => {
-                        setActiveSection(key as "posts" | "news");
-                        setActiveTab("all");
-                    }}
-                    items={[
-                        {
-                            key: "posts",
-                            label: "Истории волонтеров",
-                        },
-                        {
-                            key: "news",
-                            label: "Новости",
-                        },
-                    ]}
-                    style={{ marginBottom: 24 }}
-                />
                 <Tabs
                     activeKey={activeTab}
                     onChange={setActiveTab}
