@@ -403,3 +403,76 @@ def send_notification_event_cancelled(
     
     return send_email(to_email, subject, html_body, text_body)
 
+def send_credentials_email(
+    to_email: str,
+    login: str,
+    password: str,
+    user_type: str = "volunteer",
+    user_name: Optional[str] = None
+) -> bool:
+    """
+    Отправка email с логином и паролем пользователя
+    
+    Args:
+        to_email: Email получателя
+        login: Логин пользователя
+        password: Пароль пользователя
+        user_type: Тип пользователя ("volunteer" или "npo")
+        user_name: Имя пользователя (опционально)
+    """
+    user_type_text = "волонтер" if user_type == "volunteer" else "НКО" if user_type == "npo" else "пользователь"
+    
+    subject = f"Данные для входа на платформу 'Добрые дела'"
+    
+    html_body = f"""
+    <html>
+        <body style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+            <div style="max-width: 600px; margin: 0 auto; padding: 20px;">
+                <h2 style="color: #1890ff;">Добро пожаловать на платформу "Добрые дела"!</h2>
+                <p>Здравствуйте{f', {user_name}' if user_name else ''}!</p>
+                <p>Вы успешно зарегистрировались как {user_type_text} через VK. Для вашего удобства мы сгенерировали данные для входа, которые вы можете использовать для входа на платформу не только через VK, но и с помощью логина и пароля.</p>
+                
+                <div style="background-color: #f5f5f5; padding: 20px; border-radius: 5px; margin: 20px 0;">
+                    <h3 style="margin-top: 0; color: #1890ff;">Ваши данные для входа:</h3>
+                    <p><strong>Логин:</strong> <code style="background-color: #fff; padding: 2px 6px; border-radius: 3px; font-family: monospace;">{login}</code></p>
+                    <p><strong>Пароль:</strong> <code style="background-color: #fff; padding: 2px 6px; border-radius: 3px; font-family: monospace;">{password}</code></p>
+                </div>
+                
+                <div style="background-color: #fff3cd; padding: 15px; border-left: 4px solid #ffc107; margin: 20px 0;">
+                    <p style="margin: 0;"><strong>⚠️ Важно:</strong> Сохраните эти данные в безопасном месте. Вы можете использовать их для входа на платформу в любое время.</p>
+                </div>
+                
+                <p style="margin-top: 30px;">
+                    <a href="{FRONTEND_BASE_URL}/auth/login" style="background-color: #1890ff; color: white; padding: 12px 24px; text-decoration: none; border-radius: 5px; display: inline-block;">Войти на платформу</a>
+                </p>
+                
+                <hr style="border: none; border-top: 1px solid #eee; margin: 30px 0;">
+                <p style="color: #888; font-size: 12px;">
+                    Если вы не регистрировались на платформе "Добрые дела", проигнорируйте это письмо.
+                </p>
+            </div>
+        </body>
+    </html>
+    """
+    
+    text_body = f"""
+Добро пожаловать на платформу "Добрые дела"!
+
+Здравствуйте{f', {user_name}' if user_name else ''}!
+
+Вы успешно зарегистрировались как {user_type_text} через VK. Для вашего удобства мы сгенерировали данные для входа, которые вы можете использовать для входа на платформу не только через VK, но и с помощью логина и пароля.
+
+Ваши данные для входа:
+Логин: {login}
+Пароль: {password}
+
+⚠️ Важно: Сохраните эти данные в безопасном месте. Вы можете использовать их для входа на платформу в любое время.
+
+Войти на платформу: {FRONTEND_BASE_URL}/auth/login
+
+---
+Если вы не регистрировались на платформе "Добрые дела", проигнорируйте это письмо.
+    """
+    
+    return send_email(to_email, subject, html_body, text_body)
+

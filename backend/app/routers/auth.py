@@ -5,6 +5,7 @@ from app.database import get_db
 from app.models import User, UserRole, NPO, Volunteer, NPOStatus
 from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse, VKAuthCallback, VKIDAuthRequest, VKIDAuthResponse
 from app.auth import verify_password, get_password_hash, create_access_token, get_current_user
+from app.email_service import send_credentials_email
 from jose import jwt as jose_jwt
 import json
 import logging
@@ -71,7 +72,8 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
         if npo_data.login and npo_data.password:
             # Пользователь указал логин и пароль - используем их
             login = npo_data.login
-            password_hash = get_password_hash(npo_data.password)
+            password = npo_data.password
+            password_hash = get_password_hash(password)
             # Проверяем, не занят ли логин
             if db.query(User).filter(User.login == login).first():
                 raise HTTPException(
@@ -84,7 +86,8 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
             # Проверяем, не занят ли логин
             if db.query(User).filter(User.login == login).first():
                 login = f"vk_{npo_data.vk_id}_{random.randint(1000, 9999)}"
-            password_hash = get_password_hash(npo_data.password or f"vk_oauth_{npo_data.vk_id}_{os.urandom(16).hex()}")
+            password = npo_data.password or f"vk_oauth_{npo_data.vk_id}_{os.urandom(16).hex()}"
+            password_hash = get_password_hash(password)
     else:
         # Обычная регистрация - login и password обязательны
         if not npo_data.login or not npo_data.password:
@@ -99,7 +102,8 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
                 detail="Логин уже зарегистрирован"
             )
         login = npo_data.login
-        password_hash = get_password_hash(npo_data.password)
+        password = npo_data.password
+        password_hash = get_password_hash(password)
     
     # Создание пользователя
     user = User(
@@ -173,6 +177,21 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
             db.add(npo_tag)
     
     db.commit()
+    
+    # Отправка email с логином и паролем, если они были сгенерированы автоматически
+    if npo_data.vk_id and not (npo_data.login and npo_data.password) and npo_data.email:
+        # Логин и пароль были сгенерированы автоматически, отправляем их на email
+        try:
+            send_credentials_email(
+                to_email=npo_data.email,
+                login=login,
+                password=password,
+                user_type="npo",
+                user_name=npo_data.name
+            )
+            logger.info(f"Email с данными для входа отправлен на {npo_data.email}")
+        except Exception as e:
+            logger.error(f"Ошибка при отправке email с данными для входа на {npo_data.email}: {e}")
     
     # Создание токена
     access_token = create_access_token(data={"sub": str(user.id)})
@@ -256,6 +275,22 @@ async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depe
     )
     db.add(volunteer)
     db.commit()
+    
+    # Отправка email с логином и паролем, если они были сгенерированы автоматически
+    if vol_data.vk_id and not (vol_data.login and vol_data.password) and vol_data.email:
+        # Логин и пароль были сгенерированы автоматически, отправляем их на email
+        user_name = f"{vol_data.firstName} {vol_data.secondName}".strip() if vol_data.firstName or vol_data.secondName else None
+        try:
+            send_credentials_email(
+                to_email=vol_data.email,
+                login=login,
+                password=password,
+                user_type="volunteer",
+                user_name=user_name
+            )
+            logger.info(f"Email с данными для входа отправлен на {vol_data.email}")
+        except Exception as e:
+            logger.error(f"Ошибка при отправке email с данными для входа на {vol_data.email}: {e}")
     
     # Создание токена
     access_token = create_access_token(data={"sub": str(user.id)})
