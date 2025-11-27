@@ -108,15 +108,69 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
                             has_id_token: !!vkTokens.id_token,
                         });
 
-                        // Отправляем access_token и id_token на бэкенд
-                        // Бэкенд попытается получить данные из id_token (JWT), что не требует запросов к VK API
-                        // Если это не сработает, бэкенд сделает запрос к VK API
-                        console.log(
-                            "VK ID: отправляем токены на бэкенд для получения данных пользователя..."
-                        );
+                        // Получаем данные пользователя через прокси-эндпоинт на бэкенде
+                        // Это обходит проблему CORS и использует правильные заголовки от клиента
+                        console.log("VK ID: получаем данные пользователя через прокси бэкенда...");
+                        let userData = null;
+                        try {
+                            // Используем функцию getApiBaseUrl для получения правильного URL
+                            const { getApiBaseUrl } = await import("@utils/apiUrl");
+                            const apiBaseUrl = getApiBaseUrl();
+
+                            const proxyResponse = await fetch(`${apiBaseUrl}/auth/vk/user-data`, {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json",
+                                },
+                                body: JSON.stringify({
+                                    access_token: vkTokens.access_token,
+                                }),
+                            });
+
+                            if (!proxyResponse.ok) {
+                                throw new Error(`Прокси вернул ошибку: ${proxyResponse.status}`);
+                            }
+
+                            const userInfoData = await proxyResponse.json();
+                            console.log(
+                                "VK ID: получены данные пользователя через прокси",
+                                userInfoData
+                            );
+
+                            if (!userInfoData.error && userInfoData.response?.[0]) {
+                                const userInfo = userInfoData.response[0];
+                                const cityInfo = userInfo.city;
+                                userData = {
+                                    id: userInfo.id,
+                                    first_name: userInfo.first_name,
+                                    last_name: userInfo.last_name,
+                                    email: userInfo.email,
+                                    bdate: userInfo.bdate,
+                                    sex: userInfo.sex,
+                                    city: cityInfo?.title || null,
+                                    phone: userInfo.mobile_phone || userInfo.phone || null,
+                                };
+                                console.log("VK ID: обработанные данные пользователя", userData);
+                            } else {
+                                console.warn(
+                                    "VK ID: не удалось получить данные пользователя через прокси",
+                                    userInfoData
+                                );
+                            }
+                        } catch (error) {
+                            console.error(
+                                "VK ID: ошибка при получении данных пользователя через прокси",
+                                error
+                            );
+                            // Продолжаем без данных пользователя, бэкенд попробует получить их сам
+                        }
+
+                        // Отправляем токены и данные пользователя на бэкенд
+                        console.log("VK ID: отправляем токены и данные пользователя на бэкенд...");
                         const response = await vkIdAuth({
                             access_token: vkTokens.access_token,
                             id_token: vkTokens.id_token,
+                            user_data: userData,
                         }).unwrap();
                         console.log("VK ID: получен ответ от бэкенда", {
                             user_exists: response.user_exists,

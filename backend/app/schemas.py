@@ -18,11 +18,16 @@ class VKAuthCallback(BaseModel):
     code: str
     redirect_uri: Optional[str] = None
 
+class VKUserDataRequest(BaseModel):
+    access_token: str
+
 class VKIDAuthRequest(BaseModel):
-    # Принимаем access_token и id_token от VK ID SDK
-    # id_token (JWT) содержит данные пользователя и не требует запросов к VK API
+    # Принимаем access_token, id_token и данные пользователя, полученные на фронтенде
+    # Данные получаются на фронтенде, так как access_token привязан к IP клиента
     access_token: str  # Access token от VK ID SDK
-    id_token: Optional[str] = None  # ID token (JWT) от VK ID, содержит информацию о пользователе
+    id_token: Optional[str] = None  # ID token (JWT) от VK ID
+    # Данные пользователя, полученные на фронтенде через VK API
+    user_data: Optional[dict] = None  # Данные пользователя: first_name, last_name, email, bdate, sex, city, phone
 
 class VKIDAuthResponse(BaseModel):
     user_exists: bool

@@ -87,7 +87,7 @@ export const authApi = createApi({
                 body,
             }),
         }),
-        vkIdAuth: builder.mutation<IVKIDAuthResponse, { access_token: string; id_token?: string }>({
+        vkIdAuth: builder.mutation<IVKIDAuthResponse, { access_token: string; id_token?: string; user_data?: any }>({
             query: (body) => ({
                 url: `/vk/id`,
                 method: "POST",
