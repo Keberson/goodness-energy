@@ -3,8 +3,10 @@ import { Card, List, Typography, Tag, Space, Button, Empty, Flex, Tabs, Popconfi
 import { EyeOutlined, CalendarOutlined, PlusOutlined, UserOutlined, EditOutlined, DeleteOutlined } from "@ant-design/icons";
 import { useNavigate } from "react-router-dom";
 import { useGetNewsQuery, useGetMyNewsQuery, useDeleteNewsMutation } from "@services/api/news.api";
+import { useGetVolunteerPostsQuery, useGetMyPostsQuery, useDeletePostMutation } from "@services/api/volunteer-posts.api";
 import { useGetNPOByIdQuery } from "@services/api/npo.api";
 import type { INews } from "@app-types/news.types";
+import type { IVolunteerPost } from "@app-types/volunteer-posts.types";
 import { useCity } from "@hooks/useCity";
 import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
 import useAppSelector from "@hooks/useAppSelector";
@@ -15,20 +17,37 @@ const { Title } = Typography;
 const NewsListPage = () => {
     const navigate = useNavigate();
     const { currentCity } = useCity();
+    const [activeSection, setActiveSection] = useState<"posts" | "news">("posts"); // Раздел: посты волонтеров или новости
     const [activeTab, setActiveTab] = useState("all");
     const isAuthenticated = useAppSelector((state) => state.auth.isAuthenticated);
     const userType = useAppSelector((state) => state.auth.userType);
     const userId = useAppSelector((state) => state.auth.userId);
     const isNPO = isAuthenticated && userType === "npo";
+    const isVolunteer = isAuthenticated && userType === "volunteer";
 
-    // Все новости без фильтра по городу
-    const { data: allNews, isLoading: isLoadingAll } = useGetNewsQuery(undefined);
-    // Новости, отфильтрованные по текущему городу
+    // Блоги волонтеров (посты)
+    const { data: allPosts, isLoading: isLoadingAllPosts } = useGetVolunteerPostsQuery(
+        { status: "approved" },
+        { skip: activeSection !== "posts" }
+    );
+    const { data: cityPosts, isLoading: isLoadingCityPosts } = useGetVolunteerPostsQuery(
+        { city: currentCity || undefined, status: "approved" },
+        { skip: !currentCity || activeSection !== "posts" || activeTab !== "city" }
+    );
+    const { data: myPosts, isLoading: isLoadingMyPosts } = useGetMyPostsQuery(undefined, {
+        skip: !isAuthenticated || activeSection !== "posts" || activeTab !== "my" || !isVolunteer,
+    });
+    const [deletePost] = useDeletePostMutation();
+
+    // Новости от НКО и админов
+    const { data: allNews, isLoading: isLoadingAll } = useGetNewsQuery(undefined, {
+        skip: activeSection !== "news",
+    });
     const { data: cityNews, isLoading: isLoadingCity } = useGetNewsQuery(currentCity, {
-        skip: !currentCity,
+        skip: !currentCity || activeSection !== "news" || activeTab !== "city",
     });
     const { data: myNews, isLoading: isLoadingMy } = useGetMyNewsQuery(undefined, {
-        skip: !isAuthenticated || activeTab !== "my",
+        skip: !isAuthenticated || activeSection !== "news" || activeTab !== "my",
     });
     const [deleteNews] = useDeleteNewsMutation();
     const { message } = App.useApp();
@@ -36,12 +55,23 @@ const NewsListPage = () => {
     // Получаем данные НКО для проверки статуса
     const { data: npoData } = useGetNPOByIdQuery(isNPO && userId ? userId : skipToken);
     const isNPOConfirmed = isNPO && npoData?.status === "confirmed";
-    // Волонтёры и админы могут создавать новости, НКО - только подтверждённые
-    const canCreateNews = isAuthenticated && (!isNPO || isNPOConfirmed);
+    // НКО и админы могут создавать новости, волонтёры - только посты
+    const canCreateNews = isAuthenticated && (isNPO && isNPOConfirmed || userType === "admin");
+    const canCreatePost = isAuthenticated && isVolunteer;
     
-    const data =
+    // Данные в зависимости от активного раздела
+    const postsData =
+        activeTab === "my" ? myPosts : activeTab === "city" ? cityPosts : allPosts;
+    const postsLoading =
+        activeTab === "my"
+            ? isLoadingMyPosts
+            : activeTab === "city"
+            ? isLoadingCityPosts
+            : isLoadingAllPosts;
+    
+    const newsData =
         activeTab === "my" ? myNews : activeTab === "city" ? cityNews : allNews;
-    const isLoading =
+    const newsLoading =
         activeTab === "my"
             ? isLoadingMy
             : activeTab === "city"
@@ -50,8 +80,7 @@ const NewsListPage = () => {
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            blog: "Блог",
-            edu: "Образование",
+            theme: "Тематика",
             docs: "Документы",
         };
         return labels[type] || type;
@@ -59,20 +88,148 @@ const NewsListPage = () => {
 
     const getTypeColor = (type: string) => {
         const colors: Record<string, string> = {
-            blog: "blue",
-            edu: "green",
+            theme: "green",
             docs: "orange",
         };
         return colors[type] || "default";
     };
 
-    const handleDelete = async (newsId: number) => {
+    const handleDeleteNews = async (newsId: number) => {
         try {
             await deleteNews(newsId).unwrap();
             message.success("Новость успешно удалена");
         } catch (error) {
             message.error("Ошибка при удалении новости");
         }
+    };
+
+    const handleDeletePost = async (postId: number) => {
+        try {
+            await deletePost(postId).unwrap();
+            message.success("Пост успешно удален");
+        } catch (error) {
+            message.error("Ошибка при удалении поста");
+        }
+    };
+
+    const renderPostItem = (item: IVolunteerPost) => {
+        const isMyPost = activeTab === "my" && isVolunteer;
+        const actions = [];
+
+        if (isMyPost) {
+            actions.push(
+                <Button
+                    key="edit"
+                    type="link"
+                    icon={<EditOutlined />}
+                    onClick={() => navigate(`/volunteer-posts/edit/${item.id}`)}
+                >
+                    Редактировать
+                </Button>,
+                <Popconfirm
+                    key="delete"
+                    title="Удалить пост?"
+                    description={`Вы уверены, что хотите удалить пост "${item.name}"?`}
+                    onConfirm={() => handleDeletePost(item.id)}
+                    okText="Да"
+                    cancelText="Нет"
+                >
+                    <Button
+                        type="link"
+                        danger
+                        icon={<DeleteOutlined />}
+                    >
+                        Удалить
+                    </Button>
+                </Popconfirm>
+            );
+        }
+
+        actions.push(
+            <Button
+                key="details"
+                type="link"
+                icon={<EyeOutlined />}
+                onClick={() => navigate(`/volunteer-posts/${item.id}`)}
+            >
+                Подробнее
+            </Button>
+        );
+
+        return (
+            <List.Item key={item.id} actions={actions}>
+                <List.Item.Meta
+                    title={
+                        <Space align="center" wrap>
+                            <Title level={4} style={{ margin: 0 }}>
+                                {item.name}
+                            </Title>
+                            {item.theme_tag && (
+                                <Tag color="blue">{item.theme_tag}</Tag>
+                            )}
+                            {item.npo_name && (
+                                <Tag color="purple">НКО: {item.npo_name}</Tag>
+                            )}
+                        </Space>
+                    }
+                    description={
+                        <Space wrap>
+                            <Space>
+                                <UserOutlined />
+                                <span>{item.author}</span>
+                            </Space>
+                            {item.city && (
+                                <Space>
+                                    <span>📍 {item.city}</span>
+                                </Space>
+                            )}
+                            <Space>
+                                <CalendarOutlined />
+                                <span>
+                                    {new Date(item.created_at).toLocaleDateString(
+                                        "ru-RU",
+                                        {
+                                            year: "numeric",
+                                            month: "long",
+                                            day: "numeric",
+                                        }
+                                    )}
+                                </span>
+                            </Space>
+                        </Space>
+                    }
+                />
+                {item.annotation ? (
+                    <div
+                        style={{
+                            marginTop: 8,
+                            color: "rgba(0, 0, 0, 0.65)",
+                            lineHeight: 1.5,
+                        }}
+                    >
+                        {item.annotation}
+                    </div>
+                ) : (
+                    <div
+                        style={{
+                            marginTop: 8,
+                            color: "rgba(0, 0, 0, 0.45)",
+                            fontStyle: "italic",
+                            lineHeight: 1.5,
+                        }}
+                    >
+                        Нет описания
+                    </div>
+                )}
+                {item.tags && item.tags.length > 0 && (
+                    <Space wrap style={{ marginTop: 8 }}>
+                        {item.tags.map((tag) => (
+                            <Tag key={tag}>{tag}</Tag>
+                        ))}
+                    </Space>
+                )}
+            </List.Item>
+        );
     };
 
     const renderNewsItem = (item: INews) => {
@@ -93,7 +250,7 @@ const NewsListPage = () => {
                     key="delete"
                     title="Удалить новость?"
                     description={`Вы уверены, что хотите удалить новость "${item.name}"?`}
-                    onConfirm={() => handleDelete(item.id)}
+                    onConfirm={() => handleDeleteNews(item.id)}
                     okText="Да"
                     cancelText="Нет"
                 >
@@ -198,51 +355,94 @@ const NewsListPage = () => {
             <Card style={{ minHeight: "calc(100vh - 96px)" }}>
                 <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
                     <Title level={3} style={{ marginBottom: 0 }}>
-                        Новости
+                        {activeSection === "posts" ? "Истории волонтеров" : "Новости"}
                     </Title>
-                    {canCreateNews && (
-                        <Button
-                            type="primary"
-                            icon={<PlusOutlined />}
-                            onClick={() => navigate("/news/edit")}
-                        >
-                            Создать новость
-                        </Button>
-                    )}
+                    <Space>
+                        {activeSection === "posts" && canCreatePost && (
+                            <Button
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                onClick={() => navigate("/volunteer-posts/edit")}
+                            >
+                                Создать историю
+                            </Button>
+                        )}
+                        {activeSection === "news" && canCreateNews && (
+                            <Button
+                                type="primary"
+                                icon={<PlusOutlined />}
+                                onClick={() => navigate("/news/edit")}
+                            >
+                                Создать новость
+                            </Button>
+                        )}
+                    </Space>
                 </Flex>
+                <Tabs
+                    activeKey={activeSection}
+                    onChange={(key) => {
+                        setActiveSection(key as "posts" | "news");
+                        setActiveTab("all");
+                    }}
+                    items={[
+                        {
+                            key: "posts",
+                            label: "Истории волонтеров",
+                        },
+                        {
+                            key: "news",
+                            label: "Новости",
+                        },
+                    ]}
+                    style={{ marginBottom: 24 }}
+                />
                 <Tabs
                     activeKey={activeTab}
                     onChange={setActiveTab}
                     items={[
                         {
                             key: "all",
-                            label: "Все новости",
+                            label: activeSection === "posts" ? "Все истории" : "Все новости",
                         },
                         {
                             key: "city",
-                            label: `Новости города ${currentCity || ""}`.trim(),
+                            label: `${activeSection === "posts" ? "Истории" : "Новости"} города ${currentCity || ""}`.trim(),
                         },
-                        ...(isAuthenticated
+                        ...(isAuthenticated && (activeSection === "posts" ? isVolunteer : true)
                             ? [
                                   {
                                       key: "my",
-                                      label: "Мои новости",
+                                      label: activeSection === "posts" ? "Мои истории" : "Мои новости",
                                   },
                               ]
                             : []),
                     ]}
                     style={{ marginBottom: 24 }}
                 />
-                {isLoading ? (
-                    <List loading={isLoading} />
-                ) : !data || data.length === 0 ? (
-                    <Empty description={activeTab === "my" ? "У вас пока нет новостей" : "Новостей пока нет"} />
+                {activeSection === "posts" ? (
+                    postsLoading ? (
+                        <List loading={postsLoading} />
+                    ) : !postsData || postsData.length === 0 ? (
+                        <Empty description={activeTab === "my" ? "У вас пока нет историй" : "Историй пока нет"} />
+                    ) : (
+                        <List
+                            itemLayout="vertical"
+                            dataSource={postsData}
+                            renderItem={renderPostItem}
+                        />
+                    )
                 ) : (
-                    <List
-                        itemLayout="vertical"
-                        dataSource={data}
-                        renderItem={renderNewsItem}
-                    />
+                    newsLoading ? (
+                        <List loading={newsLoading} />
+                    ) : !newsData || newsData.length === 0 ? (
+                        <Empty description={activeTab === "my" ? "У вас пока нет новостей" : "Новостей пока нет"} />
+                    ) : (
+                        <List
+                            itemLayout="vertical"
+                            dataSource={newsData}
+                            renderItem={renderNewsItem}
+                        />
+                    )
                 )}
             </Card>
         </div>

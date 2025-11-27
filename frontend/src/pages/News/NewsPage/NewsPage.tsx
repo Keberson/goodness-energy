@@ -25,8 +25,7 @@ const NewsPage = () => {
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
-            blog: "Блог",
-            edu: "Образование",
+            theme: "Тематика",
             docs: "Документы",
         };
         return labels[type] || type;
@@ -34,8 +33,7 @@ const NewsPage = () => {
 
     const getTypeColor = (type: string) => {
         const colors: Record<string, string> = {
-            blog: "blue",
-            edu: "green",
+            theme: "green",
             docs: "orange",
         };
         return colors[type] || "default";
