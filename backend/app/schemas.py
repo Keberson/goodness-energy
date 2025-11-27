@@ -18,6 +18,11 @@ class VKAuthCallback(BaseModel):
     code: str
     redirect_uri: Optional[str] = None
 
+class VKIDAuthRequest(BaseModel):
+    access_token: str
+    user_id: int
+    email: Optional[str] = None
+
 class SelectedCityUpdate(BaseModel):
     city: str  # Выбранный город пользователя
 

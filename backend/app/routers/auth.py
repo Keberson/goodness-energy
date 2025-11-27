@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, UserRole, NPO, Volunteer, NPOStatus
-from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse, VKAuthCallback
+from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse, VKAuthCallback, VKIDAuthRequest
 from app.auth import verify_password, get_password_hash, create_access_token, get_current_user
 import json
 import logging
@@ -570,6 +570,102 @@ async def vk_auth(vk_data: VKAuthCallback, db: Session = Depends(get_db)):
             db.add(user)
             db.flush()
             
+            volunteer = Volunteer(
+                user_id=user.id,
+                first_name=first_name,
+                second_name=last_name,
+                email=email if email else None
+            )
+            db.add(volunteer)
+            db.commit()
+            
+            access_token_jwt = create_access_token(data={"sub": str(user.id)})
+            return {"access_token": access_token_jwt, "token_type": "bearer", "user_type": user.role.value, "id": volunteer.id}
+        
+        # Пользователь существует
+        user_id = user.id
+        if user.role == UserRole.NPO:
+            npo = db.query(NPO).filter(NPO.user_id == user.id).first()
+            if npo:
+                user_id = npo.id
+        elif user.role == UserRole.VOLUNTEER:
+            volunteer = db.query(Volunteer).filter(Volunteer.user_id == user.id).first()
+            if volunteer:
+                user_id = volunteer.id
+        
+        access_token_jwt = create_access_token(data={"sub": str(user.id)})
+        return {"access_token": access_token_jwt, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
+
+@router.post("/vk/id", response_model=Token)
+async def vk_id_auth(vk_data: VKIDAuthRequest, db: Session = Depends(get_db)):
+    """Авторизация через VK ID SDK (новый метод)"""
+    if not VK_CLIENT_ID:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="VK OAuth не настроен. Установите VK_CLIENT_ID"
+        )
+    
+    vk_access_token = vk_data.access_token
+    vk_user_id = vk_data.user_id
+    email = vk_data.email
+    
+    # Получаем информацию о пользователе из VK API
+    async with httpx.AsyncClient() as client:
+        user_info_response = await client.get(
+            "https://api.vk.com/method/users.get",
+            params={
+                "user_ids": vk_user_id,
+                "fields": "first_name,last_name,photo_200",
+                "access_token": vk_access_token,
+                "v": VK_API_VERSION
+            }
+        )
+        
+        if user_info_response.status_code != 200:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Не удалось получить информацию о пользователе от VK"
+            )
+        
+        user_info_data = user_info_response.json()
+        
+        if "error" in user_info_data:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Ошибка VK API: {user_info_data.get('error', {}).get('error_msg', 'Unknown error')}"
+            )
+        
+        vk_user = user_info_data.get("response", [{}])[0]
+        first_name = vk_user.get("first_name", "")
+        last_name = vk_user.get("last_name", "")
+        
+        # Ищем существующего пользователя по VK ID
+        user = db.query(User).filter(User.vk_id == vk_user_id).first()
+        
+        if not user:
+            # Создаем нового пользователя
+            login = email if email else f"vk_{vk_user_id}"
+            
+            # Проверяем, не занят ли логин
+            existing_user = db.query(User).filter(User.login == login).first()
+            if existing_user:
+                login = f"vk_{vk_user_id}_{random.randint(1000, 9999)}"
+            
+            password_hash = get_password_hash(f"vk_oauth_{vk_user_id}_{os.urandom(16).hex()}")
+            
+            user = User(
+                login=login,
+                password_hash=password_hash,
+                role=UserRole.VOLUNTEER,
+                vk_id=vk_user_id,
+                notify_city_news=False,
+                notify_registrations=False,
+                notify_events=False
+            )
+            db.add(user)
+            db.flush()
+            
+            # Создаем профиль волонтера
             volunteer = Volunteer(
                 user_id=user.id,
                 first_name=first_name,

@@ -86,6 +86,13 @@ export const authApi = createApi({
                 body,
             }),
         }),
+        vkIdAuth: builder.mutation<IAuthResponse, { access_token: string; user_id: number; email: string | null }>({
+            query: (body) => ({
+                url: `/vk/id`,
+                method: "POST",
+                body,
+            }),
+        }),
     }),
 });
 
@@ -98,4 +105,5 @@ export const {
     useGetNotificationSettingsQuery,
     useUpdateNotificationSettingsMutation,
     useVkAuthMutation,
+    useVkIdAuthMutation,
 } = authApi;
