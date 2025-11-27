@@ -229,6 +229,55 @@ class NewsResponse(BaseModel):
     class Config:
         from_attributes = True
 
+# Схемы блогов волонтеров
+class VolunteerPostCreate(BaseModel):
+    name: str
+    annotation: Optional[str] = None
+    text: str
+    city: Optional[str] = None
+    theme_tag: Optional[str] = None  # Тематика
+    npo_id: Optional[int] = None  # Привязка к НКО
+    attachedIds: Optional[List[int]] = None
+    tags: Optional[List[str]] = None
+
+class VolunteerPostUpdate(BaseModel):
+    name: Optional[str] = None
+    annotation: Optional[str] = None
+    text: Optional[str] = None
+    city: Optional[str] = None
+    theme_tag: Optional[str] = None
+    npo_id: Optional[int] = None
+    attachedIds: Optional[List[int]] = None
+    tags: Optional[List[str]] = None
+
+class VolunteerPostModeration(BaseModel):
+    status: VolunteerPostStatus
+    comment: Optional[str] = None  # Комментарий модератора
+
+class VolunteerPostResponse(BaseModel):
+    id: int
+    name: str
+    annotation: Optional[str] = None
+    text: str
+    city: Optional[str] = None
+    theme_tag: Optional[str] = None
+    npo_id: Optional[int] = None
+    npo_name: Optional[str] = None  # Название НКО
+    status: VolunteerPostStatus
+    moderator_id: Optional[int] = None
+    moderation_comment: Optional[str] = None
+    attachedIds: List[int]
+    tags: List[str]
+    created_at: datetime
+    updated_at: Optional[datetime] = None
+    moderated_at: Optional[datetime] = None
+    user_id: int
+    volunteer_id: int
+    author: str  # Имя и фамилия волонтера
+    
+    class Config:
+        from_attributes = True
+
 # Схема файла
 class FileResponse(BaseModel):
     id: int
