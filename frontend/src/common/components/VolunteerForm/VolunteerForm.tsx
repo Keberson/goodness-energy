@@ -4,6 +4,7 @@ import { MailOutlined, LockOutlined, UserOutlined } from "@ant-design/icons";
 import dayjs from "dayjs";
 
 import PhoneInput from "@components/controls/PhoneInput/PhoneInput";
+import useAppSelector from "@hooks/useAppSelector";
 
 const { Option } = Select;
 const { TextArea } = Input;
@@ -14,6 +15,8 @@ interface VolunteerFormProps {
 }
 
 const VolunteerForm: React.FC<VolunteerFormProps> = ({ hideAuthFields = false, optionalAuthFields = false }) => {
+    const availableCities = useAppSelector((state) => state.city.availableCities);
+    
     return (
         <>
             {!hideAuthFields && (
@@ -82,7 +85,13 @@ const VolunteerForm: React.FC<VolunteerFormProps> = ({ hideAuthFields = false, o
                     rules={[{ required: true, message: "Выберите город" }]}
                     style={{ flex: 1 }}
                 >
-                    <Input placeholder="Введите город" size="large" />
+                    <Select placeholder="Выберите город" size="large">
+                        {availableCities.map((city) => (
+                            <Option key={city} value={city}>
+                                {city}
+                            </Option>
+                        ))}
+                    </Select>
                 </Form.Item>
 
                 <Form.Item label="Пол" name="sex" style={{ flex: 1 }}>

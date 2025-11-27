@@ -6,6 +6,7 @@ import { useRegisterVolunteerMutation } from "@services/api/auth.api";
 import useAppDispatch from "@hooks/useAppDispatch";
 import { login } from "@services/slices/auth.slice";
 import VolunteerForm from "@components/VolunteerForm/VolunteerForm";
+import { useCity } from "@hooks/useCity";
 
 const VolunteerRegistration = () => {
     const [register] = useRegisterVolunteerMutation();
@@ -13,6 +14,9 @@ const VolunteerRegistration = () => {
     const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const [form] = Form.useForm();
+
+    // Загружаем города для выпадающего списка
+    useCity();
 
     // Получаем vk_id из URL параметров
     const vkId = searchParams.get("vk_id");
@@ -26,7 +30,7 @@ const VolunteerRegistration = () => {
                 ...values,
                 vk_id: vkId ? Number(vkId) : undefined,
             };
-            
+
             const response = await register(registrationData).unwrap();
             dispatch(
                 login({ token: response.access_token, type: response.user_type, id: response.id })
@@ -46,7 +50,7 @@ const VolunteerRegistration = () => {
         >
             {/* Скрытое поле для vk_id */}
             {vkId && <Form.Item name="vk_id" hidden initialValue={Number(vkId)} />}
-            
+
             {/* Информационное сообщение при регистрации через VK */}
             {vkId && (
                 <Alert
@@ -57,7 +61,7 @@ const VolunteerRegistration = () => {
                     style={{ marginBottom: 24 }}
                 />
             )}
-            
+
             <VolunteerForm hideAuthFields={false} optionalAuthFields={!!vkId} />
 
             <Form.Item>

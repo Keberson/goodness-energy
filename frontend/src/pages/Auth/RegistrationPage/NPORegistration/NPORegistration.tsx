@@ -11,6 +11,7 @@ import { useRegisterNPOMutation } from "@services/api/auth.api";
 import { login } from "@services/slices/auth.slice";
 
 import useAppDispatch from "@hooks/useAppDispatch";
+import { useCity } from "@hooks/useCity";
 
 import NPOForm from "@components/NPOForm/NPOForm";
 
@@ -20,6 +21,9 @@ const NPORegistration = () => {
     const dispatch = useAppDispatch();
     const [searchParams] = useSearchParams();
     const [form] = Form.useForm();
+    
+    // Загружаем города для выпадающего списка
+    useCity();
     
     // Получаем данные VK из URL параметров
     const vkId = searchParams.get("vk_id");
