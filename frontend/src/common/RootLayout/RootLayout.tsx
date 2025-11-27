@@ -2,7 +2,7 @@ import { Divider, Flex, Layout, Menu, Typography, App, Drawer, Button } from "an
 import type { ItemType } from "antd/es/menu/interface";
 import { GlobalOutlined, MenuOutlined } from "@ant-design/icons";
 import { useLocation, NavLink, Outlet, useNavigate } from "react-router-dom";
-import { useContext, useMemo, useState, useEffect, useRef } from "react";
+import { useContext, useMemo, useState, useEffect, useRef, useCallback } from "react";
 
 import "./styles.scss";
 
@@ -63,11 +63,11 @@ const RootLayout = () => {
         }
     }, [isAuthenticated, navigate]);
 
-    const logoutHandler = () => {
+    const logoutHandler = useCallback(() => {
         shouldRedirectRef.current = true;
         dispatch(logout());
         message.success("Вы успешно вышли из аккаунта");
-    };
+    }, [dispatch, message]);
 
     const openCityChange = () => {
         open({

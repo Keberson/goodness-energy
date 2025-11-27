@@ -4,11 +4,26 @@ from typing import List, Optional
 from app.database import get_db
 from app.models import Event, EventTag, EventAttachment, EventResponse as EventResponseModel
 from app.schemas import EventResponse
+from app.routers.npo import ALLOWED_EVENT_TAGS
 import logging
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+
+@router.get("/tags", response_model=List[str])
+async def get_event_tags():
+    """Получение списка допустимых тегов для событий"""
+    tags_list = list(ALLOWED_EVENT_TAGS)
+    # Сортируем теги, но "Другое" всегда в конце
+    other_tag = "Другое"
+    if other_tag in tags_list:
+        tags_list.remove(other_tag)
+        tags_list = sorted(tags_list)
+        tags_list.append(other_tag)
+    else:
+        tags_list = sorted(tags_list)
+    return tags_list
 
 def build_event_response(event: Event, db: Session) -> EventResponse:
     """Создает EventResponse с подсчетом регистраций и свободных мест"""
@@ -49,9 +64,13 @@ async def get_all_events(
     city: Optional[str] = Query(None, description="Фильтр по городу"),
     db: Session = Depends(get_db)
 ):
-    """Получение всех событий с опциональной фильтрацией по городу"""
+    """Получение всех событий с опциональной фильтрацией по городу. Показываются только опубликованные и завершённые события."""
     logger.info(f"Получен запрос на события с параметром city: {city}")
-    query = db.query(Event).options(joinedload(Event.npo))
+    from app.models import EventStatus
+    
+    query = db.query(Event).options(joinedload(Event.npo)).filter(
+        Event.status.in_([EventStatus.PUBLISHED, EventStatus.COMPLETED])
+    )
     
     if city:
         logger.info(f"Фильтрация событий по городу: {city}")

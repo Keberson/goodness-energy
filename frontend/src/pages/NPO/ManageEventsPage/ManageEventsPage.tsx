@@ -44,6 +44,7 @@ import {
     type IEventUpdateRequest,
 } from "@services/api/npo.api";
 import { useGetNPOByIdQuery } from "@services/api/npo.api";
+import { useGetEventTagsQuery } from "@services/api/events.api";
 import { useLazyGeodecodeQuery } from "@services/api/geodecode.api";
 import { useUploadFileMutation } from "@services/api/files.api";
 import FilePreview from "@components/FilePreview/FilePreview";
@@ -57,6 +58,7 @@ dayjs.locale("ru");
 const { Title } = Typography;
 const { TextArea } = Input;
 const { RangePicker } = DatePicker;
+const { Option } = Select;
 
 const statusOptions: { label: string; value: EventStatus; color: string }[] = [
     { label: "Черновик", value: "draft", color: "default" },
@@ -71,6 +73,7 @@ const ManageEventsPage = () => {
     const userId = useAppSelector((state) => state.auth.userId);
     const { data: npoData } = useGetNPOByIdQuery(userId ?? skipToken);
     const { data: events, isLoading } = useGetNPOEventsQuery(npoData?.id ?? skipToken);
+    const { data: eventTags = [] } = useGetEventTagsQuery();
     const [createEvent] = useCreateEventMutation();
     const [updateEvent] = useUpdateEventMutation();
     const [deleteEvent] = useDeleteEventMutation();
@@ -134,7 +137,7 @@ const ManageEventsPage = () => {
             dateRange: [dayjs(event.start), dayjs(event.end)],
             address: address,
             quantity: event.quantity,
-            tags: event.tags.join(", "),
+            tags: event.tags || [], // Теги теперь массив, не строка
             status: event.status,
             city: event.city,
         });
@@ -154,7 +157,7 @@ const ManageEventsPage = () => {
         }
     };
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (status?: "draft" | "published") => {
         if (!npoData) return;
 
         try {
@@ -179,12 +182,14 @@ const ManageEventsPage = () => {
                 }
             }
 
-            const tags = values.tags
-                ? values.tags
-                      .split(",")
-                      .map((t: string) => t.trim())
-                      .filter((t: string) => t.length > 0)
-                : [];
+            // Теги теперь приходят как массив из Select
+            const tags = Array.isArray(values.tags) ? values.tags.filter((t: string) => t && t.length > 0) : [];
+            
+            // Проверка, что теги не пустые (обязательное поле)
+            if (tags.length === 0) {
+                message.error("Необходимо выбрать хотя бы один тег");
+                return;
+            }
 
             if (editingEvent) {
                 const updateData: IEventUpdateRequest = {
@@ -194,7 +199,7 @@ const ManageEventsPage = () => {
                     end: end.toISOString(),
                     coordinates,
                     quantity: values.quantity || null,
-                    tags: tags.length > 0 ? tags : null,
+                    tags: tags, // Теги обязательны, поэтому всегда передаем массив
                     city: values.city,
                     attachedIds: attachedIds.length > 0 ? attachedIds : null,
                 };
@@ -215,6 +220,10 @@ const ManageEventsPage = () => {
                 
                 message.success("Событие обновлено");
             } else {
+                if (!status) {
+                    message.error("Не указан статус события");
+                    return;
+                }
                 const createData: IEventCreateRequest = {
                     name: values.name,
                     description: values.description || null,
@@ -225,9 +234,10 @@ const ManageEventsPage = () => {
                     tags: tags.length > 0 ? tags : null,
                     city: values.city,
                     attachedIds: attachedIds.length > 0 ? attachedIds : null,
+                    status: status,
                 };
                 await createEvent({ npoId: npoData.id, body: createData }).unwrap();
-                message.success("Событие создано");
+                message.success(status === "published" ? "Событие опубликовано" : "Событие сохранено как черновик");
             }
             setIsModalOpen(false);
             setAttachedIds([]);
@@ -319,6 +329,13 @@ const ManageEventsPage = () => {
                 </Space>
             ),
         },
+        {
+            title: "Дата создания",
+            key: "created_at",
+            width: 180,
+            render: (_, record) => dayjs(record.created_at).format("DD.MM.YYYY HH:mm"),
+            // Сортировка отключена - данные всегда отсортированы на бэкенде (новые первыми)
+        },
     ];
 
     return (
@@ -401,8 +418,11 @@ const ManageEventsPage = () => {
                                 >
                                     Отмена
                                 </Button>
-                                <Button type="primary" onClick={handleSubmit}>
-                                    Создать
+                                <Button onClick={() => handleSubmit("draft")}>
+                                    Сохранить как черновик
+                                </Button>
+                                <Button type="primary" onClick={() => handleSubmit("published")}>
+                                    Опубликовать
                                 </Button>
                             </Space>
                         )
@@ -472,9 +492,34 @@ const ManageEventsPage = () => {
                         <Form.Item
                             name="tags"
                             label="Теги"
-                            help="Разделяйте теги запятыми"
+                            help="Выберите один или несколько тегов"
+                            rules={[
+                                { 
+                                    required: true, 
+                                    message: "Выберите хотя бы один тег" 
+                                },
+                                {
+                                    validator: (_, value) => {
+                                        if (!value || value.length === 0) {
+                                            return Promise.reject(new Error("Выберите хотя бы один тег"));
+                                        }
+                                        return Promise.resolve();
+                                    }
+                                }
+                            ]}
                         >
-                            <Input placeholder="тег1, тег2, тег3" />
+                            <Select
+                                mode="multiple"
+                                placeholder="Выберите теги"
+                                style={{ width: "100%" }}
+                                loading={!eventTags.length}
+                            >
+                                {eventTags.map((tag) => (
+                                    <Option key={tag} value={tag}>
+                                        {tag}
+                                    </Option>
+                                ))}
+                            </Select>
                         </Form.Item>
 
                         {editingEvent && (

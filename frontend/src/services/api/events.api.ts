@@ -33,8 +33,11 @@ export const eventsApi = createApi({
                       ]
                     : [{ type: "Event", id: "LIST" }],
         }),
+        getEventTags: builder.query<string[], void>({
+            query: () => ({ url: `/tags` }),
+        }),
     }),
 });
 
-export const { useGetEventsQuery } = eventsApi;
+export const { useGetEventsQuery, useGetEventTagsQuery } = eventsApi;
 

@@ -26,6 +26,14 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
+# Фиксированный список допустимых тегов для событий
+ALLOWED_EVENT_TAGS = {
+    "Экология", "Пожилые люди", "Обучение", "Спорт", "Здоровье",
+    "Местное сообщество", "Образование", "Социальная помощь",
+    "Защита животных", "Творчество", "Благотворительность",
+    "Культура", "Психология", "Другое"
+}
+
 def build_event_response(event: Event, db: Session) -> EventResponse:
     """Создает EventResponse с подсчетом регистраций и свободных мест"""
     tags = [t.tag for t in event.tags]
@@ -304,7 +312,8 @@ async def get_npo_events(
         )
     
     # Получаем все события НКО с загрузкой НКО для избежания N+1 запросов
-    events = db.query(Event).options(joinedload(Event.npo)).filter(Event.npo_id == npo_id).all()
+    # Сортируем по дате создания (новые первыми)
+    events = db.query(Event).options(joinedload(Event.npo)).filter(Event.npo_id == npo_id).order_by(Event.created_at.desc()).all()
     
     result = []
     for event in events:
@@ -380,6 +389,13 @@ async def create_event(
             detail="Количество участников должно быть больше 0"
         )
     
+    # Валидация тегов (обязательное поле)
+    if not event_data.tags or len(event_data.tags) == 0:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Необходимо выбрать хотя бы один тег"
+        )
+    
     event = Event(
         npo_id=npo.id,
         name=event_data.name,
@@ -389,7 +405,8 @@ async def create_event(
         coordinates_lat=coordinates_lat,
         coordinates_lon=coordinates_lon,
         quantity=event_data.quantity,
-        city=event_data.city.value  # Сохраняем строковое значение enum
+        city=event_data.city.value,  # Сохраняем строковое значение enum
+        status=event_data.status or EventStatus.DRAFT  # Используем статус из запроса или черновик по умолчанию
     )
     db.add(event)
     db.flush()
@@ -397,6 +414,11 @@ async def create_event(
     # Добавление тегов
     if event_data.tags:
         for tag in event_data.tags:
+            if tag not in ALLOWED_EVENT_TAGS:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Недопустимый тег: {tag}. Используйте только теги из фиксированного списка."
+                )
             event_tag = EventTag(event_id=event.id, tag=tag)
             db.add(event_tag)
     
@@ -498,8 +520,19 @@ async def update_event(
     
     # Обновление тегов
     if event_update.tags is not None:
+        # Валидация тегов (если переданы, должны быть не пустыми)
+        if len(event_update.tags) == 0:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Необходимо выбрать хотя бы один тег"
+            )
         db.query(EventTag).filter(EventTag.event_id == event.id).delete()
         for tag in event_update.tags:
+            if tag not in ALLOWED_EVENT_TAGS:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Недопустимый тег: {tag}. Используйте только теги из фиксированного списка."
+                )
             event_tag = EventTag(event_id=event.id, tag=tag)
             db.add(event_tag)
     

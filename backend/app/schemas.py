@@ -102,9 +102,10 @@ class EventCreate(BaseModel):
     end: datetime
     coordinates: Optional[List[float]] = None  # [lat, lon]
     quantity: int  # Обязательное поле - количество участников
-    tags: Optional[List[str]] = None
+    tags: List[str]  # Обязательное поле - хотя бы один тег
     city: NPOCity  # Обязательное поле - город проведения события
     attachedIds: Optional[List[int]] = None  # ID файлов (изображений)
+    status: Optional[EventStatus] = EventStatus.DRAFT  # Статус события, по умолчанию черновик
 
 class EventUpdate(BaseModel):
     name: Optional[str] = None

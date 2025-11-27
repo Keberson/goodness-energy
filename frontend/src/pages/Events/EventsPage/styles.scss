@@ -94,10 +94,16 @@
 
     &__event-indicator {
         cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        width: 20px;
+        height: 20px;
+        font-size: 16px;
+        transition: transform 0.2s;
         
-        .ant-badge-status-dot {
-            width: 8px;
-            height: 8px;
+        &:hover {
+            transform: scale(1.2);
         }
     }
 
@@ -119,15 +125,13 @@
     }
 }
 
-// Увеличение точек событий в версии для слабовидящих
+// Увеличение иконок событий в версии для слабовидящих
 body.accessibility-mode {
     .events-calendar {
         &__event-indicator {
-            .ant-badge-status-dot {
-                width: 16px !important;
-                height: 16px !important;
-                border-width: 2px !important;
-            }
+            width: 32px !important;
+            height: 32px !important;
+            font-size: 24px !important;
         }
 
         &__more-indicator {

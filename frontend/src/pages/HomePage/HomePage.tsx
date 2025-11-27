@@ -29,7 +29,21 @@ import "./styles.scss";
 
 const HomePage = () => {
     const { currentCity } = useCity();
-    const { data: events } = useGetEventsQuery(currentCity);
+    const { data: allEvents } = useGetEventsQuery(currentCity);
+    // Фильтруем события: показываем только опубликованные и завершённые
+    // Сортируем по дате создания (новые первыми)
+    const events = useMemo(() => {
+        if (!allEvents) return [];
+        const filtered = allEvents.filter((event) => 
+            event.status === "published" || event.status === "completed"
+        );
+        // Сортируем по дате создания (новые первыми)
+        return filtered.sort((a, b) => {
+            const dateA = dayjs(a.created_at).valueOf();
+            const dateB = dayjs(b.created_at).valueOf();
+            return dateB - dateA; // По убыванию (новые первыми)
+        });
+    }, [allEvents]);
     const [selectedDate, setSelectedDate] = useState<Dayjs>(dayjs());
     const [mode, setMode] = useState<"month" | "year">("month");
     const [registerEventView] = useRegisterEventViewMutation();
@@ -87,6 +101,16 @@ const HomePage = () => {
                 currentDate = currentDate.add(1, "day");
             }
         });
+        
+        // Сортируем события внутри каждой даты по дате создания (новые первыми)
+        map.forEach((eventList, dateKey) => {
+            eventList.sort((a, b) => {
+                const dateA = dayjs(a.created_at).valueOf();
+                const dateB = dayjs(b.created_at).valueOf();
+                return dateB - dateA; // По убыванию (новые первыми)
+            });
+        });
+        
         return map;
     }, [events]);
 
@@ -96,12 +120,19 @@ const HomePage = () => {
         const dateEnd = selectedDate.endOf("day");
         
         // Фильтруем события, которые пересекаются с выбранной датой
-        return (events || []).filter((event) => {
+        const filtered = (events || []).filter((event) => {
             const eventStart = dayjs(event.start);
             const eventEnd = dayjs(event.end);
             // Событие попадает в выбранный день, если оно начинается до конца дня и заканчивается после начала дня
             return (eventStart.isBefore(dateEnd) || eventStart.isSame(dateEnd)) && 
                    (eventEnd.isAfter(dateStart) || eventEnd.isSame(dateStart));
+        });
+        
+        // Сортируем по дате создания (новые первыми)
+        return filtered.sort((a, b) => {
+            const dateA = dayjs(a.created_at).valueOf();
+            const dateB = dayjs(b.created_at).valueOf();
+            return dateB - dateA; // По убыванию (новые первыми)
         });
     }, [selectedDate, events]);
 
@@ -119,18 +150,24 @@ const HomePage = () => {
         }
     }, [selectedDate, selectedDateEvents, registerEventView]);
 
-    // Функция для получения статуса события
-    const getStatusColor = (status: string): BadgeProps["status"] => {
-        const statusMap: Record<string, BadgeProps["status"]> = {
-            published: "success",
-            draft: "default",
-            cancelled: "error",
-            completed: "processing",
-        };
-        return statusMap[status] || "default";
+    // Функция для получения цвета тега
+    const getTagColor = (tag: string): string => {
+        // Список цветов для тегов
+        const colors = [
+            "red", "orange", "gold", "lime", "green", "cyan", "blue", "geekblue", "purple", "magenta",
+            "volcano", "geekblue", "cyan", "blue", "purple", "magenta", "red", "orange", "gold", "lime"
+        ];
+        
+        // Используем хеш тега для выбора цвета
+        let hash = 0;
+        for (let i = 0; i < tag.length; i++) {
+            hash = tag.charCodeAt(i) + ((hash << 5) - hash);
+        }
+        const index = Math.abs(hash) % colors.length;
+        return colors[index];
     };
 
-    // Функция для получения текстового статуса события
+    // Функция для получения текстового статуса события (используется в списке событий)
     const getStatusLabel = (status: string): string => {
         const labels: Record<string, string> = {
             published: "Опубликовано",
@@ -196,31 +233,48 @@ const HomePage = () => {
 
         return (
             <div className="events-calendar__events-indicators">
-                {dayEvents.slice(0, 3).map((event) => (
-                    <Tooltip
-                        key={event.id}
-                        title={
-                            <div>
-                                <div style={{ fontWeight: "bold", marginBottom: 4 }}>
-                                    {event.name}
+                {dayEvents.slice(0, 3).map((event) => {
+                    // Берем первый тег события для отображения цвета
+                    const firstTag = event.tags && event.tags.length > 0 ? event.tags[0] : null;
+                    const tagColor = firstTag ? getTagColor(firstTag) : "default";
+                    
+                    return (
+                        <Tooltip
+                            key={event.id}
+                            title={
+                                <div>
+                                    <div style={{ fontWeight: "bold", marginBottom: 4 }}>
+                                        {event.name}
+                                    </div>
+                                    {event.description && (
+                                        <div style={{ fontSize: "12px" }}>{event.description}</div>
+                                    )}
+                                    <div style={{ fontSize: "11px", marginTop: 4 }}>
+                                        {dayjs(event.start).format("DD.MM.YYYY HH:mm")} -{" "}
+                                        {dayjs(event.end).format("DD.MM.YYYY HH:mm")}
+                                    </div>
+                                    {event.tags && event.tags.length > 0 && (
+                                        <div style={{ fontSize: "11px", marginTop: 4 }}>
+                                            <Space wrap size={[4, 4]}>
+                                                {event.tags.map((tag) => (
+                                                    <Tag key={tag} color={getTagColor(tag)} style={{ margin: 0 }}>
+                                                        {tag}
+                                                    </Tag>
+                                                ))}
+                                            </Space>
+                                        </div>
+                                    )}
                                 </div>
-                                {event.description && (
-                                    <div style={{ fontSize: "12px" }}>{event.description}</div>
-                                )}
-                                <div style={{ fontSize: "11px", marginTop: 4 }}>
-                                    {dayjs(event.start).format("DD.MM.YYYY HH:mm")} -{" "}
-                                    {dayjs(event.end).format("DD.MM.YYYY HH:mm")}
-                                </div>
-                            </div>
-                        }
-                        placement="top"
-                    >
-                        <Badge
-                            status={getStatusColor(event.status)}
-                            className="events-calendar__event-indicator"
-                        />
-                    </Tooltip>
-                ))}
+                            }
+                            placement="top"
+                        >
+                            <Badge
+                                color={tagColor}
+                                className="events-calendar__event-indicator"
+                            />
+                        </Tooltip>
+                    );
+                })}
                 {dayEvents.length > 3 && (
                     <Tooltip title={`Еще ${dayEvents.length - 3} событий`} placement="top">
                         <span className="events-calendar__more-indicator">
@@ -338,19 +392,15 @@ const HomePage = () => {
                                                             <Title level={5} style={{ margin: 0 }}>
                                                                 {event.name}
                                                             </Title>
-                                                            <Tag
-                                                                color={
-                                                                    event.status === "published"
-                                                                        ? "green"
-                                                                        : event.status === "cancelled"
-                                                                        ? "red"
-                                                                        : event.status === "completed"
-                                                                        ? "blue"
-                                                                        : "default"
-                                                                }
-                                                            >
-                                                                {getStatusLabel(event.status)}
-                                                            </Tag>
+                                                            {event.tags && event.tags.length > 0 && (
+                                                                <Space wrap size={[4, 4]} style={{ marginTop: 4 }}>
+                                                                    {event.tags.map((tag) => (
+                                                                        <Tag key={tag} color={getTagColor(tag)}>
+                                                                            {tag}
+                                                                        </Tag>
+                                                                    ))}
+                                                                </Space>
+                                                            )}
                                                         </div>
                                                         <FavoriteButton itemType="event" itemId={event.id} size="small" />
                                                     </Flex>
@@ -387,14 +437,6 @@ const HomePage = () => {
                                                             </Text>
                                                         )}
                                                     </Space>
-
-                                                    {event.tags && event.tags.length > 0 && (
-                                                        <Space wrap>
-                                                            {event.tags.map((tag) => (
-                                                                <Tag key={tag}>{tag}</Tag>
-                                                            ))}
-                                                        </Space>
-                                                    )}
                                                 </Space>
                                             </Card>
                                         </List.Item>

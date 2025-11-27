@@ -13,9 +13,10 @@ export interface IEventCreateRequest {
     end: string;
     coordinates?: [number, number] | null;
     quantity: number; // Обязательное поле
-    tags?: string[] | null;
+    tags: string[]; // Обязательное поле - хотя бы один тег
     city: string;
     attachedIds?: number[] | null;
+    status?: "draft" | "published"; // Статус события при создании
 }
 
 export interface IEventUpdateRequest {
