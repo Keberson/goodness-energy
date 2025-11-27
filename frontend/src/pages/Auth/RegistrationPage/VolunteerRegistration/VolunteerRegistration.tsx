@@ -1,6 +1,5 @@
 import { Form, Button, Alert } from "antd";
 import { useSearchParams, useNavigate } from "react-router-dom";
-import { useEffect } from "react";
 
 import type { IRegVolunteerRequest } from "@app-types/auth.types";
 import { useRegisterVolunteerMutation } from "@services/api/auth.api";
