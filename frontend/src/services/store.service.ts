@@ -8,6 +8,7 @@ import { mapApi } from "./api/map.api";
 import { npoApi } from "./api/npo.api";
 import { volunteerApi } from "./api/volunteer.api";
 import { newsApi } from "./api/news.api";
+import { volunteerPostsApi } from "./api/volunteer-posts.api";
 import { knowledgesApi } from "./api/knowledges.api";
 import { filesApi } from "./api/files.api";
 import { eventsApi } from "./api/events.api";
@@ -28,6 +29,7 @@ const rootReducer = combineReducers({
     npoApi: npoApi.reducer,
     volunteerApi: volunteerApi.reducer,
     newsApi: newsApi.reducer,
+    volunteerPostsApi: volunteerPostsApi.reducer,
     knowledgesApi: knowledgesApi.reducer,
     filesApi: filesApi.reducer,
     eventsApi: eventsApi.reducer,
@@ -48,6 +50,7 @@ export const store = configureStore({
             .concat(npoApi.middleware)
             .concat(volunteerApi.middleware)
             .concat(newsApi.middleware)
+            .concat(volunteerPostsApi.middleware)
             .concat(knowledgesApi.middleware)
             .concat(filesApi.middleware)
             .concat(eventsApi.middleware)

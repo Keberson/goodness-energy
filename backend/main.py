@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from sqlalchemy import text
 from app.database import engine, Base, SessionLocal
-from app.routers import auth, npo, volunteer, admin, news, files, map, knowledges, events, favorites
+from app.routers import auth, npo, volunteer, admin, news, files, map, knowledges, events, favorites, volunteer_posts
 from app.minio_client import ensure_bucket_exists
 from app.models import User
 from pathlib import Path
@@ -171,6 +171,7 @@ app.include_router(npo.router, prefix="/npo", tags=["npo"])
 app.include_router(volunteer.router, prefix="/volunteer", tags=["volunteer"])
 app.include_router(admin.router, prefix="/admin", tags=["admin"])
 app.include_router(news.router, prefix="/news", tags=["news"])
+app.include_router(volunteer_posts.router, prefix="/volunteer-posts", tags=["volunteer-posts"])
 app.include_router(files.router, prefix="/files", tags=["files"])
 app.include_router(knowledges.router, prefix="/knowledges", tags=["knowledges"])
 app.include_router(events.router, prefix="/events", tags=["events"])

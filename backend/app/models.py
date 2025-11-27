@@ -10,9 +10,13 @@ class UserRole(str, enum.Enum):
     ADMIN = "admin"
 
 class NewsType(str, enum.Enum):
-    BLOG = "blog"
-    EDU = "edu"
-    DOCS = "docs"
+    THEME = "theme"  # Тематика (было "edu")
+    DOCS = "docs"  # Документы
+
+class VolunteerPostStatus(str, enum.Enum):
+    PENDING = "pending"  # Ожидает модерации
+    APPROVED = "approved"  # Одобрено
+    REJECTED = "rejected"  # Отклонено
 
 class EventStatus(str, enum.Enum):
     DRAFT = "draft"
@@ -148,6 +152,7 @@ class Volunteer(Base):
     user = relationship("User", backref="volunteer")
     event_responses = relationship("EventResponse", back_populates="volunteer", cascade="all, delete-orphan")
     news = relationship("News", back_populates="volunteer", cascade="all, delete-orphan")
+    posts = relationship("VolunteerPost", back_populates="volunteer", cascade="all, delete-orphan")
 
 class Event(Base):
     __tablename__ = "events"
@@ -242,6 +247,51 @@ class NewsAttachment(Base):
     file_id = Column(Integer, ForeignKey("files.id"), nullable=False)
     
     news = relationship("News", back_populates="attachments")
+    file = relationship("File")
+
+class VolunteerPost(Base):
+    __tablename__ = "volunteer_posts"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"), nullable=False)
+    volunteer_id = Column(Integer, ForeignKey("volunteers.id"), nullable=False)
+    name = Column(String, nullable=False)
+    annotation = Column(String, nullable=True)  # Краткое описание
+    text = Column(Text, nullable=False)
+    city = Column(String, nullable=True)  # Опциональный город
+    theme_tag = Column(String, nullable=True)  # Опциональная тематика
+    npo_id = Column(Integer, ForeignKey("npos.id"), nullable=True)  # Опциональная привязка к НКО
+    status = Column(SQLEnum(VolunteerPostStatus), default=VolunteerPostStatus.PENDING, nullable=False)
+    moderator_id = Column(Integer, ForeignKey("users.id"), nullable=True)  # ID администратора, который модерировал
+    moderation_comment = Column(Text, nullable=True)  # Комментарий модератора
+    created_at = Column(DateTime(timezone=True), server_default=func.now())
+    updated_at = Column(DateTime(timezone=True), onupdate=func.now())
+    moderated_at = Column(DateTime(timezone=True), nullable=True)  # Дата модерации
+    
+    user = relationship("User", foreign_keys=[user_id])
+    volunteer = relationship("Volunteer", back_populates="posts")
+    npo = relationship("NPO")
+    moderator = relationship("User", foreign_keys=[moderator_id])
+    tags = relationship("VolunteerPostTag", back_populates="post", cascade="all, delete-orphan")
+    attachments = relationship("VolunteerPostAttachment", back_populates="post", cascade="all, delete-orphan")
+
+class VolunteerPostTag(Base):
+    __tablename__ = "volunteer_post_tags"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey("volunteer_posts.id"), nullable=False)
+    tag = Column(String, nullable=False)
+    
+    post = relationship("VolunteerPost", back_populates="tags")
+
+class VolunteerPostAttachment(Base):
+    __tablename__ = "volunteer_post_attachments"
+    
+    id = Column(Integer, primary_key=True, index=True)
+    post_id = Column(Integer, ForeignKey("volunteer_posts.id"), nullable=False)
+    file_id = Column(Integer, ForeignKey("files.id"), nullable=False)
+    
+    post = relationship("VolunteerPost", back_populates="attachments")
     file = relationship("File")
 
 class Knowledge(Base):

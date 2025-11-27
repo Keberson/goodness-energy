@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
-from app.models import NewsType, EventStatus, NPOStatus, NPOCity, FavoriteType
+from app.models import NewsType, EventStatus, NPOStatus, VolunteerPostStatus, NPOCity, FavoriteType
 
 # Схемы аутентификации
 class UserLogin(BaseModel):

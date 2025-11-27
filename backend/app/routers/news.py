@@ -41,24 +41,23 @@ async def get_news_types(
     """
     # Маппинг типов новостей на русские названия
     type_mapping = {
-        "blog": "Блог",
-        "edu": "Образование",
+        "theme": "Тематика",
         "docs": "Документы"
     }
     
     # Определяем доступные типы в зависимости от роли
     if current_user.role == UserRole.ADMIN:
-        # Админы могут создавать Блог и Документы
-        return [type_mapping["blog"], type_mapping["docs"]]
+        # Админы могут создавать только Тематику
+        return [type_mapping["theme"]]
     elif current_user.role == UserRole.NPO:
-        # НКО могут создавать Блог и Документы
-        return [type_mapping["blog"], type_mapping["docs"]]
+        # НКО могут создавать Тематику и Документы
+        return [type_mapping["theme"], type_mapping["docs"]]
     elif current_user.role == UserRole.VOLUNTEER:
-        # Волонтеры могут создавать только Блог
-        return [type_mapping["blog"]]
+        # Волонтеры не могут создавать новости (только блоги через отдельный endpoint)
+        return []
     else:
-        # По умолчанию возвращаем только Блог
-        return [type_mapping["blog"]]
+        # По умолчанию возвращаем пустой список
+        return []
 
 @router.get("", response_model=List[NewsResponse])
 async def get_all_news(
@@ -224,19 +223,11 @@ async def create_news(
             )
         npo_id = npo.id
     elif current_user.role == UserRole.VOLUNTEER:
-        volunteer = db.query(Volunteer).filter(Volunteer.user_id == current_user.id).first()
-        if not volunteer:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail="Волонтер не найден"
-            )
-        volunteer_id = volunteer.id
-        # Волонтеры могут создавать только новости типа blog
-        if news_data.type != "blog":
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Волонтеры могут создавать только новости типа blog"
-            )
+        # Волонтеры не могут создавать новости (только блоги через отдельный endpoint)
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Волонтеры не могут создавать новости. Используйте раздел блогов."
+        )
     elif current_user.role == UserRole.ADMIN:
         admin_id = current_user.id
     
@@ -342,14 +333,12 @@ async def update_news(
     if news_update.city is not None:
         news.city = news_update.city
     if news_update.type is not None:
-        # Проверка для волонтёров: они могут создавать только blog
-        if news.volunteer_id and news_update.type != news.type:
-            volunteer = db.query(Volunteer).filter(Volunteer.id == news.volunteer_id).first()
-            if volunteer and volunteer.user_id == current_user.id and news_update.type != "blog":
-                raise HTTPException(
-                    status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Волонтеры могут создавать только новости типа blog"
-                )
+        # Волонтеры не могут редактировать новости (только блоги)
+        if news.volunteer_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Волонтеры не могут редактировать новости. Используйте раздел блогов."
+            )
         news.type = news_update.type
     
     # Обновление тегов

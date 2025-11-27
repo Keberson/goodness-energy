@@ -12,10 +12,16 @@ import {
 } from "@services/api/admin.api";
 import { useGetEventsQuery } from "@services/api/events.api";
 import { useGetNewsQuery, useDeleteNewsMutation } from "@services/api/news.api";
+import { 
+    useGetPendingPostsQuery, 
+    useModeratePostMutation, 
+    useDeletePostMutation 
+} from "@services/api/volunteer-posts.api";
 
 import type { INPO } from "@app-types/npo.types";
 import type { IEvent } from "@app-types/events.types";
 import type { INews } from "@app-types/news.types";
+import type { IVolunteerPost } from "@app-types/volunteer-posts.types";
 
 import "./styles.scss";
 
@@ -40,6 +46,11 @@ const ModerationPage = () => {
     // News queries - для админа показываем все новости без фильтрации по городу
     const { data: news, isLoading: isLoadingNews } = useGetNewsQuery(undefined);
     const [deleteNews] = useDeleteNewsMutation();
+
+    // Volunteer posts queries - блоги волонтеров на модерацию
+    const { data: pendingPosts, isLoading: isLoadingPosts, refetch: refetchPosts } = useGetPendingPostsQuery();
+    const [moderatePost] = useModeratePostMutation();
+    const [deletePost] = useDeletePostMutation();
 
     // NPO columns
     const npoColumns: ColumnsType<INPO> = [
@@ -250,8 +261,7 @@ const ModerationPage = () => {
             width: 100,
             render: (type: string) => {
                 const typeMap: Record<string, { color: string; label: string }> = {
-                    blog: { color: "blue", label: "Блог" },
-                    edu: { color: "green", label: "Обучение" },
+                    theme: { color: "green", label: "Тематика" },
                     docs: { color: "orange", label: "Документы" },
                 };
                 const typeInfo = typeMap[type] || { color: "default", label: type };
@@ -388,6 +398,150 @@ const ModerationPage = () => {
         });
     };
 
+    const handleApprovePost = async (postId: number) => {
+        try {
+            await moderatePost({ id: postId, data: { status: "approved" } }).unwrap();
+            notification.success({
+                message: "Блог одобрен",
+                description: "Блог успешно опубликован",
+            });
+            refetchPosts();
+        } catch (error) {
+            notification.error({
+                message: "Ошибка",
+                description: "Не удалось одобрить блог",
+            });
+        }
+    };
+
+    const handleRejectPost = (postId: number, postName: string) => {
+        confirm({
+            title: "Отклонить блог?",
+            icon: <ExclamationCircleOutlined />,
+            content: `Вы уверены, что хотите отклонить блог "${postName}"?`,
+            okText: "Да, отклонить",
+            okType: "danger",
+            cancelText: "Отмена",
+            onOk: async () => {
+                try {
+                    await moderatePost({ id: postId, data: { status: "rejected" } }).unwrap();
+                    notification.success({
+                        message: "Блог отклонен",
+                        description: "Блог успешно отклонен",
+                    });
+                    refetchPosts();
+                } catch (error) {
+                    notification.error({
+                        message: "Ошибка",
+                        description: "Не удалось отклонить блог",
+                    });
+                }
+            },
+        });
+    };
+
+    const handleDeletePost = (postId: number, postName: string) => {
+        confirm({
+            title: "Удалить блог?",
+            icon: <ExclamationCircleOutlined />,
+            content: `Вы уверены, что хотите удалить блог "${postName}"? Это действие нельзя отменить.`,
+            okText: "Да, удалить",
+            okType: "danger",
+            cancelText: "Отмена",
+            onOk: async () => {
+                try {
+                    await deletePost(postId).unwrap();
+                    notification.success({
+                        message: "Блог удален",
+                        description: "Блог успешно удален",
+                    });
+                    refetchPosts();
+                } catch (error) {
+                    notification.error({
+                        message: "Ошибка",
+                        description: "Не удалось удалить блог",
+                    });
+                }
+            },
+        });
+    };
+
+    // Колонки для блогов волонтеров
+    const postsColumns: ColumnsType<IVolunteerPost> = [
+        {
+            title: "Название",
+            dataIndex: "name",
+            key: "name",
+            width: 200,
+            ellipsis: true,
+            render: (name: string) => <Text strong title={name}>{name}</Text>,
+        },
+        {
+            title: "Автор",
+            dataIndex: "author",
+            key: "author",
+            width: 150,
+        },
+        {
+            title: "Город",
+            dataIndex: "city",
+            key: "city",
+            width: 120,
+        },
+        {
+            title: "Тематика",
+            dataIndex: "theme_tag",
+            key: "theme_tag",
+            width: 120,
+            render: (theme: string | undefined) => theme ? <Tag color="blue">{theme}</Tag> : "-",
+        },
+        {
+            title: "НКО",
+            dataIndex: "npo_name",
+            key: "npo_name",
+            width: 150,
+            render: (npoName: string | undefined) => npoName || "-",
+        },
+        {
+            title: "Дата создания",
+            dataIndex: "created_at",
+            key: "created_at",
+            width: 150,
+            render: (date: string) => new Date(date).toLocaleDateString("ru-RU"),
+        },
+        {
+            title: "Действия",
+            key: "actions",
+            width: 200,
+            fixed: "right",
+            render: (_: any, record: IVolunteerPost) => (
+                <Space>
+                    <Button
+                        type="primary"
+                        icon={<CheckOutlined />}
+                        onClick={() => handleApprovePost(record.id)}
+                    >
+                        Одобрить
+                    </Button>
+                    <Button
+                        danger
+                        icon={<CloseOutlined />}
+                        onClick={() => handleRejectPost(record.id, record.name)}
+                    >
+                        Отклонить
+                    </Button>
+                    <Button
+                        danger
+                        icon={<DeleteOutlined />}
+                        onClick={() => handleDeletePost(record.id, record.name)}
+                    >
+                        Удалить
+                    </Button>
+                </Space>
+            ),
+        },
+    ];
+
     return (
         <div style={{ padding: 24 }}>
             <Card>
@@ -437,6 +591,25 @@ const ModerationPage = () => {
                             columns={newsColumns}
                             dataSource={(news || []).map((item) => ({ ...item, key: item.id }))}
                             loading={isLoadingNews}
+                            scroll={{ x: 1200 }}
+                            pagination={{ pageSize: 10 }}
+                        />
+                    </TabPane>
+                    <TabPane
+                        tab={
+                            <span>
+                                Блоги волонтеров{" "}
+                                {pendingPosts && pendingPosts.length > 0 && (
+                                    <Tag color="red">{pendingPosts.length}</Tag>
+                                )}
+                            </span>
+                        }
+                        key="posts"
+                    >
+                        <Table
+                            columns={postsColumns}
+                            dataSource={(pendingPosts || []).map((item) => ({ ...item, key: item.id }))}
+                            loading={isLoadingPosts}
                             scroll={{ x: 1200 }}
                             pagination={{ pageSize: 10 }}
                         />

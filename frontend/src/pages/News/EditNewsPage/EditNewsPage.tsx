@@ -47,7 +47,7 @@ const EditNewsPage = () => {
     const [activeId, setActiveId] = useState<string | null>(null);
     const [title, setTitle] = useState("");
     const [annotation, setAnnotation] = useState("");
-    const [type, setType] = useState<NewsType>("blog");
+    const [type, setType] = useState<NewsType>("theme");
     const [city, setCity] = useState<string | undefined>(undefined);
     const [saving, setSaving] = useState(false);
     const [isLoadingNews, setIsLoadingNews] = useState(false);
@@ -68,20 +68,18 @@ const EditNewsPage = () => {
     const { currentCity, availableCities } = useCity();
 
     const typeMapping: Record<string, NewsType> = {
-        Блог: "blog",
-        Образование: "edu",
+        Тематика: "theme",
         Документы: "docs",
     };
 
     const reverseTypeMapping: Record<NewsType, string> = {
-        blog: "Блог",
-        edu: "Образование",
+        theme: "Тематика",
         docs: "Документы",
     };
 
     useEffect(() => {
         if (newsTypes.length > 0 && !newsTypes.includes(reverseTypeMapping[type])) {
-            const firstAvailableType = typeMapping[newsTypes[0]] || "blog";
+            const firstAvailableType = typeMapping[newsTypes[0]] || "theme";
             setType(firstAvailableType);
         }
     }, [newsTypes]);
