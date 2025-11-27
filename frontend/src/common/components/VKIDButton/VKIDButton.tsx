@@ -108,15 +108,53 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
                             has_id_token: !!vkTokens.id_token,
                         });
 
-                        // Отправляем access_token и id_token на бэкенд
-                        // Бэкенд попытается получить данные из id_token (JWT), что не требует запросов к VK API
-                        // Если это не сработает, бэкенд сделает запрос к VK API
+                        // Получаем данные пользователя через VK API на фронтенде
+                        // Это необходимо, так как access_token привязан к IP клиента и не работает на сервере
                         console.log(
-                            "VK ID: отправляем токены на бэкенд для получения данных пользователя..."
+                            "VK ID: получаем данные пользователя через VK API на фронтенде..."
                         );
+                        let userData = null;
+                        try {
+                            const userInfoResponse = await fetch(
+                                `https://api.vk.com/method/users.get?access_token=${vkTokens.access_token}&v=5.131&fields=email,bdate,sex,city,contacts`
+                            );
+                            const userInfoData = await userInfoResponse.json();
+                            console.log("VK ID: получены данные пользователя", userInfoData);
+
+                            if (!userInfoData.error && userInfoData.response?.[0]) {
+                                const userInfo = userInfoData.response[0];
+                                const cityInfo = userInfo.city;
+                                userData = {
+                                    id: userInfo.id,
+                                    first_name: userInfo.first_name,
+                                    last_name: userInfo.last_name,
+                                    email: userInfo.email,
+                                    bdate: userInfo.bdate,
+                                    sex: userInfo.sex,
+                                    city: cityInfo?.title || null,
+                                    phone: userInfo.mobile_phone || userInfo.phone || null,
+                                };
+                                console.log("VK ID: обработанные данные пользователя", userData);
+                            } else {
+                                console.warn(
+                                    "VK ID: не удалось получить данные пользователя через API",
+                                    userInfoData
+                                );
+                            }
+                        } catch (error) {
+                            console.error(
+                                "VK ID: ошибка при получении данных пользователя (CORS или другая)",
+                                error
+                            );
+                            // Продолжаем без данных пользователя, бэкенд попробует получить их сам
+                        }
+
+                        // Отправляем токены и данные пользователя на бэкенд
+                        console.log("VK ID: отправляем токены и данные пользователя на бэкенд...");
                         const response = await vkIdAuth({
                             access_token: vkTokens.access_token,
                             id_token: vkTokens.id_token,
+                            user_data: userData,
                         }).unwrap();
                         console.log("VK ID: получен ответ от бэкенда", {
                             user_exists: response.user_exists,

@@ -656,8 +656,9 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = D
     """
     vk_access_token = vk_data.access_token
     id_token = vk_data.id_token
+    user_data = vk_data.user_data  # Данные пользователя, полученные на фронтенде
     
-    logger.info(f"VK ID auth: получен access_token и id_token, начинаем получение данных пользователя")
+    logger.info(f"VK ID auth: получен access_token, id_token и user_data, начинаем получение данных пользователя")
     
     vk_user_id = None
     first_name = None
@@ -667,6 +668,23 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = D
     sex = None
     city_name = None
     phone = None
+    
+    # Сначала используем данные, полученные на фронтенде (если есть)
+    if user_data:
+        vk_user_id = user_data.get("id") or user_data.get("user_id")
+        if isinstance(vk_user_id, str):
+            try:
+                vk_user_id = int(vk_user_id)
+            except ValueError:
+                pass
+        first_name = user_data.get("first_name")
+        last_name = user_data.get("last_name")
+        email = user_data.get("email")
+        bdate = user_data.get("bdate")
+        sex = user_data.get("sex")
+        city_name = user_data.get("city")
+        phone = user_data.get("phone")
+        logger.info(f"Получены данные из user_data (фронтенд): user_id={vk_user_id}, first_name={first_name}, last_name={last_name}, email={email}, bdate={bdate}, sex={sex}, city={city_name}, phone={phone}")
     
     # Сначала пытаемся получить данные из id_token (JWT) - это не требует запросов к VK API
     if id_token:
@@ -686,20 +704,24 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, request: Request, db: Session = D
                 payload_decoded = base64.urlsafe_b64decode(payload)
                 id_token_data = json.loads(payload_decoded)
                 
-                vk_user_id = id_token_data.get("sub") or id_token_data.get("user_id")
+                # Логируем все данные из id_token для отладки
+                logger.info(f"id_token data keys: {list(id_token_data.keys())}")
+                logger.info(f"id_token data: {id_token_data}")
+                
+                vk_user_id = id_token_data.get("sub") or id_token_data.get("user_id") or id_token_data.get("id")
                 if isinstance(vk_user_id, str):
                     try:
                         vk_user_id = int(vk_user_id)
                     except ValueError:
                         pass
                 email = id_token_data.get("email")
-                first_name = id_token_data.get("given_name") or id_token_data.get("first_name")
+                first_name = id_token_data.get("given_name") or id_token_data.get("first_name") or id_token_data.get("name")
                 last_name = id_token_data.get("family_name") or id_token_data.get("last_name")
                 bdate = id_token_data.get("birthdate") or id_token_data.get("bdate")
                 # В id_token обычно нет пола, города и телефона, они доступны только через API
                 logger.info(f"Получены данные из id_token: user_id={vk_user_id}, email={email}, first_name={first_name}, last_name={last_name}, bdate={bdate}")
         except Exception as e:
-            logger.warning(f"Не удалось декодировать id_token: {e}")
+            logger.warning(f"Не удалось декодировать id_token: {e}", exc_info=True)
     
     # Всегда делаем запрос к VK API для получения полных данных пользователя
     # Даже если получили user_id из id_token, нужны расширенные данные (first_name, last_name, email, bdate, sex, city, phone)
