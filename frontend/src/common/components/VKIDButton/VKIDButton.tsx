@@ -99,25 +99,37 @@ const VKIDButton = ({ appId, redirectUrl, onError }: VKIDButtonProps) => {
                     const deviceId = payload.device_id;
 
                     try {
-                        // Обмениваем код на токен через VK ID SDK
-                        const vkData = await VKID.Auth.exchangeCode(code, deviceId);
-
-                        // Отправляем токен на бэкенд для создания/входа пользователя
+                        // Отправляем код и device_id на бэкенд для обмена на токен
+                        // Обмен происходит на сервере, чтобы избежать проблем с IP адресами
                         const response = await vkIdAuth({
-                            access_token: vkData.access_token,
-                            user_id: vkData.user_id,
-                            email: vkData.email || null,
+                            code: code,
+                            device_id: deviceId,
                         }).unwrap();
 
-                        // Сохраняем токен и перенаправляем
-                        dispatch(
-                            login({
-                                token: response.access_token,
-                                type: response.user_type,
-                                id: response.id,
-                            })
-                        );
-                        navigate("/");
+                        if (response.user_exists && response.token) {
+                            // Пользователь существует - авторизуем
+                            dispatch(
+                                login({
+                                    token: response.token.access_token,
+                                    type: response.token.user_type,
+                                    id: response.token.id,
+                                })
+                            );
+                            navigate("/");
+                        } else if (response.vk_id && response.vk_data) {
+                            // Пользователя нет - редиректим на регистрацию с данными VK
+                            const params = new URLSearchParams({
+                                vk_id: String(response.vk_id),
+                                first_name: response.vk_data.first_name || "",
+                                last_name: response.vk_data.last_name || "",
+                            });
+                            if (response.vk_data.email) {
+                                params.append("email", response.vk_data.email);
+                            }
+                            navigate(`/reg?${params.toString()}`);
+                        } else {
+                            throw new Error("Неожиданный формат ответа от сервера");
+                        }
                     } catch (error: any) {
                         console.error("VK ID Auth Error:", error);
                         if (onError) {

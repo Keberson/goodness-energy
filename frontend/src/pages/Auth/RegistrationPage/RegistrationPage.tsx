@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Tabs, Flex, Typography, Divider, Button } from "antd";
 import { UserOutlined, TeamOutlined } from "@ant-design/icons";
+import { useSearchParams } from "react-router-dom";
 
 import VolunteerRegistration from "./VolunteerRegistration/VolunteerRegistration";
 import NPORegistration from "./NPORegistration/NPORegistration";
@@ -12,7 +13,15 @@ import { NavLink } from "react-router-dom";
 const { Title } = Typography;
 
 const RegistrationPage = () => {
+    const [searchParams] = useSearchParams();
     const [activeTab, setActiveTab] = useState<string>("volunteer");
+    
+    // Если есть vk_id в параметрах, автоматически переключаемся на вкладку волонтера
+    useEffect(() => {
+        if (searchParams.get("vk_id")) {
+            setActiveTab("volunteer");
+        }
+    }, [searchParams]);
 
     const tabItems = [
         {

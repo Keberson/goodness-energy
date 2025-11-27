@@ -3,7 +3,7 @@ from fastapi.responses import RedirectResponse
 from sqlalchemy.orm import Session
 from app.database import get_db
 from app.models import User, UserRole, NPO, Volunteer, NPOStatus
-from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse, VKAuthCallback, VKIDAuthRequest
+from app.schemas import UserLogin, Token, NPORegistration, VolunteerRegistration, SelectedCityUpdate, NotificationSettingsUpdate, NotificationSettingsResponse, VKAuthCallback, VKIDAuthRequest, VKIDAuthResponse
 from app.auth import verify_password, get_password_hash, create_access_token, get_current_user
 import json
 import logging
@@ -142,19 +142,48 @@ async def register_npo(npo_data: NPORegistration, db: Session = Depends(get_db))
 
 @router.post("/reg/vol", response_model=Token)
 async def register_volunteer(vol_data: VolunteerRegistration, db: Session = Depends(get_db)):
-    # Проверка существования пользователя
-    if db.query(User).filter(User.login == vol_data.login).first():
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Логин уже зарегистрирован"
-        )
+    # Если регистрация через VK (есть vk_id), login и password не обязательны
+    if vol_data.vk_id:
+        # Проверка, не привязан ли уже этот VK ID к другому пользователю
+        existing_vk_user = db.query(User).filter(User.vk_id == vol_data.vk_id).first()
+        if existing_vk_user:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Этот VK аккаунт уже привязан к другому пользователю"
+            )
+        
+        # Генерируем login и password для VK пользователя
+        login = vol_data.login or (vol_data.email if vol_data.email else f"vk_{vol_data.vk_id}")
+        # Проверяем, не занят ли логин
+        if db.query(User).filter(User.login == login).first():
+            login = f"vk_{vol_data.vk_id}_{random.randint(1000, 9999)}"
+        
+        password = vol_data.password or f"vk_oauth_{vol_data.vk_id}_{os.urandom(16).hex()}"
+    else:
+        # Обычная регистрация - login и password обязательны
+        if not vol_data.login or not vol_data.password:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Логин и пароль обязательны для регистрации"
+            )
+        
+        # Проверка существования пользователя
+        if db.query(User).filter(User.login == vol_data.login).first():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Логин уже зарегистрирован"
+            )
+        
+        login = vol_data.login
+        password = vol_data.password
     
     # Создание пользователя
-    password_hash = get_password_hash(vol_data.password)
+    password_hash = get_password_hash(password)
     user = User(
-        login=vol_data.login,
+        login=login,
         password_hash=password_hash,
         role=UserRole.VOLUNTEER,
+        vk_id=vol_data.vk_id,  # Привязываем VK ID если указан
         notify_city_news=False,
         notify_registrations=False,
         notify_events=False
@@ -596,21 +625,74 @@ async def vk_auth(vk_data: VKAuthCallback, db: Session = Depends(get_db)):
         access_token_jwt = create_access_token(data={"sub": str(user.id)})
         return {"access_token": access_token_jwt, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
 
-@router.post("/vk/id", response_model=Token)
+@router.post("/vk/id", response_model=VKIDAuthResponse)
 async def vk_id_auth(vk_data: VKIDAuthRequest, db: Session = Depends(get_db)):
-    """Авторизация через VK ID SDK (новый метод)"""
-    if not VK_CLIENT_ID:
+    """Авторизация через VK ID SDK (новый метод)
+    Если пользователь существует - возвращает токен
+    Если пользователя нет - возвращает данные VK для регистрации
+    """
+    if not VK_CLIENT_ID or not VK_CLIENT_SECRET:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail="VK OAuth не настроен. Установите VK_CLIENT_ID"
+            detail="VK OAuth не настроен. Установите VK_CLIENT_ID и VK_CLIENT_SECRET"
         )
     
-    vk_access_token = vk_data.access_token
-    vk_user_id = vk_data.user_id
-    email = vk_data.email
+    code = vk_data.code
+    device_id = vk_data.device_id
     
-    # Получаем информацию о пользователе из VK API
+    logger.info(f"VK ID auth: получен code и device_id, начинаем обмен на токен")
+    
+    # Обмениваем код на токен через VK ID API на сервере
     async with httpx.AsyncClient() as client:
+        # Обмен кода на токен через VK ID API
+        # VK ID использует специальный endpoint для обмена кода
+        token_response = await client.post(
+            "https://id.vk.com/oauth/token",
+            json={
+                "grant_type": "authorization_code",
+                "code": code,
+                "client_id": VK_CLIENT_ID,
+                "client_secret": VK_CLIENT_SECRET,
+                "redirect_uri": VK_REDIRECT_URI,
+                "device_id": device_id,
+            },
+            headers={
+                "Content-Type": "application/json",
+            }
+        )
+        
+        logger.info(f"VK ID token response status: {token_response.status_code}")
+        
+        if token_response.status_code != 200:
+            error_text = token_response.text
+            logger.error(f"VK ID token exchange failed: {error_text}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Не удалось обменять код на токен от VK ID: {error_text[:200]}"
+            )
+        
+        token_data = token_response.json()
+        logger.info(f"VK ID token data keys: {list(token_data.keys())}")
+        
+        if "error" in token_data:
+            error_msg = token_data.get('error_description', token_data.get('error', 'Unknown error'))
+            logger.error(f"VK ID error in response: {error_msg}")
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Ошибка VK ID: {error_msg}"
+            )
+        
+        vk_access_token = token_data.get("access_token")
+        vk_user_id = token_data.get("user_id")
+        email = token_data.get("email")
+        
+        if not vk_access_token or not vk_user_id:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Не удалось получить данные от VK ID"
+            )
+        
+        # Получаем информацию о пользователе из VK API
         user_info_response = await client.get(
             "https://api.vk.com/method/users.get",
             params={
@@ -643,42 +725,18 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, db: Session = Depends(get_db)):
         user = db.query(User).filter(User.vk_id == vk_user_id).first()
         
         if not user:
-            # Создаем нового пользователя
-            login = email if email else f"vk_{vk_user_id}"
-            
-            # Проверяем, не занят ли логин
-            existing_user = db.query(User).filter(User.login == login).first()
-            if existing_user:
-                login = f"vk_{vk_user_id}_{random.randint(1000, 9999)}"
-            
-            password_hash = get_password_hash(f"vk_oauth_{vk_user_id}_{os.urandom(16).hex()}")
-            
-            user = User(
-                login=login,
-                password_hash=password_hash,
-                role=UserRole.VOLUNTEER,
+            # Пользователя нет - возвращаем данные для регистрации
+            return VKIDAuthResponse(
+                user_exists=False,
                 vk_id=vk_user_id,
-                notify_city_news=False,
-                notify_registrations=False,
-                notify_events=False
+                vk_data={
+                    "first_name": first_name,
+                    "last_name": last_name,
+                    "email": email,
+                }
             )
-            db.add(user)
-            db.flush()
-            
-            # Создаем профиль волонтера
-            volunteer = Volunteer(
-                user_id=user.id,
-                first_name=first_name,
-                second_name=last_name,
-                email=email if email else None
-            )
-            db.add(volunteer)
-            db.commit()
-            
-            access_token_jwt = create_access_token(data={"sub": str(user.id)})
-            return {"access_token": access_token_jwt, "token_type": "bearer", "user_type": user.role.value, "id": volunteer.id}
         
-        # Пользователь существует
+        # Пользователь существует - авторизуем
         user_id = user.id
         if user.role == UserRole.NPO:
             npo = db.query(NPO).filter(NPO.user_id == user.id).first()
@@ -690,5 +748,15 @@ async def vk_id_auth(vk_data: VKIDAuthRequest, db: Session = Depends(get_db)):
                 user_id = volunteer.id
         
         access_token_jwt = create_access_token(data={"sub": str(user.id)})
-        return {"access_token": access_token_jwt, "token_type": "bearer", "user_type": user.role.value, "id": user_id}
+        token = Token(
+            access_token=access_token_jwt,
+            token_type="bearer",
+            user_type=user.role.value,
+            id=user_id
+        )
+        
+        return VKIDAuthResponse(
+            user_exists=True,
+            token=token
+        )
 

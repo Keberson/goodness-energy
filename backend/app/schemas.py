@@ -19,9 +19,14 @@ class VKAuthCallback(BaseModel):
     redirect_uri: Optional[str] = None
 
 class VKIDAuthRequest(BaseModel):
-    access_token: str
-    user_id: int
-    email: Optional[str] = None
+    code: str
+    device_id: str
+
+class VKIDAuthResponse(BaseModel):
+    user_exists: bool
+    token: Optional[Token] = None  # Только если user_exists = True
+    vk_id: Optional[int] = None  # Только если user_exists = False
+    vk_data: Optional[dict] = None  # Данные VK для регистрации (first_name, last_name, email)
 
 class SelectedCityUpdate(BaseModel):
     city: str  # Выбранный город пользователя
@@ -55,8 +60,8 @@ class NPORegistration(BaseModel):
 
 # Регистрация волонтера
 class VolunteerRegistration(BaseModel):
-    login: str
-    password: str
+    login: Optional[str] = None  # Опционально при регистрации через VK
+    password: Optional[str] = None  # Опционально при регистрации через VK
     firstName: str
     secondName: str
     middleName: Optional[str] = None
@@ -66,6 +71,7 @@ class VolunteerRegistration(BaseModel):
     sex: Optional[str] = None
     email: Optional[EmailStr] = None
     phone: Optional[str] = None
+    vk_id: Optional[int] = None  # Привязка к VK аккаунту
 
 # Схемы НКО
 class NPOUpdate(BaseModel):

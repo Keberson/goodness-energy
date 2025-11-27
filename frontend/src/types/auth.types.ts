@@ -25,17 +25,18 @@ export interface IAuthResponse {
 }
 
 export interface IRegVolunteerRequest {
-    login: string;
-    password: string;
+    login?: string;  // Опционально при регистрации через VK
+    password?: string;  // Опционально при регистрации через VK
     firstName: string;
     secondName: string;
-    middleName: string;
-    about: string;
-    birthday: string;
-    city: string;
-    sex: string;
-    email: string;
-    phone: string;
+    middleName?: string;
+    about?: string;
+    birthday?: string;
+    city?: string;
+    sex?: string;
+    email?: string;
+    phone?: string;
+    vk_id?: number;
 }
 
 export interface IRegNPORequest {
@@ -48,4 +49,15 @@ export interface IRegNPORequest {
     tags: string[];
     links: Record<string, string>;
     timetable: string;
+}
+
+export interface IVKIDAuthResponse {
+    user_exists: boolean;
+    token?: IAuthResponse;
+    vk_id?: number;
+    vk_data?: {
+        first_name: string;
+        last_name: string;
+        email?: string;
+    };
 }
