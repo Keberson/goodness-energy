@@ -38,7 +38,7 @@ import { useUploadFileMutation } from "@services/api/files.api";
 import { getApiBaseUrl } from "@utils/apiUrl";
 import useAppSelector from "@hooks/useAppSelector";
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 const KnowledgesPage = () => {
