@@ -34,8 +34,8 @@ const HomePage = () => {
     // Сортируем по дате создания (новые первыми)
     const events = useMemo(() => {
         if (!allEvents) return [];
-        const filtered = allEvents.filter((event) => 
-            event.status === "published" || event.status === "completed"
+        const filtered = allEvents.filter(
+            (event) => event.status === "published" || event.status === "completed"
         );
         // Сортируем по дате создания (новые первыми)
         return filtered.sort((a, b) => {
@@ -113,10 +113,28 @@ const HomePage = () => {
     const getTagColor = (tag: string): string => {
         // Список цветов для тегов
         const colors = [
-            "red", "orange", "gold", "lime", "green", "cyan", "blue", "geekblue", "purple", "magenta",
-            "volcano", "geekblue", "cyan", "blue", "purple", "magenta", "red", "orange", "gold", "lime"
+            "red",
+            "orange",
+            "gold",
+            "lime",
+            "green",
+            "cyan",
+            "blue",
+            "geekblue",
+            "purple",
+            "magenta",
+            "volcano",
+            "geekblue",
+            "cyan",
+            "blue",
+            "purple",
+            "magenta",
+            "red",
+            "orange",
+            "gold",
+            "lime",
         ];
-        
+
         // Используем хеш тега для выбора цвета
         let hash = 0;
         for (let i = 0; i < tag.length; i++) {
@@ -126,7 +144,6 @@ const HomePage = () => {
         return colors[index];
     };
 
-
     return (
         <div className="home__container">
             <Card className="home__header">
@@ -135,7 +152,9 @@ const HomePage = () => {
                         <Title level={1} className="home__header__title">
                             Добрые дела Росатома
                         </Title>
-                        <Title level={3} className="home__header__subheading">Все инициативы вашего города в одном месте</Title>
+                        <Title level={3} className="home__header__subheading">
+                            Все инициативы вашего города в одном месте
+                        </Title>
                         <Paragraph className="home__header__description">
                             Единый портал для жителей, волонтёров и НКО, где собрана вся информация
                             о социальных, экологических, культурных, образовательных и спортивных
@@ -159,7 +178,7 @@ const HomePage = () => {
 
             <Card
                 title={
-                    <Flex aligfan="center" gap={8}>
+                    <Flex align="center" gap={8}>
                         <PlayCircleOutlined />
                         Быстрый старт
                     </Flex>
@@ -280,13 +299,25 @@ const HomePage = () => {
                             dataSource={upcomingWeekEvents}
                             renderItem={(event: IEvent) => (
                                 <List.Item className="home__event-item">
-                                    <Card size="small" className="home__event-card" styles={{ body: { padding: 12 } }}>
-                                        <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                                    <Card
+                                        size="small"
+                                        className="home__event-card"
+                                        styles={{ body: { padding: 12 } }}
+                                    >
+                                        <Space
+                                            direction="vertical"
+                                            size="small"
+                                            style={{ width: "100%" }}
+                                        >
                                             <Space align="center" wrap>
                                                 <Title level={5} style={{ margin: 0 }}>
                                                     {event.name}
                                                 </Title>
-                                                <FavoriteButton itemType="event" itemId={event.id} size="small" />
+                                                <FavoriteButton
+                                                    itemType="event"
+                                                    itemId={event.id}
+                                                    size="small"
+                                                />
                                             </Space>
                                             {event.tags && event.tags.length > 0 && (
                                                 <Space wrap size={[4, 4]} style={{ marginTop: 4 }}>
@@ -300,7 +331,10 @@ const HomePage = () => {
 
                                             {event.description && (
                                                 <Paragraph
-                                                    ellipsis={{ rows: 2, expandable: "collapsible" }}
+                                                    ellipsis={{
+                                                        rows: 2,
+                                                        expandable: "collapsible",
+                                                    }}
                                                     style={{ margin: 0 }}
                                                 >
                                                     {event.description}
@@ -311,8 +345,13 @@ const HomePage = () => {
                                                 <Space>
                                                     <ClockCircleOutlined />
                                                     <Text type="secondary">
-                                                        {dayjs(event.start).format("DD.MM.YYYY HH:mm")} -{" "}
-                                                        {dayjs(event.end).format("DD.MM.YYYY HH:mm")}
+                                                        {dayjs(event.start).format(
+                                                            "DD.MM.YYYY HH:mm"
+                                                        )}{" "}
+                                                        -{" "}
+                                                        {dayjs(event.end).format(
+                                                            "DD.MM.YYYY HH:mm"
+                                                        )}
                                                     </Text>
                                                 </Space>
                                                 {(event.address || event.city) && (
@@ -323,11 +362,14 @@ const HomePage = () => {
                                                         </Text>
                                                     </Space>
                                                 )}
-                                                {event.quantity !== null && event.quantity !== undefined && (
-                                                    <Text type="secondary">
-                                                        Свободно {event.free_spots ?? event.quantity}/{event.quantity} мест
-                                                    </Text>
-                                                )}
+                                                {event.quantity !== null &&
+                                                    event.quantity !== undefined && (
+                                                        <Text type="secondary">
+                                                            Свободно{" "}
+                                                            {event.free_spots ?? event.quantity}/
+                                                            {event.quantity} мест
+                                                        </Text>
+                                                    )}
                                             </Space>
                                         </Space>
                                     </Card>
