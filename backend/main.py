@@ -107,62 +107,64 @@ async def startup_event():
                 db.close()
             
             if user_count == 0:
-                # База пустая, выполняем init-data.sql используя SQLAlchemy engine
+                # Читаем весь SQL файл
                 with open(init_data_path, "r", encoding="utf-8") as f:
                     sql_content = f.read()
                 
-                # Удаляем комментарии и пустые строки
-                lines = sql_content.split('\n')
-                cleaned_lines = []
-                for line in lines:
-                    # Удаляем комментарии из строки (все что после --)
-                    if '--' in line:
-                        comment_pos = line.find('--')
-                        before_comment = line[:comment_pos]
-                        # Простая проверка - если перед -- нет открывающей одинарной кавычки
-                        if "'" not in before_comment or before_comment.count("'") % 2 == 0:
-                            line = line[:comment_pos].rstrip()
-                    
-                    if line.strip():
-                        cleaned_lines.append(line)
+                # Удаляем только однострочные комментарии (которые начинаются с -- в начале строки)
+                lines = []
+                for line in sql_content.split('\n'):
+                    stripped_line = line.strip()
+                    if stripped_line.startswith('--'):
+                        continue  # Пропускаем строки-комментарии
+                    # Удаляем комментарии в конце строки, но только если они не внутри кавычек
+                    if '--' in line and not is_inside_quotes(line, line.find('--')):
+                        line = line.split('--')[0].rstrip()
+                    lines.append(line)
                 
-                sql_content = '\n'.join(cleaned_lines)
+                sql_content = '\n'.join(lines)
                 
-                # Удаляем BEGIN; и COMMIT; так как транзакцию управляем сами
-                sql_content = sql_content.replace("BEGIN;", "").replace("COMMIT;", "").strip()
-                
-                # Разбиваем на команды по точке с запятой и выполняем
-                statements = [s.strip() for s in sql_content.split(';') if s.strip()]
-                sql_keywords = ['INSERT', 'SELECT', 'UPDATE', 'DELETE', 'CREATE', 'ALTER', 'DROP']
-                
+                # Выполняем весь SQL одной транзакцией
                 with engine.connect() as conn:
-                    trans = conn.begin()
-                    try:
-                        for i, statement in enumerate(statements, 1):
-                            cleaned_statement = statement.replace('\n', ' ').replace('\r', ' ').strip()
-                            if not cleaned_statement:
-                                continue
-                            
-                            # Проверяем, что команда содержит SQL ключевые слова
-                            upper_statement = cleaned_statement.upper()
-                            if not any(keyword in upper_statement for keyword in sql_keywords):
-                                logger.warning(f"Пропуск не-SQL команды #{i}: {cleaned_statement[:50]}...")
-                                continue
-                            
-                            try:
-                                conn.execute(text(statement))
-                            except Exception as e:
-                                logger.error(f"Ошибка выполнения команды #{i}: {statement[:200]}...")
-                                logger.error(f"Полная ошибка: {e}")
-                                raise
-                        trans.commit()
-                        logger.info("init-data.sql выполнен успешно")
-                    except Exception as e:
-                        trans.rollback()
-                        raise
+                    # Используем transaction() вместо begin() для лучшей совместимости
+                    with conn.begin() as transaction:
+                        try:
+                            # Выполняем весь SQL как есть
+                            conn.execute(text(sql_content))
+                            logger.info("init-data.sql выполнен успешно")
+                        except Exception as e:
+                            logger.error(f"Ошибка выполнения SQL: {e}")
+                            raise
         except Exception as e:
             logger.error(f"Не удалось выполнить init-data.sql: {e}")
             logger.error(traceback.format_exc())
+
+def is_inside_quotes(text, position):
+    """
+    Проверяет, находится ли позиция внутри строки в кавычках
+    """
+    in_single_quotes = False
+    in_double_quotes = False
+    escape_next = False
+    
+    for i, char in enumerate(text):
+        if i >= position:
+            break
+            
+        if escape_next:
+            escape_next = False
+            continue
+            
+        if char == '\\':
+            escape_next = True
+            continue
+            
+        if char == "'" and not in_double_quotes:
+            in_single_quotes = not in_single_quotes
+        elif char == '"' and not in_single_quotes:
+            in_double_quotes = not in_double_quotes
+    
+    return in_single_quotes or in_double_quotes
 
 # Подключение роутеров
 app.include_router(auth.router, prefix="/auth", tags=["auth"])
