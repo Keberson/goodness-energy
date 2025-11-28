@@ -13,6 +13,43 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, title }) => {
     const isRutubeVideo = videoUrl.includes("rutube.ru");
     const isVKVideo = videoUrl.includes("vk.com") || videoUrl.includes("vkvideo.ru");
 
+    const parseVkUrl = (url: string) => {
+        // returns { oid, id } if found, otherwise null
+        try {
+            const u = new URL(url);
+            const sp = u.searchParams;
+            const qOid = sp.get("oid");
+            const qId = sp.get("id");
+            if (qOid && qId) {
+                return { oid: qOid, id: qId };
+            }
+
+            // /video-22822305_456241864
+            const pathMatch = u.pathname.match(/video(-?\d+)_(\d+)/);
+            if (pathMatch) {
+                return { oid: pathMatch[1], id: pathMatch[2] };
+            }
+
+            // z=video-22822305_456241864%2F...
+            const z = sp.get("z");
+            if (z) {
+                const zMatch = decodeURIComponent(z).match(/video(-?\d+)_(\d+)/);
+                if (zMatch) return { oid: zMatch[1], id: zMatch[2] };
+            }
+
+            // fallback: search anywhere in url string
+            const allMatch = url.match(/video(-?\d+)_(\d+)/);
+            if (allMatch) return { oid: allMatch[1], id: allMatch[2] };
+        } catch (e) {
+            // Not a full URL, fallback to regex
+            const qMatch = url.match(/oid=(-?\d+).*id=(\d+)/);
+            if (qMatch) return { oid: qMatch[1], id: qMatch[2] };
+            const pathMatch = url.match(/video(-?\d+)_(\d+)/);
+            if (pathMatch) return { oid: pathMatch[1], id: pathMatch[2] };
+        }
+        return null;
+    };
+
     if (isRutubeVideo) {
         const getRutubeId = (url: string) => {
             const match = url.match(/rutube\.ru\/video\/([a-zA-Z0-9]+)/);
@@ -48,6 +85,38 @@ const VideoPlayer: React.FC<VideoPlayerProps> = ({ videoUrl, title }) => {
     }
 
     if (isVKVideo) {
+        const vkParams = parseVkUrl(videoUrl);
+        // only embed when we have both oid and id params
+        if (vkParams) {
+            const { oid, id } = vkParams;
+            const src = `https://vk.com/video_ext.php?oid=${encodeURIComponent(
+                oid
+            )}&id=${encodeURIComponent(id)}`;
+            return (
+                <div style={{ textAlign: "center" }}>
+                    <iframe
+                        width="100%"
+                        height={400}
+                        src={src}
+                        title={title || "VK Video"}
+                        allow="autoplay; encrypted-media; fullscreen; picture-in-picture"
+                        frameBorder={0}
+                        allowFullScreen
+                        style={{
+                            borderRadius: 8,
+                            maxWidth: 800,
+                            backgroundColor: "#000",
+                        }}
+                    />
+                    {title && (
+                        <div style={{ marginTop: 8 }}>
+                            <Text type="secondary">{title}</Text>
+                        </div>
+                    )}
+                </div>
+            );
+        }
+
         return (
             <div style={{ textAlign: "center", padding: 20 }}>
                 <div
