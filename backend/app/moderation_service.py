@@ -11,12 +11,15 @@ from datetime import datetime
 logger = logging.getLogger(__name__)
 
 # Настройки OpenRouter API
-OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY")
+# Поддерживаем два варианта названия переменной:
+# - OPENROUTER_API_KEY (основное)
+# - OPEN_ROUTER_KEY (как в .llmenv)
+OPENROUTER_API_KEY = os.getenv("OPENROUTER_API_KEY") or os.getenv("OPEN_ROUTER_KEY")
 OPENROUTER_API_URL = "https://openrouter.ai/api/v1/chat/completions"
 
 # Модель по умолчанию (можно использовать более дешевую модель для модерации)
 # Например: "google/gemini-flash-1.5" или "anthropic/claude-3-haiku"
-DEFAULT_MODEL = os.getenv("OPENROUTER_MODEL", "google/gemini-flash-1.5")
+DEFAULT_MODEL = os.getenv("OPENROUTER_MODEL", "tngtech/deepseek-r1t2-chimera:free")
 
 
 async def moderate_content(
@@ -56,7 +59,9 @@ async def moderate_content(
         full_content += f"Аннотация: {annotation}\n"
     full_content += f"Текст: {text}"
     
-    # Промпт для модерации
+    # Промпт для модерации.
+    # Используем двойные фигурные скобки в JSON-примере, чтобы .format не пытался
+    # интерпретировать их как плейсхолдеры. Плейсхолдер только {content}.
     moderation_prompt = """Ты модератор контента для платформы волонтерства и благотворительности. 
 Проверь следующий текст на соответствие правилам:
 
@@ -67,25 +72,30 @@ async def moderate_content(
 5. Отсутствие контента для взрослых
 
 Ответь в формате JSON:
-{
+{{
     "approved": true/false,
     "reason": "краткое объяснение",
     "confidence": 0.0-1.0,
     "issues": ["список проблем, если есть"]
-}
+}}
 
 Текст для проверки:
 {content}"""
 
     try:
+        # Экранируем фигурные скобки в самом контенте, чтобы .format не падал,
+        # если в новости вдруг встретятся { или }.
+        safe_content = full_content.replace("{", "{{").replace("}", "}}")
+
         async with httpx.AsyncClient(timeout=30.0) as client:
             response = await client.post(
                 OPENROUTER_API_URL,
                 headers={
                     "Authorization": f"Bearer {OPENROUTER_API_KEY}",
                     "Content-Type": "application/json",
+                    # В HTTP-заголовках должны быть только ASCII-символы
                     "HTTP-Referer": os.getenv("OPENROUTER_REFERER", "https://goodness-energy.ru"),
-                    "X-Title": "Goodness Energy - Автоматическая модерация"
+                    "X-Title": "Goodness Energy - Auto Moderation",
                 },
                 json={
                     "model": DEFAULT_MODEL,
@@ -96,7 +106,7 @@ async def moderate_content(
                         },
                         {
                             "role": "user",
-                            "content": moderation_prompt.format(content=full_content)
+                            "content": moderation_prompt.format(content=safe_content)
                         }
                     ],
                     "temperature": 0.3,  # Низкая температура для более детерминированных ответов

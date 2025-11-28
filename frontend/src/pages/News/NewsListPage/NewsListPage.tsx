@@ -11,6 +11,7 @@ import { useCity } from "@hooks/useCity";
 import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
 import useAppSelector from "@hooks/useAppSelector";
 import { skipToken } from "@reduxjs/toolkit/query";
+import { getNewsStatusLabel, getNewsStatusColor } from "@utils/newsStatus";
 
 const { Title } = Typography;
 const { Option } = Select;
@@ -92,11 +93,21 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
     const postsData = activeTab === "my" ? myPosts : allPosts;
     const postsLoading = activeTab === "my" ? isLoadingMyPosts : isLoadingAllPosts;
     
-    // Фильтрация новостей по типу на фронтенде
+    // Фильтрация новостей по типу и статусу на фронтенде
     const getFilteredNews = (news: INews[] | undefined) => {
         if (!news) return undefined;
-        if (!filterNewsType) return news;
-        return news.filter((item) => item.type === filterNewsType);
+        let result = news;
+
+        // В разделе "Все новости" показываем только опубликованные новости
+        if (activeTab === "all") {
+            result = result.filter((item) => item.status === "published");
+        }
+
+        if (filterNewsType) {
+            result = result.filter((item) => item.type === filterNewsType);
+        }
+
+        return result;
     };
 
     const newsDataRaw = activeTab === "my" ? myNews : allNews;
@@ -340,6 +351,11 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                             <Tag color={getTypeColor(item.type)}>
                                 {getTypeLabel(item.type)}
                             </Tag>
+                            {isMyNews && (
+                                <Tag color={getNewsStatusColor(item.status)}>
+                                    {getNewsStatusLabel(item.status)}
+                                </Tag>
+                            )}
                         </Space>
                     }
                     description={

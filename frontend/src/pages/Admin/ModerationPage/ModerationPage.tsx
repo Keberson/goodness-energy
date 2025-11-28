@@ -8,7 +8,7 @@ import {
     ExclamationCircleOutlined,
     ArrowLeftOutlined,
 } from "@ant-design/icons";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 
 import {
     useGetUnconfirmedNPOsQuery,
@@ -28,6 +28,7 @@ import type { INPO } from "@app-types/npo.types";
 import type { IEvent } from "@app-types/events.types";
 import type { INews } from "@app-types/news.types";
 import type { IVolunteerPost } from "@app-types/volunteer-posts.types";
+import { getNewsStatusLabel, getNewsStatusColor } from "@utils/newsStatus";
 
 import "./styles.scss";
 
@@ -37,8 +38,11 @@ const { confirm } = Modal;
 
 const ModerationPage = () => {
     const navigate = useNavigate();
+    const location = useLocation();
     const { notification } = App.useApp();
-    const [activeTab, setActiveTab] = useState("npo");
+    const initialTab =
+        (location.state as { initialTab?: string } | null)?.initialTab || "npo";
+    const [activeTab, setActiveTab] = useState(initialTab);
 
     // NPO queries
     const { data: unconfirmedNPOs, isLoading: isLoadingNPOs } = useGetUnconfirmedNPOsQuery();
@@ -195,7 +199,7 @@ const ModerationPage = () => {
             dataIndex: "name",
             key: "name",
             width: 200,
-            render: (name: string) => (
+            render: (name: string, record: IEvent) => (
                 <Text
                     strong
                     style={{
@@ -205,7 +209,19 @@ const ModerationPage = () => {
                     }}
                     onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/events`);
+                        const url = new URL(window.location.origin);
+                        url.pathname = "/events";
+                        url.searchParams.set("fromModeration", "1");
+                        if (record.start) {
+                            url.searchParams.set("date", record.start);
+                        }
+                        navigate(`${url.pathname}${url.search}`, {
+                            state: {
+                                fromAdminModeration: true,
+                                moderationTab: "events",
+                                moderationCity: record.city,
+                            },
+                        });
                     }}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.textDecoration = "underline";
@@ -303,7 +319,9 @@ const ModerationPage = () => {
                     }}
                     onClick={(e) => {
                         e.stopPropagation();
-                        navigate(`/news/${record.id}`);
+                        navigate(`/news/${record.id}`, {
+                            state: { fromAdminModeration: true, moderationTab: "news" },
+                        });
                     }}
                     onMouseEnter={(e) => {
                         e.currentTarget.style.textDecoration = "underline";
@@ -314,20 +332,6 @@ const ModerationPage = () => {
                 >
                     {name}
                 </Text>
-            ),
-        },
-        {
-            title: "Текст",
-            dataIndex: "text",
-            key: "text",
-            width: 300,
-            render: (text: string) => (
-                <Paragraph
-                    style={{ margin: 0, fontSize: "13px" }}
-                    ellipsis={{ rows: 2, expandable: "collapsible" }}
-                >
-                    {text}
-                </Paragraph>
             ),
         },
         {
@@ -365,6 +369,15 @@ const ModerationPage = () => {
             key: "created_at",
             width: 150,
             render: (date: string) => new Date(date).toLocaleDateString("ru-RU"),
+        },
+        {
+            title: "Статус",
+            dataIndex: "status",
+            key: "status",
+            width: 140,
+            render: (status: INews["status"]) => (
+                <Tag color={getNewsStatusColor(status)}>{getNewsStatusLabel(status)}</Tag>
+            ),
         },
         {
             title: "Действия",

@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, status, Query
 from sqlalchemy.orm import Session
 from typing import List, Optional
 from app.database import get_db
-from app.models import News, NewsTag, NewsAttachment, NPO, Volunteer, UserRole, User
+from app.models import News, NewsTag, NewsAttachment, NPO, Volunteer, UserRole, User, NewsStatus
 from app.schemas import NewsCreate, NewsResponse, NewsUpdate
 from app.auth import get_current_user
 from app.moderation_service import moderate_content
@@ -121,7 +121,9 @@ async def get_all_news(
             user_id=news.user_id,
             author=author,
             is_auto_moderated=news.is_auto_moderated,
-            auto_moderated_at=news.auto_moderated_at
+            auto_moderated_at=news.auto_moderated_at,
+            status=news.status,
+            explanation=news.explanation
         ))
     
     return result
@@ -176,7 +178,9 @@ async def get_my_news(
             user_id=news.user_id,
             author=author,
             is_auto_moderated=news.is_auto_moderated,
-            auto_moderated_at=news.auto_moderated_at
+            auto_moderated_at=news.auto_moderated_at,
+            status=news.status,
+            explanation=news.explanation
         ))
     
     return result
@@ -206,7 +210,9 @@ async def get_news_by_id(news_id: int, db: Session = Depends(get_db)):
         type=news.type,
         created_at=news.created_at,
         user_id=news.user_id,
-        author=author
+        author=author,
+        status=news.status,
+        explanation=news.explanation
     )
 
 @router.post("", response_model=NewsResponse, status_code=status.HTTP_201_CREATED)
@@ -247,7 +253,9 @@ async def create_news(
         name=news_data.name,
         annotation=news_data.annotation,
         text=news_data.text,
-        type=news_data.type
+        type=news_data.type,
+        status=news_data.status,
+        explanation=news_data.explanation
     )
     db.add(news)
     db.flush()
@@ -291,6 +299,18 @@ async def create_news(
                 # Помечаем как проверенное независимо от результата (админ может пересмотреть)
                 news_item.is_auto_moderated = True
                 news_item.auto_moderated_at = datetime.now(timezone.utc)
+
+                # Обновляем статус новости в зависимости от результата модерации
+                if moderation_result.get("approved", False):
+                    news_item.status = NewsStatus.PUBLISHED
+                else:
+                    news_item.status = NewsStatus.REJECTED
+
+                # Сохраняем пояснение модерации
+                reason = moderation_result.get("reason")
+                if reason:
+                    news_item.explanation = reason
+
                 db_session.commit()
                 
                 if moderation_result.get("approved", False):
@@ -346,6 +366,7 @@ async def create_news(
         name=news.name,
         annotation=news.annotation,
         text=news.text,
+        city=news.city,
         attachedIds=attached_ids,
         tags=tags,
         type=news.type,
@@ -353,7 +374,9 @@ async def create_news(
         user_id=news.user_id,
         author=author,
         is_auto_moderated=news.is_auto_moderated,
-        auto_moderated_at=news.auto_moderated_at
+        auto_moderated_at=news.auto_moderated_at,
+        status=news.status,
+        explanation=news.explanation,
     )
 
 @router.put("/{news_id}", response_model=NewsResponse)
@@ -398,6 +421,10 @@ async def update_news(
                 detail="Волонтеры не могут редактировать новости. Используйте раздел блогов."
             )
         news.type = news_update.type
+    if news_update.status is not None:
+        news.status = news_update.status
+    if news_update.explanation is not None:
+        news.explanation = news_update.explanation
     
     # Обновление тегов
     if news_update.tags is not None:
@@ -425,6 +452,7 @@ async def update_news(
         name=news.name,
         annotation=news.annotation,
         text=news.text,
+        city=news.city,
         attachedIds=attached_ids,
         tags=tags,
         type=news.type,
@@ -432,7 +460,9 @@ async def update_news(
         user_id=news.user_id,
         author=author,
         is_auto_moderated=news.is_auto_moderated,
-        auto_moderated_at=news.auto_moderated_at
+        auto_moderated_at=news.auto_moderated_at,
+        status=news.status,
+        explanation=news.explanation,
     )
 
 @router.delete("/{news_id}")
