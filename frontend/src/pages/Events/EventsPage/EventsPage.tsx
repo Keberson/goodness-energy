@@ -35,7 +35,7 @@ import { useUploadFileMutation } from "@services/api/files.api";
 import type { IEvent } from "@app-types/events.types";
 import type { IEventCreateRequest } from "@services/api/npo.api";
 import { useMemo, useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useNavigate, useSearchParams, useLocation } from "react-router-dom";
 import useAppSelector from "@hooks/useAppSelector";
 import { useCity } from "@hooks/useCity";
 import { skipToken } from "@reduxjs/toolkit/query";
@@ -49,12 +49,12 @@ const { RangePicker } = DatePicker;
 const { Option } = Select;
 
 const EventsPage = () => {
-    const { currentCity } = useCity();
-    const { availableCities } = useCity();
+    const { currentCity, availableCities, changeCity } = useCity();
     const { data: allEvents, isLoading, refetch: refetchEvents } = useGetEventsQuery(currentCity);
     const { data: eventTags = [] } = useGetEventTagsQuery();
     const { message } = App.useApp();
     const [searchParams, setSearchParams] = useSearchParams();
+    const location = useLocation();
     const dateParam = searchParams.get("date");
     
     // Состояние для фильтрации по тегам
@@ -122,6 +122,27 @@ const EventsPage = () => {
     const isVolunteer = isAuthenticated && userType === "volunteer";
     const isNPO = isAuthenticated && userType === "npo";
     const navigate = useNavigate();
+
+    // Определяем, пришёл ли админ из страницы модерации и с какой вкладки
+    const navState = location.state as
+        | {
+              fromAdminModeration?: boolean;
+              moderationTab?: string;
+              moderationCity?: string;
+          }
+        | null;
+    // Флаг прихода из модерации можно получить как из state, так и из query-параметра
+    const fromModerationParam = searchParams.get("fromModeration");
+    const fromAdminModeration = navState?.fromAdminModeration || fromModerationParam === "1";
+    const moderationTab = navState?.moderationTab || (fromAdminModeration ? "events" : undefined);
+    const moderationCity = navState?.moderationCity;
+
+    // Если админ пришёл из модерации события, переключаем глобальный город на город события
+    useEffect(() => {
+        if (fromAdminModeration && moderationCity && moderationCity !== currentCity) {
+            changeCity(moderationCity);
+        }
+    }, [fromAdminModeration, moderationCity, currentCity, changeCity]);
     
     // Получаем данные НКО для проверки статуса
     const { data: npoData } = useGetNPOByIdQuery(isNPO && userId ? userId : skipToken);
@@ -511,6 +532,20 @@ const EventsPage = () => {
         <div className="events-page">
             <div className="events-page__container">
                 <Card className="events-page__card" loading={isLoading}>
+                    {fromAdminModeration && (
+                        <Button
+                            type="link"
+                            icon={<LeftOutlined />}
+                            onClick={() =>
+                                navigate("/moderation", {
+                                    state: moderationTab ? { initialTab: moderationTab } : undefined,
+                                })
+                            }
+                            style={{ marginBottom: 16, padding: 0 }}
+                        >
+                            Назад к модерации событий
+                        </Button>
+                    )}
                     <Flex justify="space-between" align="center" style={{ marginBottom: 24 }}>
                         <Title level={3} className="events-page__title" style={{ margin: 0 }}>
                             Календарь событий в городе {currentCity}

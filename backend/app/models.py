@@ -19,6 +19,11 @@ class VolunteerPostStatus(str, enum.Enum):
     APPROVED = "approved"  # Одобрено
     REJECTED = "rejected"  # Отклонено
 
+class NewsStatus(str, enum.Enum):
+    PUBLISHED = "published"  # Опубликовано
+    REJECTED = "rejected"  # Отклонено
+    PENDING = "pending"  # На проверке
+
 class EventStatus(str, enum.Enum):
     DRAFT = "draft"
     PUBLISHED = "published"
@@ -227,6 +232,8 @@ class News(Base):
     # Поля для автоматической модерации
     is_auto_moderated = Column(Boolean, default=False, server_default='false', nullable=False)  # Проверено ли автоматически
     auto_moderated_at = Column(DateTime(timezone=True), nullable=True)  # Дата автоматической модерации
+    status = Column(SQLEnum(NewsStatus), default=NewsStatus.PUBLISHED, nullable=False)  # Статус новости
+    explanation = Column(Text, nullable=True)  # Пояснение модератора, если есть
     
     user = relationship("User", foreign_keys=[user_id])
     npo = relationship("NPO", back_populates="news")

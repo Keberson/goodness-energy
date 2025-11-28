@@ -20,6 +20,15 @@ const NewsPage = () => {
 
     // Определяем, это пост волонтера или новость
     const isVolunteerPost = location.pathname.startsWith("/volunteer-posts");
+    // Проверяем, пришли ли мы из админской модерации новостей и с какой вкладки
+    const navState = location.state as
+        | {
+              fromAdminModeration?: boolean;
+              moderationTab?: string;
+          }
+        | null;
+    const fromAdminModeration = navState?.fromAdminModeration;
+    const moderationTab = navState?.moderationTab;
 
     // Используем соответствующий API
     const {
@@ -124,10 +133,22 @@ const NewsPage = () => {
                     <Button
                         type="link"
                         icon={<ArrowLeftOutlined />}
-                        onClick={() => navigate(isVolunteerPost ? "/volunteer-posts" : "/news")}
+                        onClick={() => {
+                            if (!isVolunteerPost && fromAdminModeration) {
+                                navigate("/moderation", {
+                                    state: moderationTab ? { initialTab: moderationTab } : undefined,
+                                });
+                            } else {
+                                navigate(isVolunteerPost ? "/volunteer-posts" : "/news");
+                            }
+                        }}
                         style={{ padding: 0 }}
                     >
-                        {isVolunteerPost ? "Назад к списку историй" : "Назад к списку новостей"}
+                        {isVolunteerPost
+                            ? "Назад к списку историй"
+                            : fromAdminModeration
+                            ? "Назад к модерации новостей"
+                            : "Назад к списку новостей"}
                     </Button>
                     <Space>
                         {!isVolunteerPost && <FavoriteButton itemType="news" itemId={data.id} />}

@@ -1,7 +1,7 @@
 from pydantic import BaseModel, EmailStr
 from typing import Optional, List
 from datetime import datetime
-from app.models import NewsType, EventStatus, NPOStatus, VolunteerPostStatus, NPOCity, FavoriteType
+from app.models import NewsType, EventStatus, NPOStatus, VolunteerPostStatus, NPOCity, FavoriteType, NewsStatus
 
 # Схемы аутентификации
 class UserLogin(BaseModel):
@@ -203,6 +203,8 @@ class NewsCreate(BaseModel):
     attachedIds: Optional[List[int]] = None
     tags: Optional[List[str]] = None
     type: NewsType
+    status: Optional[NewsStatus] = NewsStatus.PENDING # Статус новости, по умолчанию на проверке
+    explanation: Optional[str] = None # Пояснение модератора, если есть
 
 class NewsUpdate(BaseModel):
     name: Optional[str] = None
@@ -212,6 +214,8 @@ class NewsUpdate(BaseModel):
     attachedIds: Optional[List[int]] = None
     tags: Optional[List[str]] = None
     type: Optional[NewsType] = None
+    status: Optional[NewsStatus] = None # Статус новости
+    explanation: Optional[str] = None # Пояснение модератора, если есть
 
 class NewsResponse(BaseModel):
     id: int
@@ -227,9 +231,8 @@ class NewsResponse(BaseModel):
     author: str  # Имя автора: для волонтёра - имя и фамилия, для НКО - название НКО, для админа - "Администратор"
     is_auto_moderated: bool = False  # Проверено ли автоматически
     auto_moderated_at: Optional[datetime] = None  # Дата автоматической модерации
-    
-    class Config:
-        from_attributes = True
+    status: NewsStatus # Статус новости
+    explanation: Optional[str] = None # Пояснение модератора, если есть
 
 # Схемы блогов волонтеров
 class VolunteerPostCreate(BaseModel):

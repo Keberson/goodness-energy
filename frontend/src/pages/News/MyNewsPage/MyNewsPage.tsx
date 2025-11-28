@@ -7,6 +7,7 @@ import type { INews } from "@app-types/news.types";
 import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
 import useAppSelector from "@hooks/useAppSelector";
 import { skipToken } from "@reduxjs/toolkit/query";
+import { getNewsStatusLabel, getNewsStatusColor } from "@utils/newsStatus";
 
 const { Title } = Typography;
 
@@ -23,7 +24,7 @@ const MyNewsPage = () => {
     const { data: npoData } = useGetNPOByIdQuery(isNPO && userId ? userId : skipToken);
     const isNPOConfirmed = isNPO && npoData?.status === "confirmed";
     // Волонтёры и админы могут создавать новости, НКО - только подтверждённые
-    const canCreateNews = !isNPO || isNPOConfirmed;
+    const canCreateNews = (isNPO && isNPOConfirmed) || userType === "admin";
 
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
@@ -128,6 +129,9 @@ const MyNewsPage = () => {
                                             />
                                             <Tag color={getTypeColor(item.type)}>
                                                 {getTypeLabel(item.type)}
+                                            </Tag>
+                                            <Tag color={getNewsStatusColor(item.status)}>
+                                                {getNewsStatusLabel(item.status)}
                                             </Tag>
                                         </Space>
                                     }
