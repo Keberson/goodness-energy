@@ -2,8 +2,8 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session, joinedload
 from typing import List
 from app.database import get_db
-from app.models import Favorite, FavoriteType, News, Event, Knowledge, User, NewsTag, NewsAttachment, EventTag, EventAttachment, KnowledgeTag, KnowledgeAttachment, NPO, Volunteer, EventResponse as EventResponseModel
-from app.schemas import FavoriteCreate, FavoriteResponse, FavoriteItemResponse, NewsResponse, EventResponse, KnowledgeResponse
+from app.models import Favorite, FavoriteType, News, Event, Knowledge, User, NewsTag, NewsAttachment, EventTag, EventAttachment, KnowledgeTag, KnowledgeAttachment, NPO, Volunteer, EventResponse as EventResponseModel, VolunteerPost
+from app.schemas import FavoriteCreate, FavoriteResponse, FavoriteItemResponse, NewsResponse, EventResponse, KnowledgeResponse, VolunteerPostResponse
 from app.auth import get_current_user
 import logging
 
@@ -87,6 +87,13 @@ async def add_favorite(
             raise HTTPException(
                 status_code=status.HTTP_404_NOT_FOUND,
                 detail="Материал не найден"
+            )
+    elif favorite_data.item_type == FavoriteType.VOLUNTEER_POST:
+        item = db.query(VolunteerPost).filter(VolunteerPost.id == favorite_data.item_id).first()
+        if not item:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="История волонтера не найдена"
             )
     
     # Проверка, не добавлен ли уже элемент в избранное
@@ -195,6 +202,34 @@ async def get_favorites(
                     tags=tags,
                     links=knowledge.links,
                     created_at=knowledge.created_at
+                ).model_dump()
+        
+        elif favorite.item_type == FavoriteType.VOLUNTEER_POST:
+            post = db.query(VolunteerPost).filter(VolunteerPost.id == favorite.item_id).first()
+            if post:
+                tags = [t.tag for t in post.tags]
+                attached_ids = [a.file_id for a in post.attachments]
+                # Автор уже проставляется в VolunteerPostResponse через сервис постов
+                item_data = VolunteerPostResponse(
+                    id=post.id,
+                    name=post.name,
+                    annotation=post.annotation,
+                    text=post.text,
+                    city=post.city,
+                    theme_tag=post.theme_tag,
+                    npo_id=post.npo_id,
+                    npo_name=post.npo.name if post.npo else None,
+                    status=post.status,
+                    moderator_id=post.moderator_id,
+                    moderation_comment=post.moderation_comment,
+                    attachedIds=attached_ids,
+                    tags=tags,
+                    created_at=post.created_at,
+                    updated_at=post.updated_at,
+                    moderated_at=post.moderated_at,
+                    user_id=post.user_id,
+                    volunteer_id=post.volunteer_id,
+                    author=f"{post.volunteer.first_name} {post.volunteer.second_name}" if post.volunteer else "Неизвестный автор",
                 ).model_dump()
         
         if item_data:

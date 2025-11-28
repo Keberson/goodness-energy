@@ -114,6 +114,25 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
     const newsData = getFilteredNews(newsDataRaw);
     const newsLoading = activeTab === "my" ? isLoadingMy : isLoadingAll;
 
+    const tabsItems = [
+        {
+            key: "all",
+            label: activeSection === "posts" ? "Все истории" : "Все новости",
+        },
+        // Вкладка "Мои истории" показывается только волонтёрам,
+        // вкладка "Мои новости" — только НКО и администраторам, но не волонтёрам
+        ...(isAuthenticated &&
+        ((activeSection === "posts" && isVolunteer) ||
+            (activeSection === "news" && userType !== "volunteer"))
+            ? [
+                  {
+                      key: "my",
+                      label: activeSection === "posts" ? "Мои истории" : "Мои новости",
+                  },
+              ]
+            : []),
+    ];
+
     const getTypeLabel = (type: string) => {
         const labels: Record<string, string> = {
             theme: "Публикация",
@@ -219,6 +238,12 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                             <Title level={4} style={{ margin: 0 }}>
                                 {item.name}
                             </Title>
+                            <FavoriteButton
+                                key="favorite"
+                                itemType="volunteer_post"
+                                itemId={item.id}
+                                size="small"
+                            />
                             {item.status && item.status !== "approved" && (
                                 <Tag color={getStatusColor(item.status)}>{getStatusLabel(item.status)}</Tag>
                             )}
@@ -465,25 +490,14 @@ const NewsListPage = ({ section }: NewsListPageProps) => {
                         )}
                     </Space>
                 </Flex>
-                <Tabs
-                    activeKey={activeTab}
-                    onChange={setActiveTab}
-                    items={[
-                        {
-                            key: "all",
-                            label: activeSection === "posts" ? "Все истории" : "Все новости",
-                        },
-                        ...(isAuthenticated && (activeSection === "posts" ? isVolunteer : true)
-                            ? [
-                                  {
-                                      key: "my",
-                                      label: activeSection === "posts" ? "Мои истории" : "Мои новости",
-                                  },
-                              ]
-                            : []),
-                    ]}
-                    style={{ marginBottom: 24 }}
-                />
+                {tabsItems.length > 1 && (
+                    <Tabs
+                        activeKey={activeTab}
+                        onChange={setActiveTab}
+                        items={tabsItems}
+                        style={{ marginBottom: 24 }}
+                    />
+                )}
                 {activeSection === "posts" ? (
                     postsLoading ? (
                         <List loading={postsLoading} />

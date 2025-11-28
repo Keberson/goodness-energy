@@ -6,6 +6,7 @@ import type { IFavoriteItem, FavoriteType } from "@app-types/favorites.types";
 import type { INews } from "@app-types/news.types";
 import type { IEvent } from "@app-types/events.types";
 import type { IKnowledge } from "@app-types/knowledges.types";
+import type { IVolunteerPost } from "@app-types/volunteer-posts.types";
 import { useNavigate } from "react-router-dom";
 import dayjs from "dayjs";
 import { useCity } from "@hooks/useCity";
@@ -23,11 +24,12 @@ const FavoritesPage = () => {
             news: "Новости",
             event: "События",
             knowledge: "Материалы",
+            volunteer_post: "Истории волонтёров",
         };
         return labels[type];
     };
 
-    const handleItemClick = (itemType: FavoriteType, itemId: number, item?: INews | IEvent | IKnowledge) => {
+    const handleItemClick = (itemType: FavoriteType, itemId: number, item?: INews | IEvent | IKnowledge | IVolunteerPost) => {
         if (itemType === "news") {
             navigate(`/news/${itemId}`);
         } else if (itemType === "event" && item) {
@@ -44,6 +46,8 @@ const FavoritesPage = () => {
             navigate(`/events?date=${eventDate}`);
         } else if (itemType === "knowledge") {
             navigate(`/knowledges/${itemId}`);
+        } else if (itemType === "volunteer_post") {
+            navigate(`/volunteer-posts/${itemId}`);
         }
     };
 
@@ -183,6 +187,45 @@ const FavoritesPage = () => {
         </Card>
     );
 
+    const renderVolunteerPostItem = (item: IVolunteerPost) => (
+        <Card
+            hoverable
+            onClick={() => handleItemClick("volunteer_post", item.id, item)}
+            style={{ marginBottom: 16 }}
+        >
+            <Space direction="vertical" size="small" style={{ width: "100%" }}>
+                <div>
+                    <Space align="center" wrap>
+                        <Title level={4} style={{ margin: 0 }}>
+                            {item.name}
+                        </Title>
+                        <FavoriteButton itemType="volunteer_post" itemId={item.id} size="small" />
+                    </Space>
+                </div>
+                {item.annotation && (
+                    <Paragraph ellipsis={{ rows: 2 }} style={{ margin: 0 }}>
+                        {item.annotation}
+                    </Paragraph>
+                )}
+                <Space wrap>
+                    {item.tags.map((tag) => (
+                        <Tag key={tag} color={getTagColor(tag)}>
+                            {tag}
+                        </Tag>
+                    ))}
+                    {item.city && (
+                        <Text type="secondary">
+                            {item.city}
+                        </Text>
+                    )}
+                    <Text type="secondary">
+                        <CalendarOutlined /> {dayjs(item.created_at).format("DD.MM.YYYY")}
+                    </Text>
+                </Space>
+            </Space>
+        </Card>
+    );
+
     const renderFavoriteItem = (favorite: IFavoriteItem) => {
         if (favorite.item_type === "news") {
             return renderNewsItem(favorite.item as INews);
@@ -190,6 +233,8 @@ const FavoritesPage = () => {
             return renderEventItem(favorite.item as IEvent);
         } else if (favorite.item_type === "knowledge") {
             return renderKnowledgeItem(favorite.item as IKnowledge);
+        } else if (favorite.item_type === "volunteer_post") {
+            return renderVolunteerPostItem(favorite.item as IVolunteerPost);
         }
         return null;
     };
