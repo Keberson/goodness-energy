@@ -11,8 +11,9 @@ import { getApiBaseUrl } from "@utils/apiUrl";
 import FilePreview from "@components/FilePreview/FilePreview";
 import VideoPlayer from "@components/VideoPlayer/VideoPlayer";
 import FavoriteButton from "@components/FavoriteButton/FavoriteButton";
+import NewsContent from "@components/NewsContent/NewsContent";
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Text } = Typography;
 
 const KnowledgeDetailPage = () => {
     const { id } = useParams<{ id: string }>();
@@ -61,13 +62,10 @@ const KnowledgeDetailPage = () => {
                 headers["authorization"] = `Bearer ${token}`;
             }
 
-            const response = await fetch(
-                `${getApiBaseUrl()}/knowledges/${id}/download`,
-                {
-                    method: "GET",
-                    headers,
-                }
-            );
+            const response = await fetch(`${getApiBaseUrl()}/knowledges/${id}/download`, {
+                method: "GET",
+                headers,
+            });
 
             if (!response.ok) {
                 throw new Error("Не удалось скачать файлы");
@@ -77,7 +75,9 @@ const KnowledgeDetailPage = () => {
             const contentDisposition = response.headers.get("content-disposition");
             let filename = `knowledge_${id}_files.zip`;
             if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+                const filenameMatch = contentDisposition.match(
+                    /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/
+                );
                 if (filenameMatch && filenameMatch[1]) {
                     filename = filenameMatch[1].replace(/['"]/g, "");
                     // Декодируем UTF-8 имя файла если есть
@@ -126,7 +126,9 @@ const KnowledgeDetailPage = () => {
                     <Space direction="vertical" size="large" style={{ width: "100%" }}>
                         <div>
                             <Space align="center" wrap style={{ marginBottom: 8 }}>
-                                <Title level={2} style={{ margin: 0 }}>{data.name}</Title>
+                                <Title level={2} style={{ margin: 0 }}>
+                                    {data.name}
+                                </Title>
                                 <FavoriteButton itemType="knowledge" itemId={data.id} />
                                 {isAdmin && (
                                     <Button
@@ -150,9 +152,13 @@ const KnowledgeDetailPage = () => {
 
                         <div>
                             <Title level={4}>Описание</Title>
-                            <Paragraph style={{ fontSize: "16px", lineHeight: 1.6 }}>
-                                {data.text}
-                            </Paragraph>
+                            {data.text && (
+                                <NewsContent
+                                    html={data.text}
+                                    className="news-content"
+                                    style={{ fontSize: 16, lineHeight: 1.6 }}
+                                />
+                            )}
                         </div>
 
                         <div>
@@ -164,14 +170,26 @@ const KnowledgeDetailPage = () => {
 
                         {data.attachedIds && data.attachedIds.length > 0 && (
                             <div>
-                                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                                    <Title level={4} style={{ margin: 0 }}>Прикрепленные файлы</Title>
+                                <div
+                                    style={{
+                                        display: "flex",
+                                        justifyContent: "space-between",
+                                        alignItems: "center",
+                                        marginBottom: 16,
+                                    }}
+                                >
+                                    <Title level={4} style={{ margin: 0 }}>
+                                        Прикрепленные файлы
+                                    </Title>
                                     <Button
                                         type="primary"
                                         icon={<DownloadOutlined />}
                                         onClick={handleDownloadAllFiles}
                                     >
-                                        Скачать все файлы {data.attachedIds.length > 1 ? `(${data.attachedIds.length})` : ""}
+                                        Скачать все файлы{" "}
+                                        {data.attachedIds.length > 1
+                                            ? `(${data.attachedIds.length})`
+                                            : ""}
                                     </Button>
                                 </div>
                                 <Carousel

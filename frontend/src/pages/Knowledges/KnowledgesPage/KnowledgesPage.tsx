@@ -368,14 +368,7 @@ const KnowledgesPage = () => {
                                             </Space>
                                         </Space>
                                     }
-                                    description={
-                                        <Paragraph
-                                            style={{ marginBottom: 0 }}
-                                            ellipsis={{ rows: 2, expandable: "collapsible" }}
-                                        >
-                                            {item.text}
-                                        </Paragraph>
-                                    }
+                                    // Description intentionally omitted — text may contain HTML tags, we show full content on detail page
                                 />
 
                                 <div style={{ marginTop: 8 }}>
