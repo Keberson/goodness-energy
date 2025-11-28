@@ -38,7 +38,7 @@ import { useUploadFileMutation } from "@services/api/files.api";
 import { getApiBaseUrl } from "@utils/apiUrl";
 import useAppSelector from "@hooks/useAppSelector";
 
-const { Title, Paragraph, Text } = Typography;
+const { Title, Text } = Typography;
 const { TextArea } = Input;
 
 const KnowledgesPage = () => {
@@ -368,14 +368,7 @@ const KnowledgesPage = () => {
                                             </Space>
                                         </Space>
                                     }
-                                    description={
-                                        <Paragraph
-                                            style={{ marginBottom: 0 }}
-                                            ellipsis={{ rows: 2, expandable: "collapsible" }}
-                                        >
-                                            {item.text}
-                                        </Paragraph>
-                                    }
+                                    // Description intentionally omitted — text may contain HTML tags, we show full content on detail page
                                 />
 
                                 <div style={{ marginTop: 8 }}>
