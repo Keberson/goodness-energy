@@ -159,7 +159,7 @@ const HomePage = () => {
 
             <Card
                 title={
-                    <Flex align="center" gap={8}>
+                    <Flex aligfan="center" gap={8}>
                         <PlayCircleOutlined />
                         Быстрый старт
                     </Flex>
