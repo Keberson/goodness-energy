@@ -786,6 +786,80 @@ VALUES (
 );
 
 -- ============================================
+-- Истории волонтёров (блоги)
+-- ============================================
+
+INSERT INTO volunteer_posts (user_id, volunteer_id, name, annotation, text, city, theme_tag, npo_id, status, created_at)
+VALUES (
+  (SELECT id FROM users WHERE login = 'vol1'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  'Мой первый субботник в Глазове',
+  'Как мы вместе с командой убирали парк и знакомились друг с другом.',
+  'В эту субботу мы собрались в городском парке Глазова, чтобы навести порядок после зимы. Я переживал, что никого не узнаю, но уже через час мы работали как одна команда. Разделились на группы, собрали несколько десятков мешков мусора, а в конце устроили маленький пикник. Понял, что волонтёрство — это не только про пользу городу, но и про новых друзей.',
+  'Глазов',
+  'Экология',
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')),
+  'APPROVED',
+  '2025-10-10 11:00:00'
+);
+
+INSERT INTO volunteer_posts (user_id, volunteer_id, name, annotation, text, city, theme_tag, npo_id, status, created_at)
+VALUES (
+  (SELECT id FROM users WHERE login = 'vol1'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  'Как мы проводили занятия для школьников',
+  'Небольшой рассказ о том, как прошёл мой первый опыт работы с детьми.',
+  'Я давно хотел попробовать себя в просветительских проектах, и НКО пригласила меня помочь с циклом занятий для школьников. Сначала было страшно выходить к классу, но дети быстро вовлеклись: мы говорили о добровольчестве, играли в командные игры и разбирали реальные истории помощи. В конце ребята сами придумали мини-проекты для своего двора.',
+  'Глазов',
+  'Образование',
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')),
+  'APPROVED',
+  '2025-10-15 15:30:00'
+);
+
+INSERT INTO volunteer_posts (user_id, volunteer_id, name, annotation, text, city, theme_tag, npo_id, status, created_at)
+VALUES (
+  (SELECT id FROM users WHERE login = 'vol2'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol2')),
+  'Экологический рейд по Ангарску',
+  'Опыт участия в городском эко-рейде вместе с местными активистами.',
+  'В Ангарске мы вместе с экологическим движением провели рейд по дворам, где жители жаловались на свалки. Мы фиксировали проблемные точки, общались с соседями, рассказывали о возможностях раздельного сбора. Для меня это был первый опыт уличной коммуникации — оказалось, что многие готовы подключаться, если им объяснить, куда и как можно сдать отходы.',
+  'Ангарск',
+  'Экология',
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo1')),
+  'APPROVED',
+  '2025-10-20 12:00:00'
+);
+
+INSERT INTO volunteer_posts (user_id, volunteer_id, name, annotation, text, city, theme_tag, npo_id, status, created_at)
+VALUES (
+  (SELECT id FROM users WHERE login = 'vol2'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol2')),
+  'Помощь одиноким пожилым людям',
+  'История о том, как одно волонтёрское дежурство изменило мой взгляд на заботу.',
+  'Через фонд мы навещали одиноких пожилых людей: приносили продукты, помогали с мелкими делами и просто разговаривали. Одна женщина рассказала, что давно не выходила из дома и почти ни с кем не общается. После нашего визита она попросила ещё раз прийти и помочь ей записаться в кружок при центре соцобслуживания. Понял, насколько важны даже небольшие регулярные встречи.',
+  'Волгодонск',
+  'Социальная помощь',
+  (SELECT id FROM npos WHERE user_id = (SELECT id FROM users WHERE login = 'npo3')),
+  'APPROVED',
+  '2025-10-25 10:00:00'
+);
+
+INSERT INTO volunteer_posts (user_id, volunteer_id, name, annotation, text, city, theme_tag, npo_id, status, created_at)
+VALUES (
+  (SELECT id FROM users WHERE login = 'vol1'),
+  (SELECT id FROM volunteers WHERE user_id = (SELECT id FROM users WHERE login = 'vol1')),
+  'Почему я продолжаю волонтёрить',
+  'Личное отражение о том, что даёт мне добровольчество спустя год.',
+  'Ровно год назад я впервые пришёл на волонтёрское мероприятие и не представлял, насколько сильно это изменит мою жизнь. Я научился планировать время, работать в команде, не бояться сложных задач и говорить о своих идеях. Главное — я стал лучше понимать людей вокруг и город, в котором живу. Волонтёрство для меня — это способ чувствовать, что ты не просто наблюдаешь, а реально что-то меняешь.',
+  'Глазов',
+  'Культура',
+  NULL,
+  'APPROVED',
+  '2025-11-01 18:45:00'
+);
+
+-- ============================================
 -- События
 -- ============================================
 

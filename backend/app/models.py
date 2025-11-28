@@ -363,6 +363,7 @@ class FavoriteType(str, enum.Enum):
     NEWS = "news"
     EVENT = "event"
     KNOWLEDGE = "knowledge"
+    VOLUNTEER_POST = "volunteer_post"
 
 class Favorite(Base):
     __tablename__ = "favorites"

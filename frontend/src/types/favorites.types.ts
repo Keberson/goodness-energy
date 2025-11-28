@@ -1,8 +1,9 @@
 import type { INews } from "./news.types";
 import type { IEvent } from "./events.types";
 import type { IKnowledge } from "./knowledges.types";
+import type { IVolunteerPost } from "./volunteer-posts.types";
 
-export type FavoriteType = "news" | "event" | "knowledge";
+export type FavoriteType = "news" | "event" | "knowledge" | "volunteer_post";
 
 export interface IFavorite {
     id: number;
@@ -22,7 +23,7 @@ export interface IFavoriteItem {
     item_type: FavoriteType;
     item_id: number;
     created_at: string;
-    item: INews | IEvent | IKnowledge;
+    item: INews | IEvent | IKnowledge | IVolunteerPost;
 }
 
 export interface IFavoriteCheck {
